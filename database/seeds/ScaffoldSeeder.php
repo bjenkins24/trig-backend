@@ -4,7 +4,7 @@ use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 
-class ScaffoldSeeder extends Seeder
+class UserSeeder extends Seeder
 {
     /**
      * Main user account.
@@ -28,8 +28,10 @@ class ScaffoldSeeder extends Seeder
 
         $user = User::where('email', 'john.doe@trytrig.com')->first();
 
-        factory(Person::class, 10)->create([
-            'user_id' => $user->getKey(),
-        ]);
+        if (! $user) {
+            factory(User::class, 1)->create([
+                'email' => 'john.doe@trytrig.com',
+            ]);
+        }
     }
 }
