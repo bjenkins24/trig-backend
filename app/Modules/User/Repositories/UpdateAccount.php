@@ -9,9 +9,6 @@ class UpdateAccount
     /**
      * Update a user's account.
      *
-     * @param User  $user
-     * @param array $input
-     *
      * @return User
      */
     public function handle(User $user, array $input)

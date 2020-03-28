@@ -10,8 +10,6 @@ class CreateAccount
     /**
      * Create new user account.
      *
-     * @param array $input
-     *
      * @return User
      */
     public function handle(array $input)

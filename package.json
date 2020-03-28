@@ -9,13 +9,40 @@
         "prod": "npm run production",
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
     },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.php": "vendor/bin/php-cs-fixer fix --config=./.php_cs"
+    },
     "devDependencies": {
         "axios": "^0.19",
         "cross-env": "^7.0",
+        "husky": "^4.2.3",
         "laravel-mix": "^5.0.1",
+        "lint-staged": "^10.0.9",
         "lodash": "^4.17.13",
         "resolve-url-loader": "^3.1.0",
         "sass": "^1.15.2",
         "sass-loader": "^8.0.0"
-    }
+    },
+    "name": "trig-backend",
+    "description": "<p align=\"center\"><img src=\"https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg\" width=\"400\"></p>",
+    "version": "1.0.0",
+    "main": "webpack.mix.js",
+    "directories": {
+        "test": "tests"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bjenkins24/trig-backend.git"
+    },
+    "author": "",
+    "license": "UNLICENSED",
+    "bugs": {
+        "url": "https://github.com/bjenkins24/trig-backend/issues"
+    },
+    "homepage": "https://github.com/bjenkins24/trig-backend#readme"
 }
