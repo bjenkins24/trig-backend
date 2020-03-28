@@ -40,14 +40,4 @@ class UserService
     {
         return $this->create->handle($input);
     }
-
-    /**
-     * Update user's account.
-     *
-     * @return User
-     */
-    public function updateAccount(User $user, array $input)
-    {
-        return $this->update->handle($user, $input);
-    }
 }
