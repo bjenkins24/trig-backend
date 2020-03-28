@@ -5,6 +5,7 @@ namespace App\Support\Traits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Passport\Client;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait HandlesAuth
 {
@@ -15,8 +16,9 @@ trait HandlesAuth
      */
     private function authResponse(array $args)
     {
+        Arr::set($args, 'username', $args['email']);
+
         $data = array_merge($args, [
-            'username'   => $args['email'],
             'grant_type' => 'password',
             'scope'      => '',
         ]);
@@ -25,7 +27,6 @@ trait HandlesAuth
             'HTTP_Accept' => 'application/json',
         ]);
 
-        // TODO: Catch potential exception
         $response = app()->handle($request);
 
         return json_decode($response->getContent(), true);
@@ -46,7 +47,7 @@ trait HandlesAuth
         ]));
 
         if (Arr::has($response, 'error')) {
-            echo $response['error'];
+            throw new HttpException(500, $response['error']);
         }
 
         return $response;
