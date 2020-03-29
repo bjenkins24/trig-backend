@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Modules\User\UserService;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,19 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        $this->user->createAccount($request->all());
+        $rules = [
+            'email'     => 'required',
+            'password'  => 'required',
+            'terms'     => 'required',
+        ];
+        $request->validate($rules);
+
+        if (User::where('email', $request->get('email'))) {
+            return response()->json([
+               'error' => 'user_exists', 'message' => 'The email you tried to register already exists',
+            ], 200);
+        }
+
+        return $this->user->createAccount($request->all());
     }
 }

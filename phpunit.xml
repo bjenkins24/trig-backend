@@ -3,6 +3,16 @@
          xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true">
+    <logging>
+        <log 
+            type="coverage-html" 
+            target="./coverage" 
+            charset="UTF-8"
+            yui="true" 
+            highlight="true"
+            lowUpperBound="50" highLowerBound="100" 
+        />
+    </logging>
     <testsuites>
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
@@ -13,6 +23,13 @@
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
+            <exclude>
+                <file>./app/Http/Middleware/Authenticate.php</file>
+                <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
+                <file>./app/Providers/BroadcastServiceProvider.php</file>
+                <directory suffix=".php">./app/Events</directory>
+                <directory suffix=".php">./app/Console</directory>
+            </exclude>
             <directory suffix=".php">./app</directory>
         </whitelist>
     </filter>

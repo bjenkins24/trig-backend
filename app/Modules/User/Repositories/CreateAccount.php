@@ -15,7 +15,7 @@ class CreateAccount
     public function handle(array $input)
     {
         $attrs = collect($input)->except([
-            'password_confirmation', 'password',
+            'password', 'terms',
         ])
         ->filter()
         ->merge(['password' => bcrypt($input['password'])])
