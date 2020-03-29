@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('login', 'AuthController@login');
+Route::post('register', 'UserController@register');
+Route::middleware('auth:api')->get('/me', 'UserController@me');
+
+Route::fallback(function () {
+    return response()->json([
+        'message' => 'Page Not Found. If the error persists, contact info@trytrig.com', ], 404);
 });
