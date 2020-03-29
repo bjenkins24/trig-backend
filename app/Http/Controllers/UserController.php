@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Modules\User\UserService;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
+    /**
+     * @var UserService
+     */
+    private $user;
+
+    public function __construct(UserService $user)
     {
-        return User::all();
+        $this->user = $user;
     }
 
-    public function show(User $user)
+    /**
+     * Return the logged in user.
+     */
+    public function me(Request $request)
     {
-        return $user;
+        return $request->user();
+    }
+
+    /**
+     * Register a new user account.
+     *
+     * @return void
+     */
+    public function register(Request $request)
+    {
+        $this->user->createAccount($request->all());
     }
 }

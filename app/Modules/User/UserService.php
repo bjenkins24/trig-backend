@@ -4,7 +4,6 @@ namespace App\Modules\User;
 
 use App\Models\User;
 use App\Modules\User\Repositories\CreateAccount;
-use App\Modules\User\Repositories\UpdateAccount;
 
 class UserService
 {
@@ -16,19 +15,11 @@ class UserService
     protected $create;
 
     /**
-     * Update account repository.
-     *
-     * @var UpdateAccount
-     */
-    protected $update;
-
-    /**
      * Create instance of user service.
      */
-    public function __construct(CreateAccount $create, UpdateAccount $update)
+    public function __construct(CreateAccount $create)
     {
         $this->create = $create;
-        $this->update = $update;
     }
 
     /**

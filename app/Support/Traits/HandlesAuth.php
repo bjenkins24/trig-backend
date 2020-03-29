@@ -47,7 +47,7 @@ trait HandlesAuth
         ]));
 
         if (Arr::has($response, 'error')) {
-            throw new HttpException(500, $response['error']);
+            throw new HttpException(200, $response['error']);
         }
 
         return $response;
