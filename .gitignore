@@ -4,6 +4,7 @@
 /storage/*.key
 /vendor
 /coverage
+clover.xml
 .env
 .env.backup
 .phpunit.result.cache
