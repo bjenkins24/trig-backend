@@ -3,6 +3,7 @@
 use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Config;
 
 class UserSeeder extends Seeder
 {
@@ -26,11 +27,11 @@ class UserSeeder extends Seeder
             throw new \Exception('The scaffolding seeder can not be run on production.');
         }
 
-        $user = User::where('email', 'john.doe@trytrig.com')->first();
+        $user = User::where('email', Config::get('constants.seed.email'))->first();
 
         if (! $user) {
             factory(User::class, 1)->create([
-                'email' => 'john.doe@trytrig.com',
+                'email' => Config::get('constants.seed.email'),
             ]);
         }
     }
