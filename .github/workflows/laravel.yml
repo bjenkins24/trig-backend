@@ -31,4 +31,4 @@ jobs:
         DB_DATABASE: database/database.sqlite
       run: vendor/bin/phpunit
     - name: Execute coverage threshold
-      run: vendor/bin/coverage-check clover.xml 44.21
+      run: vendor/bin/coverage-check clover.xml 100

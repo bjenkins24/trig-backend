@@ -28,6 +28,7 @@
                 <file>./app/Http/Middleware/Authenticate.php</file>
                 <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
                 <file>./app/Providers/BroadcastServiceProvider.php</file>
+                <file>./app/Exceptions/Handler.php</file>
                 <directory suffix=".php">./app/Events</directory>
                 <directory suffix=".php">./app/Console</directory>
             </exclude>

@@ -34,7 +34,7 @@ class UserControllerTest extends TestCase
      *
      * @return void
      */
-    public function testRegistrationUserExists()
+    public function testRegistrationSucceedAndUserExists()
     {
         $params = [
             'email'    => 'test@example.com',
@@ -44,6 +44,7 @@ class UserControllerTest extends TestCase
         $userExistsJson = ['error' => 'user_exists'];
         $response = $this->json('POST', 'register', $params);
         $response->assertStatus(201)->assertJsonMissing($userExistsJson);
+        $this->assertTrue(Arr::has($response->json(), 'data.access_token'));
 
         $response = $this->json('POST', 'register', $params);
         $response->assertStatus(200)->assertJsonFragment($userExistsJson);

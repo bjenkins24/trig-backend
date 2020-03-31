@@ -2,7 +2,7 @@
     "private": true,
     "scripts": {
         "coverage": "open-cli coverage/dashboard.html",
-        "test": "php artisan test && vendor/bin/coverage-check clover.xml 44.21"
+        "test": "php artisan test && vendor/bin/coverage-check clover.xml 100"
     },
     "husky": {
         "hooks": {
