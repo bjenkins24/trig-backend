@@ -2,13 +2,18 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
-     * See if the user exists or not.
+     * Test validation on register endpoint.
      *
      * @return void
      */
@@ -22,5 +27,42 @@ class UserControllerTest extends TestCase
                 ['email', 'password', 'terms']
             )
         );
+    }
+
+    /**
+     * See if the user exists or not.
+     *
+     * @return void
+     */
+    public function testRegistrationSucceedAndUserExists()
+    {
+        $params = [
+            'email'    => 'test@example.com',
+            'password' => 'password123',
+            'terms'    => true,
+        ];
+        $userExistsJson = ['error' => 'user_exists'];
+        $response = $this->json('POST', 'register', $params);
+        $response->assertStatus(201)->assertJsonMissing($userExistsJson);
+        $this->assertTrue(Arr::has($response->json(), 'data.access_token'));
+
+        $response = $this->json('POST', 'register', $params);
+        $response->assertStatus(200)->assertJsonFragment($userExistsJson);
+    }
+
+    /**
+     * Test the me endpoint.
+     *
+     * @return void
+     */
+    public function testMe()
+    {
+        $response = $this->client('GET', 'me');
+        $response->assertStatus(200)->assertJsonFragment([
+            'email'      => Config::get('constants.seed.email'),
+            'first_name' => null,
+            'last_name'  => null,
+            'id'         => 1,
+        ]);
     }
 }
