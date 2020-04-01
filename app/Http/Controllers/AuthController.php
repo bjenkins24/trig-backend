@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Support\Traits\HandlesAuth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
@@ -40,6 +41,11 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['data' => $auth_token], 200);
+        $user = null;
+        if (! empty(Arr::get($auth_token, 'access_token'))) {
+            $user = User::where('email', $request->get('email'))->first()->toArray();
+        }
+
+        return response()->json(['data' => compact('auth_token', 'user')], 200);
     }
 }

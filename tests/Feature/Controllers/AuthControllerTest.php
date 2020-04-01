@@ -59,6 +59,9 @@ class AuthControllerTest extends TestCase
         $response = $this->json('POST', 'login', $user);
 
         $response->assertStatus(200);
-        $this->assertTrue(Arr::has($response->json(), 'data.access_token'));
+        $this->assertTrue(Arr::has($response->json(), 'data.auth_token.access_token'));
+        $this->assertTrue(
+            Arr::get($response->json(), 'data.user.email') === Config::get('constants.seed.email')
+        );
     }
 }
