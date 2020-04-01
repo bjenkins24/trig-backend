@@ -37,14 +37,18 @@ class UserControllerTest extends TestCase
     public function testRegistrationSucceedAndUserExists()
     {
         $params = [
-            'email'    => 'test@example.com',
-            'password' => 'password123',
+            'email'    => Config::get('constants.seed.email'),
+            'password' => Config::get('constants.seed.password'),
             'terms'    => true,
         ];
         $userExistsJson = ['error' => 'user_exists'];
         $response = $this->json('POST', 'register', $params);
         $response->assertStatus(201)->assertJsonMissing($userExistsJson);
-        $this->assertTrue(Arr::has($response->json(), 'data.access_token'));
+
+        $this->assertTrue(Arr::has($response->json(), 'data.auth_token.access_token'));
+        $this->assertTrue(
+            Arr::get($response->json(), 'data.user.email') === Config::get('constants.seed.email')
+        );
 
         $response = $this->json('POST', 'register', $params);
         $response->assertStatus(200)->assertJsonFragment($userExistsJson);

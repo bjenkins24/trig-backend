@@ -49,11 +49,11 @@ class UserController extends Controller
             ], 200);
         }
 
-        $this->user->createAccount($request->all());
+        $user = $this->user->createAccount($request->all());
 
         // Login the new user
         $auth_token = $this->authRequest($request->all());
 
-        return response()->json(['data' => $auth_token], 201);
+        return response()->json(['data' => compact('auth_token', 'user')], 201);
     }
 }
