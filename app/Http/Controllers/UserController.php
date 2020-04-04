@@ -85,7 +85,7 @@ class UserController extends Controller
             return response()->json([
                 'error'   => 'no_user_found',
                 'message' => 'There was no user with the given email. Please try again.',
-            ], 400);
+            ]);
         }
 
         $token = app(PasswordBroker::class)->createToken($user);
@@ -104,7 +104,6 @@ class UserController extends Controller
     public function resetPassword(Request $request)
     {
         $rules = [
-            'email'                     => 'required',
             'password'                  => 'required',
             'password_confirmation'     => 'required',
             'token'                     => 'required',
@@ -124,5 +123,24 @@ class UserController extends Controller
         $auth_token = $this->authRequest($request->all());
 
         return response()->json(['data' => compact('auth_token', 'user')], 200);
+    }
+
+    /**
+     * Validate that a given reset token is valid.
+     *
+     * @return void
+     */
+    public function validateResetToken(Request $request)
+    {
+        $rules = [
+            'token'                  => 'required',
+            'emailHash'              => 'required',
+        ];
+        $request->validate($rules);
+
+        $isValidToken = $this->resetPasswordHelper->validateResetToken($request->all()) ?
+            'valid' : 'invalid';
+
+        return response()->json(['data' => $isValidToken]);
     }
 }

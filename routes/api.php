@@ -17,6 +17,7 @@ Route::post('login', 'AuthController@login');
 Route::post('register', 'UserController@register');
 Route::post('forgot-password', 'UserController@forgotPassword');
 Route::post('reset-password', 'UserController@resetPassword');
+Route::post('validate-reset-token', 'UserController@validateResetToken');
 Route::middleware('auth:api')->get('/me', 'UserController@me');
 
 Route::fallback(function () {

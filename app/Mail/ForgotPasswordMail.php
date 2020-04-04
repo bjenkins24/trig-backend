@@ -5,6 +5,7 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
 
 class ForgotPasswordMail extends Mailable
 {
@@ -12,18 +13,18 @@ class ForgotPasswordMail extends Mailable
     use SerializesModels;
 
     /**
-     * The string URL that will be attached to the reset pwd email.
+     * The string URL that will be attached to the reset password email.
      *
      * @var string
      */
-    public $pwdResetUrl;
+    public $resetUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(string $pwdResetToken)
+    public function __construct(string $token, string $emailHash)
     {
-        $this->pwdResetUrl = config('app.client_url').'/reset-password/'.$pwdResetToken;
+        $this->resetUrl = Config::get('app.client_url').'/reset-password/'.$token.'/'.$emailHash;
     }
 
     /**

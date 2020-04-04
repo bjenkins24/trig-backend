@@ -3,19 +3,17 @@
 namespace App\Models;
 
 use App\Mail\ForgotPasswordMail;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use App\Utils\ResetPasswordHelper;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Passport\HasApiTokens;
 
-class User extends Authenticatable implements CanResetPasswordContract
+class User extends Authenticatable
 {
     use Notifiable;
     use HasApiTokens;
-    use CanResetPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -78,9 +76,11 @@ class User extends Authenticatable implements CanResetPasswordContract
     }
 
     /**
-     * Send the password reset notification.
+     * Send forgot password email.
      *
      * @param string $token
+     *
+     * @return void
      */
     public function sendPasswordResetNotification($token)
     {
@@ -89,7 +89,9 @@ class User extends Authenticatable implements CanResetPasswordContract
         // and set the name prop, because Mail needs it
         $this->name = $userFullName;
 
+        $emailHash = app(ResetPasswordHelper::class)->encryptEmail($this->email);
+
         // send the email
-        Mail::to($this)->send(new ForgotPasswordMail($token));
+        Mail::to($this)->send(new ForgotPasswordMail($token, $emailHash));
     }
 }

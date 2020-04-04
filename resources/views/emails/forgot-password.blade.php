@@ -13,7 +13,7 @@
     </p>
 
     <p>
-        <a href="{{ $pwdResetUrl }}">
+        <a href="{{ $resetUrl }}">
             Follow this link to reset your password.
         </a>
     </p>
