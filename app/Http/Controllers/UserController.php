@@ -107,11 +107,16 @@ class UserController extends Controller
             'password'                  => 'required',
             'password_confirmation'     => 'required',
             'token'                     => 'required',
+            'email_hash'                => 'required',
         ];
         $request->validate($rules);
 
+        $args = $request->all();
+        $args['email'] = $this->resetPasswordHelper->decryptEmail($request->get('email_hash'));
+        unset($args['email_hash']);
+
         try {
-            $user = $this->resetPasswordHelper->passwordReset($request->all())->wait();
+            $user = $this->resetPasswordHelper->passwordReset($args)->wait();
         } catch (\Error $e) {
             return response()->json([
                 'error'   => 'reset_password_token_expired',
@@ -120,7 +125,7 @@ class UserController extends Controller
         }
 
         // Login the new user
-        $auth_token = $this->authRequest($request->all());
+        $auth_token = $this->authRequest($args);
 
         return response()->json(['data' => compact('auth_token', 'user')], 200);
     }

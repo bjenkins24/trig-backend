@@ -61,7 +61,7 @@ class ResetPasswordHelper
             $promise->resolve($user);
         });
 
-        if (Password::PASSWORD_RESET != $resetResult) {
+        if (Password::PASSWORD_RESET !== $resetResult) {
             $promise->reject(new \Error('reset_password_token_expired'));
         }
 
