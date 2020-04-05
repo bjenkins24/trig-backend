@@ -5,7 +5,7 @@ use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Config;
 
-class UserSeeder extends Seeder
+class ScaffoldSeeder extends Seeder
 {
     /**
      * Main user account.
@@ -31,7 +31,9 @@ class UserSeeder extends Seeder
 
         if (! $user) {
             factory(User::class, 1)->create([
-                'email' => Config::get('constants.seed.email'),
+                'email'      => Config::get('constants.seed.email'),
+                'first_name' => Config::get('constants.seed.first_name'),
+                'last_name'  => Config::get('constants.seed.last_name'),
             ]);
         }
     }

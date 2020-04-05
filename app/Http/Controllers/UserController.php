@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
+use App\Utils\ResetPasswordHelper;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -14,11 +16,19 @@ class UserController extends Controller
     /**
      * @var UserService
      */
-    private $user;
+    private UserService $user;
 
-    public function __construct(UserService $user)
-    {
+    /**
+     * @var ResetPasswordHelper
+     */
+    private ResetPasswordHelper $resetPasswordHelper;
+
+    public function __construct(
+        UserService $user,
+        ResetPasswordHelper $resetPasswordHelper
+    ) {
         $this->user = $user;
+        $this->resetPasswordHelper = $resetPasswordHelper;
     }
 
     /**
@@ -37,9 +47,9 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $rules = [
-            'email'     => 'required',
+            'email'     => 'required|email',
             'password'  => 'required',
-            'terms'     => 'required',
+            'terms'     => 'required|boolean',
         ];
         $request->validate($rules);
 
@@ -49,11 +59,93 @@ class UserController extends Controller
             ], 200);
         }
 
-        $this->user->createAccount($request->all());
+        $user = $this->user->createAccount($request->all());
 
         // Login the new user
         $auth_token = $this->authRequest($request->all());
 
-        return response()->json(['data' => $auth_token], 201);
+        return response()->json(['data' => compact('auth_token', 'user')], 201);
+    }
+
+    /**
+     * Initiate the forgot password process.
+     *
+     * @return bool
+     */
+    public function forgotPassword(Request $request)
+    {
+        $rules = [
+            'email'     => 'required|email',
+        ];
+        $request->validate($rules);
+
+        $user = User::where('email', $request->get('email'))->first();
+
+        if (! $user) {
+            return response()->json([
+                'error'   => 'no_user_found',
+                'message' => 'There is no user with the given email. Please try again.',
+            ]);
+        }
+
+        $token = app(PasswordBroker::class)->createToken($user);
+        $user->sendPasswordResetNotification($token);
+
+        return response()->json([
+            'data' => 'success',
+        ]);
+    }
+
+    /**
+     * Reset the password.
+     *
+     * @return void
+     */
+    public function resetPassword(Request $request)
+    {
+        $rules = [
+            'password'                  => 'required',
+            'password_confirmation'     => 'required',
+            'token'                     => 'required',
+            'email_hash'                => 'required',
+        ];
+        $request->validate($rules);
+
+        $args = $request->all();
+        $args['email'] = $this->resetPasswordHelper->decryptEmail($request->get('email_hash'));
+        unset($args['email_hash']);
+
+        try {
+            $user = $this->resetPasswordHelper->passwordReset($args)->wait();
+        } catch (\Error $e) {
+            return response()->json([
+                'error'   => 'reset_password_token_expired',
+                'message' => 'The password reset link has expired.',
+            ], 400);
+        }
+
+        // Login the new user
+        $auth_token = $this->authRequest($args);
+
+        return response()->json(['data' => compact('auth_token', 'user')], 200);
+    }
+
+    /**
+     * Validate that a given reset token is valid.
+     *
+     * @return void
+     */
+    public function validateResetToken(Request $request)
+    {
+        $rules = [
+            'token'                   => 'required',
+            'email_hash'              => 'required',
+        ];
+        $request->validate($rules);
+
+        $isValidToken = $this->resetPasswordHelper->validateResetToken($request->all()) ?
+            'valid' : 'invalid';
+
+        return response()->json(['data' => $isValidToken]);
     }
 }

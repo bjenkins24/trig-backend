@@ -53,7 +53,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'asset_url' => env('ASSET_URL', null),
+    /*
+     * Application client URL
+     */
+    'client_url' => env('CLIENT_URL', 'http://localhost:8080'),
 
     /*
     |--------------------------------------------------------------------------
