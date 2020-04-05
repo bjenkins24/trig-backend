@@ -47,9 +47,9 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $rules = [
-            'email'     => 'required',
+            'email'     => 'required|email',
             'password'  => 'required',
-            'terms'     => 'required',
+            'terms'     => 'required|boolean',
         ];
         $request->validate($rules);
 
@@ -75,7 +75,7 @@ class UserController extends Controller
     public function forgotPassword(Request $request)
     {
         $rules = [
-            'email'     => 'required',
+            'email'     => 'required|email',
         ];
         $request->validate($rules);
 
@@ -84,7 +84,7 @@ class UserController extends Controller
         if (! $user) {
             return response()->json([
                 'error'   => 'no_user_found',
-                'message' => 'There was no user with the given email. Please try again.',
+                'message' => 'There is no user with the given email. Please try again.',
             ]);
         }
 

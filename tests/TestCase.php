@@ -16,6 +16,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         Artisan::call('passport:install', ['-vvv' => true]);
+        $this->seed('ScaffoldSeeder');
     }
 
     public function client(
@@ -24,18 +25,10 @@ abstract class TestCase extends BaseTestCase
         array $params = [],
         array $headers = []
     ): TestResponse {
-        $response = $this->json('POST', 'register', [
+        $response = $this->json('POST', 'login', [
             'email'    => Config::get('constants.seed.email'),
             'password' => Config::get('constants.seed.password'),
-            'terms'    => true,
         ]);
-
-        if ('user_exists' === Arr::get($response->json(), 'error')) {
-            $response = $this->json('POST', 'login', [
-                'email'    => Config::get('constants.seed.email'),
-                'password' => Config::get('constants.seed.password'),
-            ]);
-        }
 
         $token = Arr::get($response->json(), 'data.auth_token.access_token');
 
