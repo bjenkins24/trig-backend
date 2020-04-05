@@ -75,7 +75,7 @@ class ResetPasswordHelper
      */
     public function validateResetToken(array $args): bool
     {
-        $user = User::where('email', $this->decryptEmail($args['emailHash']))->first();
+        $user = User::where('email', $this->decryptEmail($args['email_hash']))->first();
         if (! $user) {
             return false;
         }

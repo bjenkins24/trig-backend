@@ -54,8 +54,6 @@ class AuthControllerTest extends TestCase
             'password' => Config::get('constants.seed.password'),
         ];
 
-        $this->json('POST', 'register', array_merge($user, ['terms' => true]));
-
         $response = $this->json('POST', 'login', $user);
 
         $response->assertStatus(200);

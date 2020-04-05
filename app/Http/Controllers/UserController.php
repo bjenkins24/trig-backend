@@ -138,8 +138,8 @@ class UserController extends Controller
     public function validateResetToken(Request $request)
     {
         $rules = [
-            'token'                  => 'required',
-            'emailHash'              => 'required',
+            'token'                   => 'required',
+            'email_hash'              => 'required',
         ];
         $request->validate($rules);
 
