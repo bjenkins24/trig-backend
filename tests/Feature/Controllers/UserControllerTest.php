@@ -3,6 +3,7 @@
 namespace Tests\Feature\Controllers;
 
 use App\Mail\ForgotPasswordMail;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
@@ -63,6 +64,7 @@ class UserControllerTest extends TestCase
      */
     public function testRegistrationSucceed()
     {
+        Mail::fake();
         $email = 'sam_sung@example.com';
         $params = [
             'email'    => $email,
@@ -71,8 +73,12 @@ class UserControllerTest extends TestCase
         ];
         $userExistsJson = ['error' => 'user_exists'];
         $response = $this->json('POST', 'register', $params);
+
         $response->assertStatus(201)->assertJsonMissing($userExistsJson);
         $this->assertLoggedIn($response, $email);
+        Mail::assertSent(WelcomeMail::class, function ($mail) use ($email) {
+            return $mail->hasTo($email);
+        });
     }
 
     /**

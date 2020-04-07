@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -60,9 +62,12 @@ class UserController extends Controller
         }
 
         $user = $this->user->createAccount($request->all());
+        $user->name = $user->name();
 
         // Login the new user
         $auth_token = $this->authRequest($request->all());
+
+        $result = Mail::to($user)->send(new WelcomeMail());
 
         return response()->json(['data' => compact('auth_token', 'user')], 201);
     }
