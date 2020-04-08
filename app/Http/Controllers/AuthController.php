@@ -28,7 +28,7 @@ class AuthController extends Controller
         $request->validate($rules);
 
         try {
-            $auth_token = $this->authRequest($request->all());
+            $authToken = $this->authRequest($request->all());
         } catch (\Exception $e) {
             $error = $e->getMessage();
             $message = 'invalid_grant' === $error ?
@@ -42,10 +42,10 @@ class AuthController extends Controller
         }
 
         $user = null;
-        if (! empty(Arr::get($auth_token, 'access_token'))) {
+        if (! empty(Arr::get($authToken, 'access_token'))) {
             $user = User::where('email', $request->get('email'))->first()->toArray();
         }
 
-        return response()->json(['data' => compact('auth_token', 'user')], 200);
+        return response()->json(['data' => compact('authToken', 'user')], 200);
     }
 }
