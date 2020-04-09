@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use App\Utils\ResetPasswordHelper;
+use Google_Client as GoogleClient;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -62,14 +63,11 @@ class UserController extends Controller
         }
 
         $user = $this->user->createAccount($request->all());
-        $user->name = $user->name();
 
         // Login the new user
-        $auth_token = $this->authRequest($request->all());
+        $authToken = $this->authRequest($request->all());
 
-        $result = Mail::to($user)->send(new WelcomeMail());
-
-        return response()->json(['data' => compact('auth_token', 'user')], 201);
+        return response()->json(['data' => compact('authToken', 'user')], 201);
     }
 
     /**
@@ -130,9 +128,9 @@ class UserController extends Controller
         }
 
         // Login the new user
-        $auth_token = $this->authRequest($args);
+        $authToken = $this->authRequest($args);
 
-        return response()->json(['data' => compact('auth_token', 'user')], 200);
+        return response()->json(['data' => compact('authToken', 'user')], 200);
     }
 
     /**
@@ -152,5 +150,33 @@ class UserController extends Controller
             'valid' : 'invalid';
 
         return response()->json(['data' => $isValidToken]);
+    }
+
+    public function google(Request $request)
+    {
+        $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
+        $payload = $client->verifyIdToken($request->get('idToken'));
+        if (! $payload) {
+            return response()->json(['error' => 'fail!']);
+        }
+
+        $user = User::where('email', $payload['email'])->first();
+        $status = 200;
+        if ($user) {
+            $authToken['access_token'] = $user->createToken('trig')->accessToken;
+        } else {
+            // Create a new user
+            $authParams = [
+                'email'    => $payload['email'],
+                'password' => Str::random(16),
+            ];
+            $user = $this->user->createAccount($authParams);
+
+            // Login the new user
+            $authToken = $this->authRequest($authParams);
+            $status = 201;
+        }
+
+        return response()->json(['data' => compact('authToken', 'user')], $status);
     }
 }
