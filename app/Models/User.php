@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Mail\ForgotPasswordMail;
 use App\Support\Traits\Relationships\BelongsToManyOrganizations;
+use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -18,6 +19,7 @@ class User extends Authenticatable
     use Notifiable;
     use HasApiTokens;
     use HasOauthConnections;
+    use HasCards;
 
     /**
      * The attributes that are mass assignable.
