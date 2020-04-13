@@ -1,7 +1,7 @@
 # DB Design
 
 `cards`
-(id, user_id, card_type_id, title, description, image)
+(id, user_id, card_type_id, title, description, image actual_created_at actual_modified_at created_at modified_at)
 
 `card_documents`
 (id, card_id, content)
