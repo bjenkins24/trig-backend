@@ -4,11 +4,11 @@ namespace App\Modules\OauthConnection;
 
 use App\Models\OauthIntegration;
 use App\Models\User;
-use App\Modules\OauthConnection\Exceptions\OauthNotFoundException;
 use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use App\Modules\OauthConnection\Repositories\StoreConnection;
-use Exception;
+use App\Modules\OauthIntegration\OauthIntegrationService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class OauthConnectionService
@@ -18,44 +18,42 @@ class OauthConnectionService
      *
      * @var StoreConnection repository
      */
-    protected StoreConnection $store;
+    private StoreConnection $store;
+
+    /**
+     * @var OauthIntegrationService
+     */
+    private OauthIntegrationService $oauthIntegration;
 
     /**
      * Create instance of create connection service.
      */
-    public function __construct(StoreConnection $store)
+    public function __construct(StoreConnection $store, OauthIntegrationService $oauthIntegration)
     {
         $this->store = $store;
+        $this->oauthIntegration = $oauthIntegration;
     }
 
     private function makeIntegration(string $integration): OauthConnectionInterface
     {
-        $path = "App\\Modules\\OauthConnection\\Connections\\$integration";
-        try {
-            return new $path();
-        } catch (Exception $e) {
-            throw new OauthNotFoundException("The integration key \"$integration\" is not valid. Please check the name and try again.");
-        }
+        return $this->oauthIntegration->makeIntegration('App\\Modules\\OauthConnection\\Connections', $integration);
     }
 
     public function getClient(User $user, string $integration)
     {
         $integrationInstance = $this->makeIntegration($integration);
-        $oauthConnection = new OauthConnection();
-        $oauthIntegration = OauthIntegration::where('name', $integration);
-        $oauthRecord = $oauthConnection
-            ->where('user_id', $user->id)
-            ->where('oauth_integration_id', $oauthIntegration->id)
-            ->first();
 
-        $accessToken = $oauthRecord->access_token;
+        $oauthIntegration = OauthIntegration::where('name', $integration)->first();
+        $oauthConnection = $oauthIntegration->oauthConnections()->where('user_id', $user->id)->first();
 
-        if (! $oauthRecord) {
+        $accessToken = $oauthConnection->access_token;
+
+        if (! $oauthConnection) {
             throw new OauthUnauthorizedRequest('A '.$integration.' has not been authorized for user '.$user->id.'. Cannot get client for user.');
         }
 
-        if ($oauthRecord->expires->isAfter(Carbon::now())) {
-            $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthRecord->refresh_token);
+        if ($oauthConnection->expires->isAfter(Carbon::now())) {
+            $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthConnection->refresh_token);
             $this->store->handle($user, $integration, $authConnection);
             $accessToken = $authConnection->get('access_token');
         }
