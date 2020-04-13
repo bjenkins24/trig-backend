@@ -4,5 +4,5 @@ namespace App\Modules\Card\Interfaces;
 
 interface IntegrationInterface
 {
-    public function syncCards();
+    public function syncCards($user);
 }

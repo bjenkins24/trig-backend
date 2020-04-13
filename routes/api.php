@@ -19,6 +19,7 @@ Route::post('forgot-password', 'UserController@forgotPassword');
 Route::post('reset-password', 'UserController@resetPassword');
 Route::post('validate-reset-token', 'UserController@validateResetToken');
 Route::post('google-sso', 'UserController@google');
+Route::post('google-drive', 'UserController@googleDrive');
 Route::middleware('auth:api')->get('/me', 'UserController@me');
 
 Route::fallback(function () {

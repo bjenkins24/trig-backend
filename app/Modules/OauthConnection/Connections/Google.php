@@ -41,7 +41,7 @@ class Google implements OauthConnectionInterface
 
     public function retrieveAccessTokenWithRefreshToken(string $refreshToken): Collection
     {
-        $accessToken = $this->client->fetchAccessTokenWithRefreshToken($oauthRecord->refresh_token);
+        $accessToken = $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
 
         return collect($accessToken);
     }

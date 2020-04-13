@@ -2,46 +2,51 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Models\CardType;
+use App\Models\User;
 use App\Modules\Card\Interfaces\IntegrationInterface;
+use App\Modules\OauthConnection\OauthConnectionService;
 use Google_Service_Drive as GoogleServiceDrive;
+use Illuminate\Support\Collection;
 
-class Google extends BaseIntegration implements IntegrationInterface
+class Google implements IntegrationInterface
 {
+    public function getFiles(User $user): Collection
+    {
+        $client = app(OauthConnectionService::class)->getClient($user, 'google');
+        $service = new GoogleServiceDrive($client);
+        $optParams = [
+            'pageSize' => 100,
+            'fields'   => 'nextPageToken, files(id, name, createdTime, modifiedTime, webViewLink, thumbnailLink, starred, iconLink, viewedByMeTime, mimeType)',
+        ];
+
+        return collect($service->files->listFiles($optParams)->getFiles());
+    }
+
     /**
      * Sync cards from google.
      *
      * @return void
      */
-    public function syncCards()
+    public function syncCards($user)
     {
-        $service = app()->makeWith(GoogleServiceDrive::class, ['client' => $this->client]);
+        $files = $this->getFiles($user);
 
-        $optParams = [
-            'pageSize' => 100,
-            'fields'   => 'nextPageToken, files(id, name, createdTime, modifiedTime, webViewLink, thumbnailLink, starred, iconLink, viewedByMeTime, mimeType)',
-        ];
-        $results = $service->files->listFiles($optParams);
-
-        $result = [];
-        if (0 === count($results->getFiles())) {
-            return $result;
+        if (0 === $files->count()) {
+            return;
         }
 
-        foreach ($results->getFiles() as $file) {
-            $result[$file->getId()] = [
-                'name'           => $file->name,
-                'created'        => $file->createdTime,
-                'updated'        => $file->modifiedTime,
-                'link'           => $file->webViewLink,
-                'image'          => $file->thumbnailLink,
-                'starred'        => $file->starred,
-                'typeIcon'       => $file->iconLink,
-                'viewedByMeTime' => $file->viewedByMeTime,
-                'mimeType'       => $file->mimeType,
-                // 'permissions' => $file->permissions
-            ];
-        }
+        $cardType = CardType::firstOrCreate(['name' => 'document']);
 
-        return $result;
+        $files->each(function ($file) use ($user, $cardType) {
+            $user->cards()->create([
+                'card_type_id'              => $cardType->id,
+                'title'                     => $file->name,
+                'actual_created_at'         => $file->createdTime,
+                'actual_modified_at'        => $file->modifiedTime,
+                'image'                     => $file->thumbnailLink,
+                'description'               => $file->description,
+            ]);
+        });
     }
 }

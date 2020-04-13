@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
@@ -188,5 +189,12 @@ class UserController extends Controller
         }
 
         return response()->json(['data' => compact('authToken', 'user')], $status);
+    }
+
+    public function googleDrive(Request $request)
+    {
+        $result = app(Google::class)->syncCards(User::find(1));
+
+        response()->json(['data' => $result->toArray()]);
     }
 }
