@@ -25,6 +25,10 @@ class CreateAccount
             'terms_of_service_accepted_at' => now(),
         ]));
 
+        $user->organizations()->create([
+            'name' => 'Squarespace',
+        ]);
+
         event(new AccountCreated($user));
 
         return $user;

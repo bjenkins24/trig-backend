@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Mail\ForgotPasswordMail;
+use App\Support\Traits\Relationships\BelongsToManyOrganizations;
+use App\Support\Traits\Relationships\HasOauthConnections;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,8 +14,10 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
+    use BelongsToManyOrganizations;
     use Notifiable;
     use HasApiTokens;
+    use HasOauthConnections;
 
     /**
      * The attributes that are mass assignable.

@@ -30,6 +30,9 @@
 `organizations`
 (id, name)
 
+`organizations_users`
+(id, user_id, organization_id)
+
 `permissions` - **edit** or **view** 
 (id, name)
 
@@ -61,7 +64,7 @@
 (id, team_id, user_id)
 
 `users`
-(id, role_id, organization_id, first_name, last_name, email)
+(id, role_id, first_name, last_name, email)
 
 `views`
 (id, viewable_type, viewable_id, created_at)

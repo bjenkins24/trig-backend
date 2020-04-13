@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use App\Utils\ResetPasswordHelper;
@@ -22,16 +23,23 @@ class UserController extends Controller
     private UserService $user;
 
     /**
+     * @var OauthConnectionService
+     */
+    private OauthConnectionService $oauthConnection;
+
+    /**
      * @var ResetPasswordHelper
      */
     private ResetPasswordHelper $resetPasswordHelper;
 
     public function __construct(
         UserService $user,
-        ResetPasswordHelper $resetPasswordHelper
+        ResetPasswordHelper $resetPasswordHelper,
+        OauthConnectionService $oauthConnection
     ) {
         $this->user = $user;
         $this->resetPasswordHelper = $resetPasswordHelper;
+        $this->oauthConnection = $oauthConnection;
     }
 
     /**
@@ -154,8 +162,9 @@ class UserController extends Controller
 
     public function google(Request $request)
     {
+        $oauthCredentials = $this->oauthConnection->getAccessToken('google', $request->get('code'));
         $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
-        $payload = $client->verifyIdToken($request->get('idToken'));
+        $payload = $client->verifyIdToken($oauthCredentials->get('id_token'));
         if (! $payload) {
             return response()->json(['error' => 'fail!']);
         }
@@ -171,6 +180,7 @@ class UserController extends Controller
                 'password' => Str::random(16),
             ];
             $user = $this->user->createAccount($authParams);
+            $this->oauthConnection->storeConnection($user, 'google', $oauthCredentials);
 
             // Login the new user
             $authToken = $this->authRequest($authParams);
