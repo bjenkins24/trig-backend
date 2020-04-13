@@ -41,8 +41,8 @@ class OauthConnectionService
 
     public function getClient(User $user, string $integration)
     {
+        dd($user);
         $integrationInstance = $this->makeIntegration($integration);
-
         $oauthIntegration = OauthIntegration::where('name', $integration)->first();
         $oauthConnection = $oauthIntegration->oauthConnections()->where('user_id', $user->id)->first();
 

@@ -9,7 +9,7 @@ use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CardServiceTest extends TestCase
+class GoogleTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,11 +22,15 @@ class CardServiceTest extends TestCase
     {
         $user = User::find(1);
 
-        app(OauthConnectionService::class)->storeConnection($user, 'google', collect([
-            'access_token'  => '123',
-            'refresh_token' => '456',
-            'expires_in'    => 0,
-        ]));
+        app(OauthConnectionService::class)->storeConnection(
+            $user,
+            'google',
+            collect([
+                'access_token'  => 'ya29.a0Ae4lvC1wU4oWWGgTXbw79vJVtjstCV1Hy2Di-dmYApdjQOQomWfg4w9OZpManqJvxD1VXwEiAAvxo_fQIQwb6fumSKKiO-ViYEHaJTsxWS8uXyHIoB_d6vLGL-IxAf9tW8VFWQCHeP3Im17PU029ZtDna3ssBK12y-w',
+                'refresh_token' => '1//0fhpEZ1LyYyXNCgYIARAAGA8SNwF-L9IrF4-hXziVN01TUS0Gb33Xdr5o6iFpS_rtJ6c1eEQiHmnov3vKfZIinJX2_pAXoZGvm70',
+                'expires_in'    => 3600,
+            ])
+        );
 
         return $user;
     }
@@ -39,6 +43,12 @@ class CardServiceTest extends TestCase
     public function testSyncAll()
     {
         $user = $this->createOauthConnection();
+        // $this->partialMock(OauthConnectionService::class, function ($mock) {
+        //     $mock->shouldReceive('getClient')->once();
+        // });
+
+        $this->mock(GoogleServiceDrive::class, function ($mock) {
+        });
 
         $this->mock(Google::class, function ($mock) {
             $mock->shouldReceive('syncCards')->once();
