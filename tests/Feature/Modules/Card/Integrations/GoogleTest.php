@@ -38,17 +38,19 @@ class GoogleTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncCards()
     {
         $user = $this->createOauthConnection();
         $fakeTitle = "Brian's Title";
         $fakeUrl = 'http://myfakeurl.example.com';
-        $this->partialMock(Google::class, function ($mock) use ($fakeTitle, $fakeUrl) {
+        $fakeId = 'My fake Id';
+        $this->partialMock(Google::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
             $file = new FakeFiles();
             $file->name = $fakeTitle;
             $file->webViewLink = $fakeUrl;
-            $file->id = 'Fake id';
+            $file->id = $fakeId;
 
             $mock->shouldReceive('getFiles')->andReturn(collect([new FakeFiles(), $file]))->once();
         });
@@ -61,6 +63,10 @@ class GoogleTest extends TestCase
 
         $this->assertDatabaseHas('card_links', [
             'link' => $fakeUrl,
+        ]);
+
+        $this->assertDatabaseHas('card_integrations', [
+            'foreign_id' => $fakeId,
         ]);
     }
 }

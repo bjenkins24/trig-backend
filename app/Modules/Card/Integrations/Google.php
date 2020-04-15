@@ -3,6 +3,7 @@
 namespace App\Modules\Card\Integrations;
 
 use App\Models\CardType;
+use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\OauthConnectionService;
@@ -11,9 +12,14 @@ use Illuminate\Support\Collection;
 
 class Google implements IntegrationInterface
 {
+    public static function getKey(): string
+    {
+        return 'google';
+    }
+
     public function getFiles(User $user): Collection
     {
-        $client = app(OauthConnectionService::class)->getClient($user, 'google');
+        $client = app(OauthConnectionService::class)->getClient($user, $this->getKey());
         $service = new GoogleServiceDrive($client);
         $optParams = [
             'pageSize' => 100,
@@ -47,9 +53,16 @@ class Google implements IntegrationInterface
                 'image'                     => $file->thumbnailLink,
                 'description'               => $file->description,
             ]);
-            $card->cardLink()->create([
-                'link' => $file->webViewLink,
-            ]);
+            if ($card) {
+                $card->cardLink()->create([
+                    'link' => $file->webViewLink,
+                ]);
+                $oauthIntegration = OauthIntegration::where(['name' => $this->getKey()])->first();
+                $card->cardIntegration()->create([
+                    'foreign_id'           => $file->id,
+                    'oauth_integration_id' => $oauthIntegration->id,
+                ]);
+            }
         });
     }
 }

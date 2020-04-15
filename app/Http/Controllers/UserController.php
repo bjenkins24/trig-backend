@@ -182,7 +182,7 @@ class UserController extends Controller
                 'password' => Str::random(16),
             ];
             $user = $this->user->createAccount($authParams);
-            $this->oauthConnection->storeConnection($user, 'google', $oauthCredentials);
+            $this->oauthConnection->storeConnection($user, Google::getKey(), $oauthCredentials);
 
             app(CardService::class)->syncAllIntegrations($user);
 
