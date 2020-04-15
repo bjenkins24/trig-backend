@@ -39,7 +39,7 @@ class OauthConnectionService
         return $this->oauthIntegration->makeIntegration('App\\Modules\\OauthConnection\\Connections', $integration);
     }
 
-    public function getClient(User $user, string $integration)
+    public function getAccessToken(User $user, string $integration)
     {
         $integrationInstance = $this->makeIntegration($integration);
         $oauthIntegration = OauthIntegration::where('name', $integration)->first();
@@ -57,6 +57,14 @@ class OauthConnectionService
             $accessToken = $authConnection->get('access_token');
         }
 
+        return $accessToken;
+    }
+
+    public function getClient(User $user, string $integration)
+    {
+        $accessToken = $this->getAccessToken($user, $integration);
+        $integrationInstance = $this->makeIntegration($integration);
+
         return $integrationInstance->getClient($accessToken);
     }
 
@@ -67,7 +75,7 @@ class OauthConnectionService
      */
     public function createConnection(User $user, string $integration, string $authToken)
     {
-        $authConnection = $this->getAccessToken($integration, $authToken);
+        $authConnection = $this->getAccessTokenWithCode($integration, $authToken);
 
         return $this->storeConnection($user, $integration, $authConnection);
     }
@@ -75,7 +83,7 @@ class OauthConnectionService
     /**
      * Get the access token from an oauth request.
      */
-    public function getAccessToken(string $integration, string $authToken): Collection
+    public function getAccessTokenWithCode(string $integration, string $authToken): Collection
     {
         $integration = $this->makeIntegration($integration);
 

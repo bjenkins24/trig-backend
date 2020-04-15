@@ -164,7 +164,7 @@ class UserController extends Controller
 
     public function google(Request $request)
     {
-        $oauthCredentials = $this->oauthConnection->getAccessToken('google', $request->get('code'));
+        $oauthCredentials = $this->oauthConnection->getAccessTokenWithCode('google', $request->get('code'));
         $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
         $payload = $client->verifyIdToken($oauthCredentials->get('id_token'));
         if (! $payload) {
