@@ -43,9 +43,11 @@ class GoogleTest extends TestCase
     {
         $user = $this->createOauthConnection();
         $fakeTitle = "Brian's Title";
-        $this->partialMock(Google::class, function ($mock) use ($fakeTitle) {
+        $fakeUrl = 'http://myfakeurl.example.com';
+        $this->partialMock(Google::class, function ($mock) use ($fakeTitle, $fakeUrl) {
             $file = new FakeFiles();
             $file->name = $fakeTitle;
+            $file->webViewLink = $fakeUrl;
             $file->id = 'Fake id';
 
             $mock->shouldReceive('getFiles')->andReturn(collect([new FakeFiles(), $file]))->once();
@@ -55,6 +57,10 @@ class GoogleTest extends TestCase
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,
+        ]);
+
+        $this->assertDatabaseHas('card_links', [
+            'link' => $fakeUrl,
         ]);
     }
 }

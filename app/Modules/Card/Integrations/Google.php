@@ -39,13 +39,16 @@ class Google implements IntegrationInterface
         $cardType = CardType::firstOrCreate(['name' => 'document']);
 
         $files->each(function ($file) use ($user, $cardType) {
-            $user->cards()->create([
+            $card = $user->cards()->create([
                 'card_type_id'              => $cardType->id,
                 'title'                     => $file->name,
                 'actual_created_at'         => $file->createdTime,
                 'actual_modified_at'        => $file->modifiedTime,
                 'image'                     => $file->thumbnailLink,
                 'description'               => $file->description,
+            ]);
+            $card->cardLink()->create([
+                'link' => $file->webViewLink,
             ]);
         });
     }
