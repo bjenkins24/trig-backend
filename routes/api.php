@@ -21,6 +21,7 @@ Route::post('validate-reset-token', 'UserController@validateResetToken');
 Route::post('google-sso', 'UserController@google');
 Route::post('google-drive', 'UserController@googleDrive');
 Route::middleware('auth:api')->get('/me', 'UserController@me');
+Route::middleware('auth:api')->get('/cards', 'CardController@get');
 
 Route::fallback(function () {
     return response()->json([
