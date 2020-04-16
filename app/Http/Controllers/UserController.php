@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncCards;
 use App\Models\User;
-use App\Modules\Card\CardService;
 use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
@@ -164,7 +164,7 @@ class UserController extends Controller
 
     public function google(Request $request)
     {
-        $oauthCredentials = $this->oauthConnection->getAccessTokenWithCode('google', $request->get('code'));
+        $oauthCredentials = $this->oauthConnection->getAccessTokenWithCode(Google::getKey(), $request->get('code'));
         $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
         $payload = $client->verifyIdToken($oauthCredentials->get('id_token'));
         if (! $payload) {
@@ -184,7 +184,7 @@ class UserController extends Controller
             $user = $this->user->createAccount($authParams);
             $this->oauthConnection->storeConnection($user, Google::getKey(), $oauthCredentials);
 
-            app(CardService::class)->syncAllIntegrations($user);
+            SyncCards::dispatch($user, Google::getKey());
 
             // Login the new user
             $authToken = $this->authRequest($authParams);

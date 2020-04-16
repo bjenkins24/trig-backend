@@ -2,15 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
-use App\Modules\Card\CardService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class SyncCards implements ShouldQueue
+class SendMail implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -18,24 +16,14 @@ class SyncCards implements ShouldQueue
     use SerializesModels;
 
     /**
-     * @var User
-     */
-    public User $user;
-
-    /**
-     * @var string
-     */
-    public string $integration;
-
-    /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(User $user, string $integration)
+    public function __construct(User $user, $mail)
     {
         $this->user = $user;
-        $this->integration = $integration;
+        $this->mail = $mail;
     }
 
     /**
@@ -45,6 +33,6 @@ class SyncCards implements ShouldQueue
      */
     public function handle()
     {
-        app(CardService::class)->makeIntegration($this->user, $this->integration)->syncCards($this->user);
+        Mail::to($this->user)->send($this->mail);
     }
 }

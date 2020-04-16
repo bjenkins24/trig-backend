@@ -34,7 +34,7 @@ class UserControllerTest extends TestCase
 
     private function assertLoggedIn($response, $email)
     {
-        $this->assertTrue(Arr::has($response->json(), 'data.auth_token.access_token'));
+        $this->assertTrue(Arr::has($response->json(), 'data.authToken.access_token'));
         $this->assertTrue(
             Arr::get($response->json(), 'data.user.email') === $email
         );
