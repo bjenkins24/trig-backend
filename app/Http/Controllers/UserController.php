@@ -16,6 +16,7 @@ use App\Support\Traits\HandlesAuth;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -143,6 +144,8 @@ class UserController extends Controller
     {
         $response = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
         if (! $response) {
+            Log::notice('Unable to SSO user. Either Google is down or possibly a malicious user posted an invalid auth code.');
+
             return response()->json(['error' => 'auth_failed', 'message' => 'Something went wrong. You were not able to be authenticated']);
         }
 

@@ -29,7 +29,14 @@
                 <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
                 <file>./app/Providers/BroadcastServiceProvider.php</file>
                 <file>./app/Exceptions/Handler.php</file>
+                <file>./app/Jobs/SendMail.php</file>
+                <file>./app/Jobs/SendMail.php</file>
                 <directory suffix=".php">./app/Events</directory>
+                <directory suffix=".php">./app/Providers</directory>
+                <directory suffix=".php">./app/Http/Requests/User</directory>
+                <directory suffix=".php">./app/Http/Requests/Auth</directory>
+                <directory suffix=".php">./app/Support/Traits/Relationships</directory>
+                <directory suffix=".php">./app/Modules/OauthConnection/Connections</directory>
                 <directory suffix=".php">./app/Mail</directory>
                 <directory suffix=".php">./app/Console</directory>
             </exclude>

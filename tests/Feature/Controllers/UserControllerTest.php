@@ -302,10 +302,9 @@ class UserControllerTest extends TestCase
     }
 
     /**
-     * Test Reset password token expired.
+     * Test login and register sso google.
      *
      * @return void
-     * @group n
      */
     public function testGoogleSso()
     {
@@ -332,5 +331,22 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200);
         Queue::assertPushed(SyncCards::class, 1);
         $this->assertLoggedIn($response, $email);
+    }
+
+    /**
+     * Test google sso failed.
+     *
+     * @return void
+     */
+    public function testGoogleSsoFail()
+    {
+        Queue::fake();
+        $email = 'sam_sung@example.com';
+        $this->partialMock(Google::class, function ($mock) {
+            $mock->shouldReceive('getUser')->andReturn([])->once();
+        });
+        $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200)->assertJsonFragment([
+            'error' => 'auth_failed',
+        ]);
     }
 }
