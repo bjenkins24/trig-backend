@@ -5,7 +5,8 @@
         "test": "php artisan test && vendor/bin/coverage-check clover.xml 100",
         "fresh": "php artisan migrate:fresh && php artisan passport:install",
         "bootstrap": "composer install && npm run fresh && php artisan storage:link && php artisan horizon:install",
-        "log": "vi storage/logs/laravel.log"
+        "log": "vi storage/logs/laravel.log",
+        "tn": "php artisan test --group n"
     },
     "husky": {
         "hooks": {
