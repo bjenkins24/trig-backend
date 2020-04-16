@@ -1,6 +1,13 @@
 # Things you have to run
+Things you have to install:
+`brew install mysql@8.0`
+`brew install php@7.4.3`
+`brew install redis@5.0.8`
+
 `npm run fresh` - Gets oauth stuff - and runs all migrations fresh
 `php artisan storage:link` - will make `/storage/` accessible. Needed for images to work locally
+`php artisan horizon:install` 
+
 
 # DB Design
 

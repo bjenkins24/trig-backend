@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Models;
+namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Models\User;
 use App\Modules\Card\Integrations\Google;

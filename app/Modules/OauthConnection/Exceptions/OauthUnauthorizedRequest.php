@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Modules\UserOauthIntegration\Exceptions;
+namespace App\Modules\OauthConnection\Exceptions;
 
-class IntegrationUnauthorizedRequest extends \Exception
+class OauthUnauthorizedRequest extends \Exception
 {
 }

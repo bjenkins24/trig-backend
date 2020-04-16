@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Models;
+namespace Tests\Feature\Modules\Card;
 
 use App\Jobs\SyncCards;
 use App\Models\User;
