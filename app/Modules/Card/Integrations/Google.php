@@ -9,13 +9,15 @@ use App\Models\User;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Utils\FileHelper;
+use Exception;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 
 class Google implements IntegrationInterface
 {
-    const IMAGE_PATH = 'card-thumbnails';
+    const IMAGE_PATH = 'public/card-thumbnails';
 
     public static function getKey(): string
     {
@@ -27,7 +29,7 @@ class Google implements IntegrationInterface
         $client = app(OauthConnectionService::class)->getClient($user, $this->getKey());
         $service = new GoogleServiceDrive($client);
         $optParams = [
-            'pageSize' => 5,
+            'pageSize' => 100,
             'fields'   => 'nextPageToken, files(id, name, createdTime, modifiedTime, webViewLink, thumbnailLink, starred, iconLink, viewedByMeTime, mimeType)',
         ];
 
@@ -44,7 +46,14 @@ class Google implements IntegrationInterface
     public function getThumbnail(User $user, $file): Collection
     {
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $this->getKey());
-        $thumbnail = file_get_contents($file->thumbnailLink.'&access_token='.$accessToken);
+        try {
+            $thumbnail = file_get_contents($file->thumbnailLink.'&access_token='.$accessToken);
+        } catch (Exception $e) {
+            // TODO: Observability?
+            // If we couldn't get the thumbnail it's not necessary
+            return collect([]);
+        }
+
         $fileInfo = collect(getimagesizefromstring($thumbnail));
         if (! $fileInfo->has('mime')) {
             return collect([]);
@@ -74,7 +83,7 @@ class Google implements IntegrationInterface
         $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
         $result = Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
         if ($result) {
-            $card->image = Storage::url($imagePathWithExtension);
+            $card->image = Config::get('app.url').Storage::url($imagePathWithExtension);
             $card = $card->save();
         }
     }

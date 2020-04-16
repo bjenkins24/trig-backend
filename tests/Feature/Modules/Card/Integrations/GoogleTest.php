@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -45,7 +46,7 @@ class GoogleTest extends TestCase
     {
         $user = $this->createOauthConnection();
         $fakeTitle = "Brian's Title";
-        $fakeThumbnailUrl = 'http://fakeThumbnailUrl.com/brian';
+        $fakeThumbnailUrl = '/storage/public/card-thumbnails/1.jpg';
         $fakeUrl = 'http://myfakeurl.example.com';
         $fakeId = 'My fake Id';
         $this->partialMock(Google::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
@@ -67,7 +68,7 @@ class GoogleTest extends TestCase
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,
-            'image' => $fakeThumbnailUrl.'.jpeg',
+            'image' => Config::get('app.url').$fakeThumbnailUrl,
         ]);
 
         $this->assertDatabaseHas('card_links', [

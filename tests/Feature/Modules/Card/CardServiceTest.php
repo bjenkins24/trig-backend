@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Models;
 
+use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\Card\CardService;
-use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CardServiceTest extends TestCase
@@ -38,12 +39,12 @@ class CardServiceTest extends TestCase
      */
     public function testSyncAll()
     {
+        Queue::fake();
+
         $user = $this->createOauthConnection();
 
-        $this->mock(Google::class, function ($mock) {
-            $mock->shouldReceive('syncCards')->once();
-        });
-
         app(CardService::class)->syncAllIntegrations($user);
+
+        Queue::assertPushed(SyncCards::class, 1);
     }
 }

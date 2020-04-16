@@ -9,7 +9,7 @@ class CardController extends Controller
     public function get(Request $request)
     {
         $user = $request->user();
-        $cards = $user->cards()->with(['cardLink'])->get();
+        $cards = $user->cards()->with(['cardLink', 'user'])->get();
 
         return response()->json(['data' => $cards->toArray()]);
     }

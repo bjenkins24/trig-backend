@@ -1,3 +1,7 @@
+# Things you have to run
+`npm run fresh` - Gets oauth stuff - and runs all migrations fresh
+`php artisan storage:link` - will make `/storage/` accessible. Needed for images to work locally
+
 # DB Design
 
 `cards`
