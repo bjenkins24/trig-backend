@@ -34,7 +34,7 @@ class OauthConnectionService
         $this->oauthIntegration = $oauthIntegration;
     }
 
-    private function makeIntegration(string $integration): OauthConnectionInterface
+    public function makeIntegration(string $integration): OauthConnectionInterface
     {
         return $this->oauthIntegration->makeIntegration('App\\Modules\\OauthConnection\\Connections', $integration);
     }

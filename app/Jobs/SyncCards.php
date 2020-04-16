@@ -45,6 +45,7 @@ class SyncCards implements ShouldQueue
      */
     public function handle()
     {
+        dd('hello');
         app(CardService::class)->makeIntegration($this->user, $this->integration)->syncCards($this->user);
     }
 }

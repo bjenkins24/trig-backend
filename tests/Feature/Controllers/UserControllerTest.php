@@ -2,15 +2,18 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Jobs\SyncCards;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\WelcomeMail;
 use App\Models\User;
+use App\Modules\OauthConnection\Connections\Google;
 use App\Utils\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -298,22 +301,36 @@ class UserControllerTest extends TestCase
         $response->assertJsonFragment(['data' => 'valid']);
     }
 
-    // /**
-    //  * Test Reset password token expired.
-    //  *
-    //  * @return void
-    //  * @group n
-    //  */
-    // public function testGoogleSSO()
-    // {
-    //     $password = 'myCoolNewPassword';
-    //     $params = [
-    //         'password'              => $password,
-    //         'password_confirmation' => $password,
-    //         'token'                 => $this->getResetToken(),
-    //         'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
-    //     ];
-    //     $response = $this->json('POST', 'google', $params);
-    //     $this->assertLoggedIn($response, Config::get('constants.seed.email'));
-    // }
+    /**
+     * Test Reset password token expired.
+     *
+     * @return void
+     * @group n
+     */
+    public function testGoogleSso()
+    {
+        Queue::fake();
+        $email = 'sam_sung@example.com';
+        $this->partialMock(Google::class, function ($mock) use ($email) {
+            $mock->shouldReceive('getUser')->andReturn([
+                'payload'          => collect(['email' => $email]),
+                'oauthCredentials' => collect([
+                    'access_token'  => '123',
+                    'refresh_token' => '456',
+                    'expires_in'    => 0,
+                ]),
+            ])->twice();
+        });
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
+        Queue::assertPushed(SyncCards::class, 1);
+        $this->assertLoggedIn($response, $email);
+
+        $this->assertDatabaseHas('users', [
+            'email' => $email,
+        ]);
+
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200);
+        Queue::assertPushed(SyncCards::class, 1);
+        $this->assertLoggedIn($response, $email);
+    }
 }

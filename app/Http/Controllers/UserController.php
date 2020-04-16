@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\User\ForgotPassword;
-use App\Http\Requests\User\GoogleSSO;
+use App\Http\Requests\User\GoogleSso;
 use App\Http\Requests\User\Register;
 use App\Http\Requests\User\ResetPassword;
 use App\Http\Requests\User\ValidateResetToken;
@@ -139,14 +139,14 @@ class UserController extends Controller
         return response()->json(['data' => $isValidToken]);
     }
 
-    public function googleSSO(GoogleSSO $request)
+    public function googleSso(GoogleSso $request)
     {
-        $payload = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
-        if (! $payload) {
+        $response = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
+        if (! $response) {
             return response()->json(['error' => 'auth_failed', 'message' => 'Something went wrong. You were not able to be authenticated']);
         }
 
-        $user = User::where('email', $payload['email'])->first();
+        $user = User::where('email', $response['payload']->get('email'))->first();
         $status = 200;
         if ($user) {
             // Login user that exists
@@ -154,11 +154,11 @@ class UserController extends Controller
         } else {
             // Create a new user
             $authParams = [
-                'email'    => $payload['email'],
+                'email'    => $response['payload']->get('email'),
                 'password' => Str::random(16),
             ];
             $user = $this->user->createAccount($authParams);
-            $this->oauthConnection->storeConnection($user, Google::getKey(), $oauthCredentials);
+            $result = $this->oauthConnection->storeConnection($user, Google::getKey(), $response['oauthCredentials']);
 
             SyncCards::dispatch($user, Google::getKey());
 
