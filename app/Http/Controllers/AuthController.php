@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\Login;
 use App\Models\User;
 use App\Support\Traits\HandlesAuth;
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class AuthController extends Controller
@@ -19,14 +19,8 @@ class AuthController extends Controller
      *
      * @return User
      */
-    public function login(Request $request)
+    public function login(Login $request)
     {
-        $rules = [
-            'email'     => 'required',
-            'password'  => 'required',
-        ];
-        $request->validate($rules);
-
         try {
             $authToken = $this->authRequest($request->all());
         } catch (\Exception $e) {
