@@ -30,7 +30,7 @@ abstract class TestCase extends BaseTestCase
             'password' => Config::get('constants.seed.password'),
         ]);
 
-        $token = Arr::get($response->json(), 'data.auth_token.access_token');
+        $token = Arr::get($response->json(), 'data.authToken.access_token');
 
         return $this->withHeaders(array_merge($headers, [
             'Authorization' => 'Bearer '.$token,

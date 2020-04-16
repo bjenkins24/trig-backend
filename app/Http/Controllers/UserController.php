@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\ForgotPassword;
+use App\Http\Requests\User\GoogleSSO;
+use App\Http\Requests\User\Register;
+use App\Http\Requests\User\ResetPassword;
+use App\Http\Requests\User\ValidateResetToken;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\Card\Integrations\Google;
@@ -9,10 +14,8 @@ use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use App\Utils\ResetPasswordHelper;
-use Google_Client as GoogleClient;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -57,15 +60,8 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function register(Request $request)
+    public function register(Register $request)
     {
-        $rules = [
-            'email'     => 'required|email',
-            'password'  => 'required',
-            'terms'     => 'required|boolean',
-        ];
-        $request->validate($rules);
-
         if (User::where('email', $request->get('email'))->exists()) {
             return response()->json([
                'error' => 'user_exists', 'message' => 'The email you tried to register already exists',
@@ -85,13 +81,8 @@ class UserController extends Controller
      *
      * @return bool
      */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPassword $request)
     {
-        $rules = [
-            'email'     => 'required|email',
-        ];
-        $request->validate($rules);
-
         $user = User::where('email', $request->get('email'))->first();
 
         if (! $user) {
@@ -114,16 +105,8 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPassword $request)
     {
-        $rules = [
-            'password'                  => 'required',
-            'password_confirmation'     => 'required',
-            'token'                     => 'required',
-            'email_hash'                => 'required',
-        ];
-        $request->validate($rules);
-
         $args = $request->all();
         $args['email'] = $this->resetPasswordHelper->decryptEmail($request->get('email_hash'));
         unset($args['email_hash']);
@@ -148,32 +131,25 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function validateResetToken(Request $request)
+    public function validateResetToken(ValidateResetToken $request)
     {
-        $rules = [
-            'token'                   => 'required',
-            'email_hash'              => 'required',
-        ];
-        $request->validate($rules);
-
         $isValidToken = $this->resetPasswordHelper->validateResetToken($request->all()) ?
             'valid' : 'invalid';
 
         return response()->json(['data' => $isValidToken]);
     }
 
-    public function google(Request $request)
+    public function googleSSO(GoogleSSO $request)
     {
-        $oauthCredentials = $this->oauthConnection->getAccessTokenWithCode(Google::getKey(), $request->get('code'));
-        $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
-        $payload = $client->verifyIdToken($oauthCredentials->get('id_token'));
+        $payload = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
         if (! $payload) {
-            return response()->json(['error' => 'fail!']);
+            return response()->json(['error' => 'auth_failed', 'message' => 'Something went wrong. You were not able to be authenticated']);
         }
 
         $user = User::where('email', $payload['email'])->first();
         $status = 200;
         if ($user) {
+            // Login user that exists
             $authToken['access_token'] = $user->createToken('trig')->accessToken;
         } else {
             // Create a new user

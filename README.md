@@ -17,11 +17,6 @@ Things you have to install:
   * `CREATE DATABASE trig;` `CREATE DATABASE trig_test`
 * You may need a username/pass for sendGrid if emails don't work. `MAIL_USERNAME` and `MAIL_PASSWORD`. You can ask for it.
 
-## Laravel Valet
-* `composer global require laravel/valet`
-* `valet install`
-* Navigate to the folder you cloned this repo in and run `valet park`
-
 ## PHP Extensions
 * `pecl install redis` 
   * If you used homebrew to install php, it probably put something wrong in your php.ini file. 
@@ -32,6 +27,11 @@ the full path. Use that. Make sure you restart your terminal too.
 * `pecl install xdebug`
   * You may need to mess with your php.ini file too `php --ini`. It should look something like this:
 `zend_extension="/usr/local/Cellar/php/7.4.3/pecl/20190902/xdebug.so"` with the full path
+
+## Laravel Valet
+* `composer global require laravel/valet`
+* `valet install`
+* Navigate to the folder you cloned this repo in and run `valet park`
 
 ## Bootstrapping
 * `npm run bootstrap` - Bootstrap everything below. Only run this on a new machine, not any of the 

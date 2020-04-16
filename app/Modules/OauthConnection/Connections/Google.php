@@ -52,4 +52,12 @@ class Google implements OauthConnectionInterface
 
         return $this->client;
     }
+
+    public function getUser(string $code)
+    {
+        $oauthCredentials = $this->retrieveAccessTokenWithCode($code);
+        $client = new GoogleClient(['client_id' => Config::get('services.google.client_id')]);
+
+        return $client->verifyIdToken($oauthCredentials->get('id_token'));
+    }
 }

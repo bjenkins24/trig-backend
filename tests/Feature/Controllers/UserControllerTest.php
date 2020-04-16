@@ -297,4 +297,23 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'validate-reset-token', $params);
         $response->assertJsonFragment(['data' => 'valid']);
     }
+
+    // /**
+    //  * Test Reset password token expired.
+    //  *
+    //  * @return void
+    //  * @group n
+    //  */
+    // public function testGoogleSSO()
+    // {
+    //     $password = 'myCoolNewPassword';
+    //     $params = [
+    //         'password'              => $password,
+    //         'password_confirmation' => $password,
+    //         'token'                 => $this->getResetToken(),
+    //         'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
+    //     ];
+    //     $response = $this->json('POST', 'google', $params);
+    //     $this->assertLoggedIn($response, Config::get('constants.seed.email'));
+    // }
 }
