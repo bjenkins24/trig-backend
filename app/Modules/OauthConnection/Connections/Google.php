@@ -5,7 +5,6 @@ namespace App\Modules\OauthConnection\Connections;
 use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use Google_Client as GoogleClient;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 
 class Google implements OauthConnectionInterface
 {
@@ -23,11 +22,11 @@ class Google implements OauthConnectionInterface
     {
         $client = new GoogleClient();
         $client->setApplicationName('Trig');
-        $client->setClientId(Config::get('services.google.client_id'));
-        $client->setClientSecret(Config::get('services.google.client_secret'));
+        $client->setClientId(\Config::get('services.google.client_id'));
+        $client->setClientSecret(\Config::get('services.google.client_secret'));
         $client->setAccessType('offline');
         $client->setPrompt('select_account consent');
-        $client->setDeveloperKey(Config::get('services.google.drive_api_key'));
+        $client->setDeveloperKey(\Config::get('services.google.drive_api_key'));
         $client->setRedirectUri('http://localhost:8080');
         $this->client = $client;
     }

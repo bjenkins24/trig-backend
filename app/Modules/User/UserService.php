@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\Helpers\ResetPasswordHelper;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class UserService
@@ -77,8 +76,8 @@ class UserService
 
             return sprintf(
                 '%s (at) %s',
-                Arr::get($email, '0'),
-                Arr::get($email, '1')
+                \Arr::get($email, '0'),
+                \Arr::get($email, '1')
             );
         }
 

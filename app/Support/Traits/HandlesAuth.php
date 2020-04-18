@@ -3,7 +3,6 @@
 namespace App\Support\Traits;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Laravel\Passport\Client;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -16,7 +15,7 @@ trait HandlesAuth
      */
     private function authResponse(array $args)
     {
-        Arr::set($args, 'username', $args['email']);
+        \Arr::set($args, 'username', $args['email']);
 
         $data = array_merge($args, [
             'grant_type' => 'password',
@@ -46,7 +45,7 @@ trait HandlesAuth
             'client_id'     => $client->getKey(),
         ]));
 
-        if (Arr::has($response, 'error')) {
+        if (\Arr::has($response, 'error')) {
             throw new HttpException(200, $response['error']);
         }
 

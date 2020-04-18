@@ -6,8 +6,6 @@ use App\Models\User;
 use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class GoogleTest extends TestCase
@@ -60,14 +58,14 @@ class GoogleTest extends TestCase
                 ->twice();
         });
 
-        Storage::shouldReceive('put')->andReturn(true)->twice();
-        Storage::shouldReceive('url')->andReturn($fakeThumbnailUrl)->twice();
+        \Storage::shouldReceive('put')->andReturn(true)->twice();
+        \Storage::shouldReceive('url')->andReturn($fakeThumbnailUrl)->twice();
 
         $result = app(Google::class)->syncCards($user);
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,
-            'image' => Config::get('app.url').$fakeThumbnailUrl,
+            'image' => \Config::get('app.url').$fakeThumbnailUrl,
         ]);
 
         $this->assertDatabaseHas('card_links', [

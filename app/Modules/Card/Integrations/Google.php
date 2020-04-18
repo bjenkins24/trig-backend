@@ -13,8 +13,6 @@ use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage;
 
 class Google implements IntegrationInterface
 {
@@ -92,9 +90,9 @@ class Google implements IntegrationInterface
             return;
         }
         $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
-        $result = Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
+        $result = \Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
         if ($result) {
-            $card->image = Config::get('app.url').Storage::url($imagePathWithExtension);
+            $card->image = \Config::get('app.url').\Storage::url($imagePathWithExtension);
             $card = $card->save();
         }
     }

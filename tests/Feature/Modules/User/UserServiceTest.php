@@ -5,7 +5,6 @@ namespace Tests\Feature\Models;
 use App\Models\User;
 use App\Modules\User\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class UserServiceTest extends TestCase
@@ -25,11 +24,11 @@ class UserServiceTest extends TestCase
     public function testName()
     {
         $userService = $this->getService();
-        $user = $userService->findByEmail(Config::get('constants.seed.email'));
+        $user = $userService->findByEmail(\Config::get('constants.seed.email'));
 
         $this->assertEquals(
             $userService->getName($user),
-            Config::get('constants.seed.first_name').' '.Config::get('constants.seed.last_name')
+            \Config::get('constants.seed.first_name').' '.\Config::get('constants.seed.last_name')
         );
     }
 

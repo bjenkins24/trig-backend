@@ -3,7 +3,6 @@
 namespace App\Modules\OauthIntegration;
 
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFoundException;
-use Illuminate\Support\Str;
 
 class OauthIntegrationService
 {
@@ -14,7 +13,7 @@ class OauthIntegrationService
      */
     public function makeIntegration(string $path, string $integration)
     {
-        $className = Str::studly($integration);
+        $className = \Str::studly($integration);
         $fullClassPath = "$path\\$className";
         try {
             return app($fullClassPath);

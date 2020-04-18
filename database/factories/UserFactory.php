@@ -3,8 +3,6 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 use App\Models\User;
 use Faker\Generator as Faker;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +21,7 @@ $factory->define(User::class, function (Faker $faker) {
         'last_name'         => $faker->lastName,
         'email'             => $faker->unique()->safeEmail,
         'email_verified_at' => now(),
-        'password'          => Config::get('constants.seed.passwordHash'),
-        'remember_token'    => Str::random(10),
+        'password'          => \Config::get('constants.seed.passwordHash'),
+        'remember_token'    => \Str::random(10),
     ];
 });

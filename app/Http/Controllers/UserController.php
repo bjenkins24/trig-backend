@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\User\FailedGoogleSso;
 use App\Exceptions\User\NoUserFound;
 use App\Exceptions\User\ResetPasswordTokenExpired;
 use App\Exceptions\User\UserExists;
@@ -15,8 +16,6 @@ use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -118,9 +117,7 @@ class UserController extends Controller
     {
         $response = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
         if (! $response) {
-            Log::notice('Unable to SSO user. Either Google is down or possibly a malicious user posted an invalid auth code.');
-
-            return response()->json(['error' => 'auth_failed', 'message' => 'Something went wrong. You were not able to be authenticated']);
+            throw new FailedGoogleSso();
         }
 
         $user = $this->user->findByEmail($response['payload']->get('email'));
@@ -131,7 +128,7 @@ class UserController extends Controller
         } else {
             $authParams = [
                 'email'    => $response['payload']->get('email'),
-                'password' => Str::random(16),
+                'password' => \Str::random(24),
             ];
             $user = $this->user->createFromGoogle($authParams, $response['oauthCredentials']);
 

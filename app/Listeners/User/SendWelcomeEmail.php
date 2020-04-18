@@ -6,7 +6,6 @@ use App\Events\User\AccountCreated;
 use App\Mail\WelcomeMail;
 use App\Modules\User\UserService;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Mail;
 
 class SendWelcomeEmail implements ShouldQueue
 {
@@ -20,6 +19,6 @@ class SendWelcomeEmail implements ShouldQueue
         $userFullName = app(UserService::class)->getName($event->user);
         // and set the name prop, because Mail needs it
         $event->user->name = $userFullName;
-        Mail::to($event->user)->send(new WelcomeMail());
+        \Mail::to($event->user)->send(new WelcomeMail());
     }
 }

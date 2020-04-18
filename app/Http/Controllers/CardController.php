@@ -18,7 +18,7 @@ class CardController extends Controller
             ->orderBy('actual_created_at', 'desc')
             ->paginate(25);
         $cards = parse_str($queryConstraints, $queryConstraints);
-        $cards = $queryConstraints;
+        collect($queryConstraints);
 
         return response()->json(['data' => $cards]);
     }

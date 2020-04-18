@@ -6,7 +6,6 @@ use App\Http\Requests\Auth\Login;
 use App\Models\User;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
-use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
@@ -43,7 +42,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if (empty(Arr::get($authToken, 'access_token'))) {
+        if (empty(\Arr::get($authToken, 'access_token'))) {
             throw new \Error('A user tried to log in, they were authenticated, but the access token was not set');
         }
 
