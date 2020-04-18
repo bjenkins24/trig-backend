@@ -5,7 +5,7 @@ namespace App\Modules\User;
 use App\Events\User\AccountCreated;
 use App\Jobs\SyncCards;
 use App\Models\User;
-use App\Modules\Card\Integrations\Google;
+use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Support\Collection;
@@ -59,9 +59,9 @@ class UserService
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
-        $result = $this->oauthConnection->storeConnection($user, Google::getKey(), $oauthCredentials);
+        $result = $this->oauthConnection->repo->create($user, GoogleConnection::getKey(), $oauthCredentials);
 
-        SyncCards::dispatch($user, Google::getKey());
+        SyncCards::dispatch($user, GoogleConnection::getKey());
 
         return $user;
     }

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Modules\OauthConnection\Connections\Google;
+use App\Modules\OauthConnection\Connections\GoogleConnection;
 use Google_Client as GoogleClient;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,7 +15,7 @@ class OauthConnectionServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(Google::class, function () {
+        $this->app->singleton(GoogleConnection::class, function () {
             $client = new GoogleClient();
             $client->setApplicationName('Trig');
             $client->setClientId(\Config::get('services.google.client_id'));
@@ -25,7 +25,7 @@ class OauthConnectionServiceProvider extends ServiceProvider
             $client->setDeveloperKey(\Config::get('services.google.drive_api_key'));
             $client->setRedirectUri('http://localhost:8080');
 
-            return new Google($client);
+            return new GoogleConnection($client);
         });
     }
 

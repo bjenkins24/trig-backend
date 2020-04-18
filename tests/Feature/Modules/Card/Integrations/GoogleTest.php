@@ -3,7 +3,7 @@
 namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Models\User;
-use App\Modules\Card\Integrations\Google;
+use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -46,7 +46,7 @@ class GoogleTest extends TestCase
         $fakeThumbnailUrl = '/storage/public/card-thumbnails/1.jpg';
         $fakeUrl = 'http://myfakeurl.example.com';
         $fakeId = 'My fake Id';
-        $this->partialMock(Google::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
             $file = new FakeFiles();
             $file->name = $fakeTitle;
             $file->webViewLink = $fakeUrl;
@@ -61,7 +61,7 @@ class GoogleTest extends TestCase
         \Storage::shouldReceive('put')->andReturn(true)->twice();
         \Storage::shouldReceive('url')->andReturn($fakeThumbnailUrl)->twice();
 
-        $result = app(Google::class)->syncCards($user);
+        $result = app(GoogleIntegration::class)->syncCards($user);
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,

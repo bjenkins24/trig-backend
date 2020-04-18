@@ -7,6 +7,7 @@ use App\Models\CardType;
 use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Interfaces\IntegrationInterface;
+use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Utils\FileHelper;
 use Exception;
@@ -14,20 +15,21 @@ use Google_Service_Directory as GoogleServiceDirectory;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Collection;
 
-class Google implements IntegrationInterface
+class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
 
     private $client;
+    private $oauthConnection;
 
-    public static function getKey(): string
+    public function __construct(OauthConnectionService $oauthConnection)
     {
-        return 'google';
+        return $this->oauthConnection = $oauthConnection;
     }
 
     private function setClient()
     {
-        $this->client = app(OauthConnectionService::class)->getClient($user, $this->getKey());
+        $this->client = $this->oauthConnection->getClient($user, GoogleConnection::getKey());
     }
 
     public function getFiles(User $user): Collection
@@ -54,7 +56,7 @@ class Google implements IntegrationInterface
      */
     public function getThumbnail(User $user, $file): Collection
     {
-        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $this->getKey());
+        $accessToken = $this->oauthConnection->getAccessToken($user, GoogleConnection::getKey());
         try {
             $thumbnail = file_get_contents($file->thumbnailLink.'&access_token='.$accessToken);
         } catch (Exception $e) {
@@ -132,7 +134,7 @@ class Google implements IntegrationInterface
             'link' => $file->webViewLink,
         ]);
 
-        $oauthIntegration = OauthIntegration::where(['name' => $this->getKey()])->first();
+        $oauthIntegration = OauthIntegration::where(['name' => GoogleConnection::getKey()])->first();
         $card->cardIntegration()->create([
             'foreign_id'           => $file->id,
             'oauth_integration_id' => $oauthIntegration->id,

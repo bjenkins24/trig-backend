@@ -6,7 +6,7 @@ use App\Jobs\SyncCards;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\WelcomeMail;
 use App\Models\User;
-use App\Modules\OauthConnection\Connections\Google;
+use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -305,7 +305,7 @@ class UserControllerTest extends TestCase
     {
         \Queue::fake();
         $email = 'sam_sung@example.com';
-        $this->partialMock(Google::class, function ($mock) use ($email) {
+        $this->partialMock(GoogleConnection::class, function ($mock) use ($email) {
             $mock->shouldReceive('getUser')->andReturn([
                 'payload'          => collect(['email' => $email]),
                 'oauthCredentials' => collect([
@@ -338,7 +338,7 @@ class UserControllerTest extends TestCase
     {
         \Queue::fake();
         $email = 'sam_sung@example.com';
-        $this->partialMock(Google::class, function ($mock) {
+        $this->partialMock(GoogleConnection::class, function ($mock) {
             $mock->shouldReceive('getUser')->andReturn([])->once();
         });
 

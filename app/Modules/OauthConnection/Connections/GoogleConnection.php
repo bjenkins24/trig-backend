@@ -6,7 +6,7 @@ use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use Google_Client as GoogleClient;
 use Illuminate\Support\Collection;
 
-class Google implements OauthConnectionInterface
+class GoogleConnection implements OauthConnectionInterface
 {
     /**
      * Google client class.
@@ -18,17 +18,14 @@ class Google implements OauthConnectionInterface
     /**
      * Initiate basic client steps.
      */
-    public function __construct()
+    public function __construct(GoogleClient $client)
     {
-        $client = new GoogleClient();
-        $client->setApplicationName('Trig');
-        $client->setClientId(\Config::get('services.google.client_id'));
-        $client->setClientSecret(\Config::get('services.google.client_secret'));
-        $client->setAccessType('offline');
-        $client->setPrompt('select_account consent');
-        $client->setDeveloperKey(\Config::get('services.google.drive_api_key'));
-        $client->setRedirectUri('http://localhost:8080');
         $this->client = $client;
+    }
+
+    public static function getKey(): string
+    {
+        return 'google';
     }
 
     public function retrieveAccessTokenWithCode(string $authToken): Collection
@@ -45,7 +42,7 @@ class Google implements OauthConnectionInterface
         return collect($accessToken);
     }
 
-    public function getClient(string $accessToken)
+    public function getClient(string $accessToken): GoogleClient
     {
         $this->client->setAccessToken($accessToken);
 
