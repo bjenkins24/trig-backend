@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\User\NoUserFound;
+use App\Exceptions\User\ResetPasswordTokenExpired;
+use App\Exceptions\User\UserExists;
 use App\Http\Requests\User\ForgotPasswordRequest;
 use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
@@ -46,9 +49,7 @@ class UserController extends Controller
     public function register(RegisterRequest $request)
     {
         if ($this->user->findByEmail($request->get('email'))) {
-            return response()->json([
-               'error' => 'user_exists', 'message' => 'The email you tried to register already exists',
-            ], 200);
+            throw new UserExists();
         }
 
         $user = $this->user->create($request->all());
@@ -69,10 +70,7 @@ class UserController extends Controller
         $user = $this->user->findByEmail($request->get('email'));
 
         if (! $user) {
-            return response()->json([
-                'error'   => 'no_user_found',
-                'message' => 'There is no user with the given email. Please try again.',
-            ]);
+            throw new NoUserFound();
         }
 
         $this->user->resetPassword->sendForgotPasswordNotification($user);
@@ -94,10 +92,7 @@ class UserController extends Controller
         try {
             $user = $this->user->resetPassword->passwordReset($args)->wait();
         } catch (\Error $e) {
-            return response()->json([
-                'error'   => 'reset_password_token_expired',
-                'message' => 'The password reset link has expired.',
-            ], 400);
+            throw new ResetPasswordTokenExpired();
         }
 
         // Login the new user

@@ -88,6 +88,7 @@ class UserControllerTest extends TestCase
      * See if the user exists or not.
      *
      * @return void
+     * @group n
      */
     public function testRegistrationUserExists()
     {
