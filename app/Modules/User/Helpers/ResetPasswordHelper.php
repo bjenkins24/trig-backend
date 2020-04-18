@@ -1,12 +1,16 @@
 <?php
 
-namespace App\Utils;
+namespace App\Modules\User\Helpers;
 
+use App\Mail\ForgotPasswordMail;
 use App\Models\User;
+use App\Modules\User\UserRepository;
+use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use GuzzleHttp\Promise\Promise;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Passwords\PasswordBroker;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -14,14 +18,13 @@ class ResetPasswordHelper
 {
     use HandlesAuth;
 
-    /**
-     * @var PasswordBroker
-     */
+    private UserRepository $user;
     private PasswordBroker $passwordBroker;
 
-    public function __construct(PasswordBroker $passwordBroker)
+    public function __construct(PasswordBroker $passwordBroker, UserRepository $user)
     {
         $this->passwordBroker = $passwordBroker;
+        $this->user = $user;
     }
 
     /**
@@ -38,6 +41,18 @@ class ResetPasswordHelper
     public function decryptEmail(string $email): string
     {
         return base64_decode($email);
+    }
+
+    /**
+     * Decrypt the email_hash and unset it, so we have proper args
+     * for login.
+     */
+    public function getPasswordResetArgs(array $args): array
+    {
+        $args['email'] = $this->decryptEmail($args['email_hash']);
+        unset($args['email_hash']);
+
+        return $args;
     }
 
     /**
@@ -75,11 +90,25 @@ class ResetPasswordHelper
      */
     public function validateResetToken(array $args): bool
     {
-        $user = User::where('email', $this->decryptEmail($args['email_hash']))->first();
+        $user = $this->user->findByEmail($this->decryptEmail($args['email_hash']));
         if (! $user) {
             return false;
         }
 
         return $this->passwordBroker->tokenExists($user, $args['token']);
+    }
+
+    public function sendForgotPasswordNotification(User $user)
+    {
+        $token = $this->passwordBroker->createToken($user);
+        $userFullName = app(UserService::class)->getName($user);
+
+        // and set the name prop, because Mail needs it
+        $user->name = $userFullName;
+
+        $emailHash = $this->encryptEmail($user->email);
+
+        // send the email
+        return Mail::to($user)->send(new ForgotPasswordMail($token, $emailHash));
     }
 }

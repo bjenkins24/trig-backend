@@ -4,12 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\Login;
 use App\Models\User;
+use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
     use HandlesAuth;
+
+    public UserService $user;
+
+    public function __construct(UserService $user)
+    {
+        $this->user = $user;
+    }
 
     /**
      * Log in user.
@@ -35,10 +43,11 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = null;
-        if (! empty(Arr::get($authToken, 'access_token'))) {
-            $user = User::where('email', $request->get('email'))->first()->toArray();
+        if (empty(Arr::get($authToken, 'access_token'))) {
+            throw new \Error('A user tried to log in, they were authenticated, but the access token was not set');
         }
+
+        $user = $this->user->findByEmail($request->get('email'));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
     }

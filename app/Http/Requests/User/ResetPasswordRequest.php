@@ -4,7 +4,7 @@ namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GoogleSso extends FormRequest
+class ResetPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,10 @@ class GoogleSso extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required',
+            'password'                  => 'required',
+            'password_confirmation'     => 'required',
+            'token'                     => 'required',
+            'email_hash'                => 'required',
         ];
     }
 }

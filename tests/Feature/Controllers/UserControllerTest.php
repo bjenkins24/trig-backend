@@ -7,7 +7,7 @@ use App\Mail\ForgotPasswordMail;
 use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\Google;
-use App\Utils\ResetPasswordHelper;
+use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;

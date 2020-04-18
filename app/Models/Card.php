@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
+use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardLink;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ class Card extends Model
     use BelongsToUser;
     use BelongsToCardType;
     use HasCardLink;
+    use HasCardFavorite;
     use HasCardIntegration;
 
     /**

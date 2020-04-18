@@ -3,13 +3,19 @@
 namespace Tests\Feature\Models;
 
 use App\Models\User;
+use App\Modules\User\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
-class UserTest extends TestCase
+class UserServiceTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function getService()
+    {
+        return app(UserService::class);
+    }
 
     /**
      * Test creating a name for a user.
@@ -18,9 +24,11 @@ class UserTest extends TestCase
      */
     public function testName()
     {
-        $user = User::where('email', Config::get('constants.seed.email'))->first();
+        $userService = $this->getService();
+        $user = $userService->findByEmail(Config::get('constants.seed.email'));
+
         $this->assertEquals(
-            $user->name(),
+            $userService->getName($user),
             Config::get('constants.seed.first_name').' '.Config::get('constants.seed.last_name')
         );
     }
@@ -37,7 +45,8 @@ class UserTest extends TestCase
             'email' => $email, 'password' => 'password', 'terms' => true,
         ]);
 
-        $user = User::where('email', $email)->first();
-        $this->assertEquals($user->name(), 'sam_sung (at) example.com');
+        $userService = $this->getService();
+        $user = $userService->findByEmail($email);
+        $this->assertEquals($userService->getName($user), 'sam_sung (at) example.com');
     }
 }

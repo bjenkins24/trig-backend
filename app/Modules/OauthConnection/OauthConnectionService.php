@@ -51,7 +51,7 @@ class OauthConnectionService
             throw new OauthUnauthorizedRequest('A '.$integration.' has not been authorized for user '.$user->id.'. Cannot get client for user.');
         }
 
-        if ($oauthConnection->expires->isAfter(Carbon::now())) {
+        if ($oauthConnection->expires->isBefore(Carbon::now())) {
             $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthConnection->refresh_token);
             $this->store->handle($user, $integration, $authConnection);
             $accessToken = $authConnection->get('access_token');

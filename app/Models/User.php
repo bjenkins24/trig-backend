@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-use App\Mail\ForgotPasswordMail;
 use App\Support\Traits\Relationships\BelongsToManyOrganizations;
+use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
-use App\Utils\ResetPasswordHelper;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Mail;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
@@ -20,6 +17,7 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasOauthConnections;
     use HasCards;
+    use HasCardFavorite;
 
     /**
      * The attributes that are mass assignable.
@@ -60,44 +58,4 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    /**
-     * Get user's full name.
-     *
-     * @return string
-     */
-    public function name()
-    {
-        if (! $this->first_name || ! $this->last_name) {
-            $email = explode('@', $this->email);
-
-            return sprintf(
-                '%s (at) %s',
-                Arr::get($email, '0'),
-                Arr::get($email, '1')
-            );
-        }
-
-        return $this->first_name.' '.$this->last_name;
-    }
-
-    /**
-     * Send forgot password email.
-     *
-     * @param string $token
-     *
-     * @return void
-     */
-    public function sendPasswordResetNotification($token)
-    {
-        $userFullName = $this->name();
-
-        // and set the name prop, because Mail needs it
-        $this->name = $userFullName;
-
-        $emailHash = app(ResetPasswordHelper::class)->encryptEmail($this->email);
-
-        // send the email
-        Mail::to($this)->send(new ForgotPasswordMail($token, $emailHash));
-    }
 }

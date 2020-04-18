@@ -4,7 +4,7 @@ namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class Register extends FormRequest
+class ValidateResetTokenRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +24,8 @@ class Register extends FormRequest
     public function rules()
     {
         return [
-            'email'     => 'required|email',
-            'password'  => 'required',
-            'terms'     => 'required|boolean',
+            'token'                   => 'required',
+            'email_hash'              => 'required',
         ];
     }
 }

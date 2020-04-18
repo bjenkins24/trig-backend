@@ -2,19 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\User\ForgotPassword;
-use App\Http\Requests\User\GoogleSso;
-use App\Http\Requests\User\Register;
-use App\Http\Requests\User\ResetPassword;
-use App\Http\Requests\User\ValidateResetToken;
-use App\Jobs\SyncCards;
+use App\Http\Requests\User\ForgotPasswordRequest;
+use App\Http\Requests\User\GoogleSsoRequest;
+use App\Http\Requests\User\RegisterRequest;
+use App\Http\Requests\User\ResetPasswordRequest;
+use App\Http\Requests\User\ValidateResetTokenRequest;
 use App\Models\User;
-use App\Modules\Card\Integrations\Google;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
-use App\Utils\ResetPasswordHelper;
-use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,28 +19,14 @@ class UserController extends Controller
 {
     use HandlesAuth;
 
-    /**
-     * @var UserService
-     */
     private UserService $user;
-
-    /**
-     * @var OauthConnectionService
-     */
     private OauthConnectionService $oauthConnection;
-
-    /**
-     * @var ResetPasswordHelper
-     */
-    private ResetPasswordHelper $resetPasswordHelper;
 
     public function __construct(
         UserService $user,
-        ResetPasswordHelper $resetPasswordHelper,
         OauthConnectionService $oauthConnection
     ) {
         $this->user = $user;
-        $this->resetPasswordHelper = $resetPasswordHelper;
         $this->oauthConnection = $oauthConnection;
     }
 
@@ -61,15 +43,15 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function register(Register $request)
+    public function register(RegisterRequest $request)
     {
-        if (User::where('email', $request->get('email'))->exists()) {
+        if ($this->user->findByEmail($request->get('email'))) {
             return response()->json([
                'error' => 'user_exists', 'message' => 'The email you tried to register already exists',
             ], 200);
         }
 
-        $user = $this->user->createAccount($request->all());
+        $user = $this->user->create($request->all());
 
         // Login the new user
         $authToken = $this->authRequest($request->all());
@@ -82,9 +64,9 @@ class UserController extends Controller
      *
      * @return bool
      */
-    public function forgotPassword(ForgotPassword $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $user = User::where('email', $request->get('email'))->first();
+        $user = $this->user->findByEmail($request->get('email'));
 
         if (! $user) {
             return response()->json([
@@ -93,8 +75,7 @@ class UserController extends Controller
             ]);
         }
 
-        $token = app(PasswordBroker::class)->createToken($user);
-        $user->sendPasswordResetNotification($token);
+        $this->user->resetPassword->sendForgotPasswordNotification($user);
 
         return response()->json([
             'data' => 'success',
@@ -106,14 +87,12 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function resetPassword(ResetPassword $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $args = $request->all();
-        $args['email'] = $this->resetPasswordHelper->decryptEmail($request->get('email_hash'));
-        unset($args['email_hash']);
+        $args = $this->user->resetPassword->getPasswordResetArgs($request->all());
 
         try {
-            $user = $this->resetPasswordHelper->passwordReset($args)->wait();
+            $user = $this->user->resetPassword->passwordReset($args)->wait();
         } catch (\Error $e) {
             return response()->json([
                 'error'   => 'reset_password_token_expired',
@@ -132,15 +111,15 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function validateResetToken(ValidateResetToken $request)
+    public function validateResetToken(ValidateResetTokenRequest $request)
     {
-        $isValidToken = $this->resetPasswordHelper->validateResetToken($request->all()) ?
+        $isValidToken = $this->user->resetPassword->validateResetToken($request->all()) ?
             'valid' : 'invalid';
 
         return response()->json(['data' => $isValidToken]);
     }
 
-    public function googleSso(GoogleSso $request)
+    public function googleSso(GoogleSsoRequest $request)
     {
         $response = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
         if (! $response) {
@@ -149,21 +128,17 @@ class UserController extends Controller
             return response()->json(['error' => 'auth_failed', 'message' => 'Something went wrong. You were not able to be authenticated']);
         }
 
-        $user = User::where('email', $response['payload']->get('email'))->first();
+        $user = $this->user->findByEmail($response['payload']->get('email'));
         $status = 200;
         if ($user) {
             // Login user that exists
-            $authToken['access_token'] = $user->createToken('trig')->accessToken;
+            $authToken['access_token'] = $this->user->getAccessToken($user);
         } else {
-            // Create a new user
             $authParams = [
                 'email'    => $response['payload']->get('email'),
                 'password' => Str::random(16),
             ];
-            $user = $this->user->createAccount($authParams);
-            $result = $this->oauthConnection->storeConnection($user, Google::getKey(), $response['oauthCredentials']);
-
-            SyncCards::dispatch($user, Google::getKey());
+            $user = $this->user->createFromGoogle($authParams, $response['oauthCredentials']);
 
             // Login the new user
             $authToken = $this->authRequest($authParams);
