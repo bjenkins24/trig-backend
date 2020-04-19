@@ -9,7 +9,7 @@ class OauthIntegrationRepository
     /**
      * Find by name.
      */
-    public function findByName(string $name): OauthIntegration
+    public function findByName(string $name): ?OauthIntegration
     {
         return OauthIntegration::where('name', $name)->first();
     }

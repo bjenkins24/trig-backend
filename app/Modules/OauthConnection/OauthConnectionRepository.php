@@ -22,9 +22,12 @@ class OauthConnectionRepository
     /**
      * Find a connection for a user.
      */
-    public function findUserConnection(User $user, string $integration): OauthConnection
+    public function findUserConnection(User $user, string $integration): ?OauthConnection
     {
         $oauthIntegration = $this->oauthIntegration->findByName($integration);
+        if (! $oauthIntegration) {
+            return null;
+        }
 
         return $oauthIntegration->oauthConnections()->where('user_id', $user->id)->first();
     }
@@ -60,10 +63,8 @@ class OauthConnectionRepository
 
     /**
      * Check if the access token is expired.
-     *
-     * @return bool
      */
-    public function isExpired(OauthConnection $oauthConnection): boolean
+    public function isExpired(OauthConnection $oauthConnection): bool
     {
         return $oauthConnection->expires->isBefore(Carbon::now());
     }

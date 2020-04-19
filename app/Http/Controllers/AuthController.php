@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Auth\NoAccessTokenSet;
 use App\Http\Requests\Auth\Login;
 use App\Models\User;
 use App\Modules\User\UserService;
@@ -37,13 +38,13 @@ class AuthController extends Controller
                 'Something went wrong. Please try again';
 
             return response()->json([
-                'error'   => $e->getMessage(),
+                'error'   => $error,
                 'message' => $message,
             ]);
         }
 
         if (empty(\Arr::get($authToken, 'access_token'))) {
-            throw new \Error('A user tried to log in, they were authenticated, but the access token was not set');
+            throw new NoAccessTokenSet();
         }
 
         $user = $this->user->repo->findByEmail($request->get('email'));

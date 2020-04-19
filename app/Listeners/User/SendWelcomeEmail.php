@@ -17,7 +17,7 @@ class SendWelcomeEmail implements ShouldQueue
     public function handle(AccountCreated $event)
     {
         $userFullName = app(UserService::class)->getName($event->user);
-        // and set the name prop, because Mail needs it
+        // Set the name prop, because Mail needs it
         $event->user->name = $userFullName;
         \Mail::to($event->user)->send(new WelcomeMail());
     }

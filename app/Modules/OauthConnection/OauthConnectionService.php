@@ -51,11 +51,11 @@ class OauthConnectionService
         $integrationInstance = $this->makeIntegration($integration);
         $oauthConnection = $this->repo->findUserConnection($user, $integration);
 
-        $accessToken = $oauthConnection->access_token;
-
         if (! $oauthConnection) {
             throw new OauthUnauthorizedRequest('A '.$integration.' has not been authorized for user '.$user->id.'. Cannot get client for user.');
         }
+
+        $accessToken = $oauthConnection->access_token;
 
         if ($this->repo->isExpired($oauthConnection)) {
             $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthConnection->refresh_token);

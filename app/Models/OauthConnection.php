@@ -30,6 +30,6 @@ class OauthConnection extends Model
      * @var array
      */
     protected $casts = [
-        'expires' => 'date',
+        'expires' => 'datetime',
     ];
 }

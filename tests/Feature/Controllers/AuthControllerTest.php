@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -59,5 +60,24 @@ class AuthControllerTest extends TestCase
         $this->assertTrue(
             \Arr::get($response->json(), 'data.user.email') === \Config::get('constants.seed.email')
         );
+    }
+
+    /**
+     * No access token returned.
+     *
+     * @return void
+     */
+    public function testLoginNoAccessToken()
+    {
+        $this->partialMock(AuthController::class, function ($mock) {
+            $mock->shouldReceive('authRequest')->andReturn([])->once();
+        });
+
+        $user = [
+            'email'    => \Config::get('constants.seed.email'),
+            'password' => \Config::get('constants.seed.password'),
+        ];
+
+        $response = $this->json('POST', 'login', $user)->assertJsonFragment(['error' => 'no_access_token']);
     }
 }

@@ -36,7 +36,7 @@ trait HandlesAuth
      *
      * @return array
      */
-    private function authRequest(array $input)
+    public function authRequest(array $input)
     {
         $client = Client::where('name', 'like', '%Password%')->first();
 

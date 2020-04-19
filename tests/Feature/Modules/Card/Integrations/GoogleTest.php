@@ -4,35 +4,14 @@ namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
-use App\Modules\OauthConnection\OauthConnectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
 class GoogleTest extends TestCase
 {
     use RefreshDatabase;
-
-    /**
-     * Create fake oauth connection for testing.
-     *
-     * @return void
-     */
-    private function createOauthConnection()
-    {
-        $user = User::find(1);
-
-        app(OauthConnectionService::class)->repo->create(
-            $user,
-            'google',
-            collect([
-                'access_token'  => 'ya29.a0Ae4lvC1wU4oWWGgTXbw79vJVtjstCV1Hy2Di-dmYApdjQOQomWfg4w9OZpManqJvxD1VXwEiAAvxo_fQIQwb6fumSKKiO-ViYEHaJTsxWS8uXyHIoB_d6vLGL-IxAf9tW8VFWQCHeP3Im17PU029ZtDna3ssBK12y-w',
-                'refresh_token' => '1//0fhpEZ1LyYyXNCgYIARAAGA8SNwF-L9IrF4-hXziVN01TUS0Gb33Xdr5o6iFpS_rtJ6c1eEQiHmnov3vKfZIinJX2_pAXoZGvm70',
-                'expires_in'    => 3600,
-            ])
-        );
-
-        return $user;
-    }
+    use CreateOauthConnection;
 
     /**
      * Test syncing all integrations.
@@ -41,7 +20,8 @@ class GoogleTest extends TestCase
      */
     public function testSyncCards()
     {
-        $user = $this->createOauthConnection();
+        $user = User::find(1);
+        $this->createOauthConnection($user);
         $fakeTitle = "Brian's Title";
         $fakeThumbnailUrl = '/storage/public/card-thumbnails/1.jpg';
         $fakeUrl = 'http://myfakeurl.example.com';
