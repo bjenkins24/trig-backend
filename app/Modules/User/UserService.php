@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 
 class UserService
 {
-    private UserRepository $user;
+    public UserRepository $repo;
     public ResetPasswordHelper $resetPassword;
     private OauthConnectionService $oauthConnection;
 
@@ -20,23 +20,18 @@ class UserService
      * Create instance of user service.
      */
     public function __construct(
-        UserRepository $user,
+        UserRepository $repo,
         ResetPasswordHelper $resetPassword,
         OauthConnectionService $oauthConnection
     ) {
-        $this->user = $user;
+        $this->repo = $repo;
         $this->resetPassword = $resetPassword;
         $this->oauthConnection = $oauthConnection;
     }
 
-    public function findByEmail(string $email): ?User
-    {
-        return $this->user->findByEmail($email);
-    }
-
     public function create(array $input): User
     {
-        $user = $this->user->create($input);
+        $user = $this->repo->create($input);
         event(new AccountCreated($user));
 
         return $user;

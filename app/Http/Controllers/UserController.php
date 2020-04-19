@@ -47,7 +47,7 @@ class UserController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        if ($this->user->findByEmail($request->get('email'))) {
+        if ($this->user->repo->findByEmail($request->get('email'))) {
             throw new UserExists();
         }
 
@@ -66,7 +66,7 @@ class UserController extends Controller
      */
     public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $user = $this->user->findByEmail($request->get('email'));
+        $user = $this->user->repo->findByEmail($request->get('email'));
 
         if (! $user) {
             throw new NoUserFound();
@@ -120,7 +120,7 @@ class UserController extends Controller
             throw new FailedGoogleSso();
         }
 
-        $user = $this->user->findByEmail($response['payload']->get('email'));
+        $user = $this->user->repo->findByEmail($response['payload']->get('email'));
         $status = 200;
         if ($user) {
             // Login user that exists

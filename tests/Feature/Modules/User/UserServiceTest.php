@@ -24,7 +24,7 @@ class UserServiceTest extends TestCase
     public function testName()
     {
         $userService = $this->getService();
-        $user = $userService->findByEmail(\Config::get('constants.seed.email'));
+        $user = $userService->repo->findByEmail(\Config::get('constants.seed.email'));
 
         $this->assertEquals(
             $userService->getName($user),
@@ -45,7 +45,7 @@ class UserServiceTest extends TestCase
         ]);
 
         $userService = $this->getService();
-        $user = $userService->findByEmail($email);
+        $user = $userService->repo->findByEmail($email);
         $this->assertEquals($userService->getName($user), 'sam_sung (at) example.com');
     }
 }

@@ -46,7 +46,7 @@ class AuthController extends Controller
             throw new \Error('A user tried to log in, they were authenticated, but the access token was not set');
         }
 
-        $user = $this->user->findByEmail($request->get('email'));
+        $user = $this->user->repo->findByEmail($request->get('email'));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
     }

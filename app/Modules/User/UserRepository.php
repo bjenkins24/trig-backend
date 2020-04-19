@@ -3,6 +3,7 @@
 namespace App\Modules\User;
 
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class UserRepository
 {
@@ -16,6 +17,11 @@ class UserRepository
     public function findByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
+    }
+
+    public function getAllOauthConnections($user): Collection
+    {
+        return $user->oauthConnections()->get();
     }
 
     public function create(array $input): User

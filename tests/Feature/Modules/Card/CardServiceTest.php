@@ -22,8 +22,7 @@ class CardServiceTest extends TestCase
     private function createOauthConnection()
     {
         $user = User::find(1);
-
-        app(OauthConnectionService::class)->storeConnection($user, 'google', collect([
+        app(OauthConnectionService::class)->repo->create($user, 'google', collect([
             'access_token'  => '123',
             'refresh_token' => '456',
             'expires_in'    => 0,
@@ -36,6 +35,7 @@ class CardServiceTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncAll()
     {

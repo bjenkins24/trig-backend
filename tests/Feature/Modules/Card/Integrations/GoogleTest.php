@@ -21,7 +21,7 @@ class GoogleTest extends TestCase
     {
         $user = User::find(1);
 
-        app(OauthConnectionService::class)->storeConnection(
+        app(OauthConnectionService::class)->repo->create(
             $user,
             'google',
             collect([

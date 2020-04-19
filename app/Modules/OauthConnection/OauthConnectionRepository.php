@@ -3,6 +3,7 @@
 namespace App\Modules\OauthConnection;
 
 use App\Models\OauthConnection;
+use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
@@ -26,6 +27,16 @@ class OauthConnectionRepository
         $oauthIntegration = $this->oauthIntegration->findByName($integration);
 
         return $oauthIntegration->oauthConnections()->where('user_id', $user->id)->first();
+    }
+
+    /**
+     * Get integration from connection.
+     *
+     * @return void
+     */
+    public function getIntegration(OauthConnection $connection): OauthIntegration
+    {
+        return $connection->oauthIntegration()->first();
     }
 
     /**
