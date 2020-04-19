@@ -50,7 +50,7 @@ class FakeFiles
     public $teamDriveId = null;
     public $thumbnailLink = 'https://docs.google.com/a/trytrig.com/feeds/vt?gd=true&id=1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k&v=14&s=AMedNnoAAAAAXpUOTCtmc4zTbEZ6g0EPywj-ypToA8-U&sz=s220';
     public $thumbnailVersion = 0;
-    public $trashed = true;
+    public $trashed = false;
     public $trashedTime = null;
     public $version = '23';
     public $viewedByMe = true;
