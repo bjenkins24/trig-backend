@@ -22,7 +22,7 @@ class OauthIntegrationService
     {
         $className = \Str::studly($integration);
         $classType = \Str::ucfirst($type);
-        $fullClassPath = "{$path}\\{$className}{$classType}";
+        $fullClassPath = "\\{$path}\\{$className}{$classType}";
         try {
             return app($fullClassPath);
         } catch (\Exception $e) {

@@ -4,11 +4,11 @@ namespace App\Modules\Card\Integrations;
 
 use App\Models\Card;
 use App\Models\CardType;
-use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -18,29 +18,35 @@ use Illuminate\Support\Collection;
 class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
+    const PAGE_SIZE = 10;
 
     private $client;
     private $oauthConnection;
+    private $oauthIntegration;
 
-    public function __construct(OauthConnectionService $oauthConnection)
-    {
+    public function __construct(
+        OauthConnectionService $oauthConnection,
+        OauthIntegrationService $oauthIntegration
+    ) {
         return $this->oauthConnection = $oauthConnection;
+
+        return $this->oauthIntegration = $oauthIntegration;
     }
 
-    private function setClient()
+    private function setClient(User $user)
     {
         $this->client = $this->oauthConnection->getClient($user, GoogleConnection::getKey());
     }
 
     public function getFiles(User $user): Collection
     {
-        if (! $client) {
+        if (! $this->client) {
             $this->setClient($user);
         }
         $service = new GoogleServiceDrive($this->client);
 
         $optParams = [
-            'pageSize' => 10,
+            'pageSize' => self::PAGE_SIZE,
             'fields'   => 'nextPageToken, files',
         ];
 
@@ -134,7 +140,7 @@ class GoogleIntegration implements IntegrationInterface
             'link' => $file->webViewLink,
         ]);
 
-        $oauthIntegration = OauthIntegration::where(['name' => GoogleConnection::getKey()])->first();
+        $oauthIntegration = $this->oauthIntegration->repo->findByName(GoogleConnection::getKey());
         $card->cardIntegration()->create([
             'foreign_id'           => $file->id,
             'oauth_integration_id' => $oauthIntegration->id,
@@ -163,7 +169,7 @@ class GoogleIntegration implements IntegrationInterface
      */
     private function saveDomains(User $user)
     {
-        if (! $client) {
+        if (! $this->client) {
             $this->setClient($user);
         }
         $service = new GoogleServiceDirectory($this->client);
