@@ -31,6 +31,7 @@
                 <file>./app/Exceptions/Handler.php</file>
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Jobs/SendMail.php</file>
+                <file>./app/Utils/FileHelper.php</file>
                 <directory suffix=".php">./app/Events</directory>
                 <directory suffix=".php">./app/Providers</directory>
                 <directory suffix=".php">./app/Http/Requests/User</directory>

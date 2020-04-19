@@ -2,7 +2,7 @@
 
 namespace App\Modules\OauthIntegration;
 
-use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFoundException;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 
 class OauthIntegrationService
 {
@@ -25,8 +25,8 @@ class OauthIntegrationService
         $fullClassPath = "{$path}\\{$className}{$classType}";
         try {
             return app($fullClassPath);
-        } catch (Exception $e) {
-            throw new OauthIntegrationNotFoundException("The integration key \"$integration\" is not valid. Please check the name and try again.");
+        } catch (\Exception $e) {
+            throw new OauthIntegrationNotFound("The integration key \"$integration\" is not valid. Please check the name and try again.");
         }
     }
 }
