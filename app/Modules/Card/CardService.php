@@ -41,7 +41,7 @@ class CardService
     /**
      * Make integration class.
      */
-    public function makeIntegration(User $user, string $integration)
+    public function makeIntegration(string $integration)
     {
         return $this->oauthIntegration->makeIntegration(
             'App\\Modules\\Card\\Integrations',

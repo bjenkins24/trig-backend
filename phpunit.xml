@@ -32,6 +32,8 @@
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Utils/FileHelper.php</file>
+                <!-- There are some methods in this service that aren't worth it to test some that are -->
+                <file>./app/Modules/OauthConnection/OauthConnectionService</file>
                 <directory suffix=".php">./app/Events</directory>
                 <directory suffix=".php">./app/Providers</directory>
                 <directory suffix=".php">./app/Http/Requests/User</directory>
