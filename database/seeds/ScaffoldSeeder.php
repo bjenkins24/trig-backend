@@ -29,10 +29,14 @@ class ScaffoldSeeder extends Seeder
         $user = User::where('email', \Config::get('constants.seed.email'))->first();
 
         if (! $user) {
-            factory(User::class, 1)->create([
+            $user = factory(User::class, 1)->create([
                 'email'      => \Config::get('constants.seed.email'),
                 'first_name' => \Config::get('constants.seed.first_name'),
                 'last_name'  => \Config::get('constants.seed.last_name'),
+            ]);
+
+            $user->first()->organizations()->create([
+                'name' => \Config::get('constants.seed.organization'),
             ]);
         }
     }

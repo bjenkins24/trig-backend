@@ -3,6 +3,7 @@
 namespace App\Modules\User;
 
 use App\Events\User\AccountCreated;
+use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
@@ -56,7 +57,7 @@ class UserService
         $user = $this->create($authParams);
         $result = $this->oauthConnection->repo->create($user, GoogleConnection::getKey(), $oauthCredentials);
 
-        SyncCards::dispatch($user, GoogleConnection::getKey());
+        SetupGoogleIntegration::dispatch($user);
 
         return $user;
     }

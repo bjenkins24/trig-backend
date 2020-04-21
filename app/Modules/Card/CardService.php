@@ -6,7 +6,6 @@ use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\OauthIntegrationService;
-use App\Modules\User\UserService;
 
 class CardService
 {
@@ -21,21 +20,14 @@ class CardService
     private OauthConnectionService $oauthConnection;
 
     /**
-     * @var UserService
-     */
-    private UserService $user;
-
-    /**
      * Make card service.
      */
     public function __construct(
         OauthIntegrationService $oauthIntegration,
-        OauthConnectionService $oauthConnection,
-        UserService $user
+        OauthConnectionService $oauthConnection
     ) {
         $this->oauthIntegration = $oauthIntegration;
         $this->oauthConnection = $oauthConnection;
-        $this->user = $user;
     }
 
     /**

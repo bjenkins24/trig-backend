@@ -2,26 +2,25 @@
 
 namespace App\Modules\User;
 
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 class UserRepository
 {
-    public User $user;
-
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }
-
     public function findByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
     }
 
-    public function getAllOauthConnections($user): Collection
+    public function getAllOauthConnections(User $user): Collection
     {
         return $user->oauthConnections()->get();
+    }
+
+    public function getOrganization(User $user): Organization
+    {
+        return $user->organizations()->first();
     }
 
     public function create(array $input): User
@@ -33,7 +32,7 @@ class UserRepository
         ->merge(['password' => bcrypt($input['password'])])
         ->all();
 
-        $user = $this->user->create(array_merge($attrs, [
+        User::create(array_merge($attrs, [
             'terms_of_service_accepted_at' => now(),
         ]));
 

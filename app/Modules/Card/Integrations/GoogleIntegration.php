@@ -9,6 +9,7 @@ use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Modules\User\UserRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -163,11 +164,9 @@ class GoogleIntegration implements IntegrationInterface
      * A Trig admin will be able to select or deselect which domains their Trig account should be
      * accessible for, in the settings for Google from within Trig.
      *
-     * @param [type] $user
-     *
      * @return void
      */
-    private function saveDomains(User $user)
+    public function getDomains(User $user): Collection
     {
         if (! $this->client) {
             $this->setClient($user);
@@ -175,13 +174,13 @@ class GoogleIntegration implements IntegrationInterface
         $service = new GoogleServiceDirectory($this->client);
         // my_customer get's the domains for the current customer which is what we want
         // weird API, but that's 100% Google
-        $result = $service->domains->listDomains('my_customer');
-        if ($result) {
-            collect($result->domains)->each(function ($domain) {
-                // $organization = $user->organizations()->first();
-                // $organization->id
-            });
-        }
+        return collect($service->domains->listDomains('my_customer')->domains);
+    }
+
+    public function syncDomains($user)
+    {
+        $domains = $this->getDomains($user);
+        $organization = app(UserRepository::class)->getOrganization($user);
     }
 
     /**

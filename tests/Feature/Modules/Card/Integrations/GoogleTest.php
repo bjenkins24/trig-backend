@@ -5,6 +5,7 @@ namespace Tests\Feature\Modules\Card\Integrations;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
@@ -13,6 +14,33 @@ class GoogleTest extends TestCase
 {
     use RefreshDatabase;
     use CreateOauthConnection;
+
+    /**
+     * Test syncing domains.
+     *
+     * @return void
+     * @group n
+     */
+    public function testSyncDomains()
+    {
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $this->partialMock(GoogleIntegration::class, function ($mock) {
+            $domain = new DomainFake();
+            $domain->isPrimary = false;
+            $domain->domainName = 'yourmusiclessons.com';
+
+            $mock->shouldReceive('getDomains')->andReturn(collect([new DomainFake(), $domain]))->once();
+        });
+
+        app(GoogleIntegration::class)->syncDomains($user);
+
+        $this->assertDatabaseHas('organizations', [
+            'id'   => 1,
+            'name' => \Config::get('constants.seed.organization'),
+            'data' => json_encode(['google_domains' => ['trytrig.com', 'yourmusiclessons.com']]),
+        ]);
+    }
 
     /**
      * Test syncing all integrations.
