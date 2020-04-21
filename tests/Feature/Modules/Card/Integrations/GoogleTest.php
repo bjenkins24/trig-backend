@@ -19,7 +19,6 @@ class GoogleTest extends TestCase
      * Test syncing domains.
      *
      * @return void
-     * @group n
      */
     public function testSyncDomains()
     {
@@ -35,10 +34,9 @@ class GoogleTest extends TestCase
 
         app(GoogleIntegration::class)->syncDomains($user);
 
-        $this->assertDatabaseHas('organizations', [
-            'id'   => 1,
-            'name' => \Config::get('constants.seed.organization'),
-            'data' => json_encode(['google_domains' => ['trytrig.com', 'yourmusiclessons.com']]),
+        $this->assertDatabaseHas('users', [
+            'id'         => '1',
+            'properties' => json_encode(['google_domains' => ['trytrig.com', 'yourmusiclessons.com']]),
         ]);
     }
 
@@ -46,6 +44,7 @@ class GoogleTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncCards()
     {
@@ -56,12 +55,12 @@ class GoogleTest extends TestCase
         $fakeUrl = 'http://myfakeurl.example.com';
         $fakeId = 'My fake Id';
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
-            $file = new FileFake();
+            $file = new FileFake(['domain', 'user', 'anyone']);
             $file->name = $fakeTitle;
             $file->webViewLink = $fakeUrl;
             $file->id = $fakeId;
 
-            $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake(), $file]))->once();
+            $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake(['domain', 'user', 'anyone']), $file]))->once();
             $mock->shouldReceive('getThumbnail')
                 ->andReturn(collect(['thumbnail' => 'content', 'extension' => 'jpeg']))
                 ->twice();

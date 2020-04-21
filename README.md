@@ -77,29 +77,29 @@ commands below. But for reference this is what it does:
 `organizations_users`
 (id, user_id, organization_id)
 
-`permissions` - **edit** or **view** 
+`permission_types` - **edit** or **view** 
 (id, name)
 
 `roles` - **admin**, **manager**, or **member** 
 (id, name)
 
-`share_settings`
-(id, shareable_type, shareable_id, link)
+`permissions`
+(id, permissionable_type, permissionable_id, link)
 
-`share_setting_links`
-(id, permission_id, share_link_type_id)
+`permission_links`
+(id, permission_type_id, permission_link_type_id)
 
-`share_setting_link_types` - **has_link** or **public**
+`permission_link_types` - **has_link** or **public**
 (id, name)
 
-`share_setting_people` this will be unused but we need to save if in the future we allow for sharing with individuals
-(id, share_setting_id, email)
+`permission_people` this will be unused but we need to save if in the future we allow for sharing with individuals
+(id, permission_id, email)
 
-`share_setting_teams`
-(id, share_setting_id, team_id, permission_id)
+`permission_teams`
+(id, permission_id, team_id, permission_type_id)
 
-`share_setting_users`
-(id, share_setting_id, user_id, permission_id)
+`permission_users`
+(id, permission_id, user_id, permission_type_id)
 
 `teams` 
 (id, organization_id, name)

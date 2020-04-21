@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations\Fakes;
 
-class FakeFiles
+class FileFake
 {
     public $appProperties = null;
     public $copyRequiresWriterPermission = null;

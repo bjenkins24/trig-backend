@@ -9,7 +9,6 @@ use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\OauthIntegrationService;
-use App\Modules\User\UserRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -135,7 +134,7 @@ class GoogleIntegration implements IntegrationInterface
             return;
         }
         $this->saveThumbnail($user, $card, $file);
-        // $this->savePermissions($user, $card, $file);
+        $this->savePermissions($user, $card, $file);
 
         $card->cardLink()->create([
             'link' => $file->webViewLink,
@@ -180,7 +179,12 @@ class GoogleIntegration implements IntegrationInterface
     public function syncDomains($user)
     {
         $domains = $this->getDomains($user);
-        $organization = app(UserRepository::class)->getOrganization($user);
+        $properties = ['google_domains' => []];
+        foreach ($domains as $domain) {
+            $properties['google_domains'][] = $domain->domainName;
+        }
+        $user->properties = $properties;
+        $user->save();
     }
 
     /**

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'email',
         'password',
         'terms_of_service_accepted_at',
+        'properties',
     ];
 
     /**
@@ -57,5 +58,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'properties'        => 'array',
     ];
 }

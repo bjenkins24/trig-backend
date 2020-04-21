@@ -2,7 +2,6 @@
 
 namespace App\Modules\User;
 
-use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
@@ -16,11 +15,6 @@ class UserRepository
     public function getAllOauthConnections(User $user): Collection
     {
         return $user->oauthConnections()->get();
-    }
-
-    public function getOrganization(User $user): Organization
-    {
-        return $user->organizations()->first();
     }
 
     public function create(array $input): User
