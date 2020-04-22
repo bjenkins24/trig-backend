@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\User;
+namespace Tests\Feature\Modules\OauthConnection;
 
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;

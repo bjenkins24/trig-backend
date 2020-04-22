@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCapability;
+use App\Support\Traits\Relationships\HasPermissionType;
 use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model

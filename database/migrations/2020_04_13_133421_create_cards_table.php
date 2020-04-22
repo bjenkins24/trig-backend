@@ -20,6 +20,7 @@ class CreateCardsTable extends Migration
             $table->string('title')->index();
             $table->text('description')->nullable();
             $table->string('image')->nullable();
+            $table->string('url');
             $table->dateTime('actual_created_at')->index();
             $table->dateTime('actual_modified_at')->index();
             $table->timestamps();

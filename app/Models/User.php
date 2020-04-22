@@ -6,6 +6,7 @@ use App\Support\Traits\Relationships\BelongsToManyOrganizations;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
+use App\Support\Traits\Relationships\HasTeams;
 use App\Support\Traits\Relationships\PermissionTypeable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
