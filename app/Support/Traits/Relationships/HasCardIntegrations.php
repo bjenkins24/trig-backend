@@ -2,15 +2,15 @@
 
 namespace App\Support\Traits\Relationships;
 
-trait HasCardIntegrations
+trait HasCardIntegration
 {
     /**
-     * Has many card integrations.
+     * Has one card integrations.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function cardIntegrations()
+    public function cardIntegration()
     {
-        return $this->hasOne('App\Models\CardIntegrations');
+        return $this->hasOne('App\Models\CardIntegration');
     }
 }

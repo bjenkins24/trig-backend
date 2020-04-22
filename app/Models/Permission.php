@@ -2,10 +2,22 @@
 
 namespace App\Models;
 
+use App\Support\Traits\Relationships\BelongsToCapability;
 use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model
 {
+    use BelongsToCapability;
+    use HasPermissionType;
+
+    /**
+     * Get the owning permissionable model.
+     */
+    public function permissionable()
+    {
+        return $this->morphTo();
+    }
+
     /**
      * The attributes that are mass assignable.
      *

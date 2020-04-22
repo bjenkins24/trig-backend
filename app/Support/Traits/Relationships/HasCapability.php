@@ -2,15 +2,15 @@
 
 namespace App\Support\Traits\Relationships;
 
-trait HasCardLink
+trait HasCapability
 {
     /**
-     * Has one card links.
+     * Has one capability.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function cardLink()
+    public function capability()
     {
-        return $this->hasOne('App\Models\CardLink');
+        return $this->hasOne('App\Models\Capability');
     }
 }
