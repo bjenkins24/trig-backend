@@ -130,16 +130,13 @@ class GoogleIntegration implements IntegrationInterface
             'actual_created_at'         => $file->createdTime,
             'actual_modified_at'        => $file->modifiedTime,
             'description'               => $file->description,
+            'url'                       => $file->webViewLink,
         ]);
         if (! $card || $file->trashed) {
             return;
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
-
-        $card->cardLink()->create([
-            'link' => $file->webViewLink,
-        ]);
 
         $oauthIntegration = $this->oauthIntegration->repo->findByName(GoogleConnection::getKey());
         $card->cardIntegration()->create([

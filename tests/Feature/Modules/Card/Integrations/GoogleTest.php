@@ -73,11 +73,8 @@ class GoogleTest extends TestCase
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,
+            'link'  => $fakeUrl,
             'image' => \Config::get('app.url').$fakeThumbnailUrl,
-        ]);
-
-        $this->assertDatabaseHas('card_links', [
-            'link' => $fakeUrl,
         ]);
 
         $this->assertDatabaseHas('card_integrations', [
