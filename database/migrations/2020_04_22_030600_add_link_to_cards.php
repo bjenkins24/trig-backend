@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePermissionLinkTypesTable extends Migration
+class AddLinkToCards extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,8 @@ class CreatePermissionLinkTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('permission_link_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->index();
-            $table->timestamps();
+        Schema::table('cards', function (Blueprint $table) {
+            $table->string('url');
         });
     }
 
@@ -27,6 +25,8 @@ class CreatePermissionLinkTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission_link_types');
+        Schema::table('cards', function (Blueprint $table) {
+            $table->dropColumn('url');
+        });
     }
 }

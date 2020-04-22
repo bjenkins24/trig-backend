@@ -45,25 +45,16 @@ commands below. But for reference this is what it does:
 
 # DB Design
 `cards`
-(id, user_id, card_type_id, title, description, image actual_created_at actual_modified_at created_at modified_at)
-
-`card_documents`
-(id, card_id, content)
+(id, user_id, card_type_id, link, title, description, image, actual_created_at actual_modified_at created_at modified_at)
 
 `card_favorites`
 (id, card_id, user_id)
 
-`card_files`
-(id, card_id, url)
-
-`card_links`
-(id, card_id, link)
-
 `card_types` 
-(id, name)
+(id, name) - file, link, etc
 
 `decks`
-(id, user_id, title, description, image)
+(id, user_id, title, description, image, link)
 
 `deck_cards`
 (id, deck_id, card_id)
@@ -77,29 +68,26 @@ commands below. But for reference this is what it does:
 `organizations_users`
 (id, user_id, organization_id)
 
-`permission_types` - **edit** or **view** 
-(id, name)
-
 `roles` - **admin**, **manager**, or **member** 
 (id, name)
 
 `permissions`
-(id, permissionable_type, permissionable_id, link)
+(id, permissionable_type, permissionable_id, permission_capability_id)
 
-`permission_links`
-(id, permission_type_id, permission_link_type_id)
-
-`permission_link_types` - **has_link** or **public**
+`capabilities` - **edit** or **view** 
 (id, name)
 
-`permission_people` this will be unused but we need to save if in the future we allow for sharing with individuals
-(id, permission_id, email)
+`permission_types`
+id permission_typeable_types permission_typeable_id
 
-`permission_teams`
-(id, permission_id, team_id, permission_type_id)
+`discoverability`
+id  discoverability_type_id
 
-`permission_users`
-(id, permission_id, user_id, permission_type_id)
+`discoverability_type`
+id name  - anyoneWithLink, public
+
+`people` - this will be unused but we need to save if in the future we allow for sharing with individuals
+id email
 
 `teams` 
 (id, organization_id, name)

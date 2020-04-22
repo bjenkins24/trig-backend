@@ -30,6 +30,7 @@ class Card extends Model
         'image',
         'actual_created_at',
         'actual_modified_at',
+        'url',
     ];
 
     /**
@@ -38,7 +39,7 @@ class Card extends Model
      * @var array
      */
     protected $dates = [
-         'actual_created_at',
+        'actual_created_at',
         'actual_modified_at',
     ];
 }

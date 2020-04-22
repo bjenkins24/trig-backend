@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePermissionLinksTable extends Migration
+class CreateLinkSharingTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreatePermissionLinksTable extends Migration
      */
     public function up()
     {
-        Schema::create('permission_links', function (Blueprint $table) {
+        Schema::create('link_sharing_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('permission_type_id')->index()->constrained();
-            $table->foreignId('permission_link_type_id')->index()->constrained();
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ class CreatePermissionLinksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission_links');
+        Schema::dropIfExists('link_sharing_types');
     }
 }

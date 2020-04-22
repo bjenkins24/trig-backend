@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePermissionUsersTable extends Migration
+class CreatePermissionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreatePermissionUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('permission_users', function (Blueprint $table) {
+        Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->index()->constrained();
-            $table->foreignId('permission_id')->index()->constrained();
-            $table->foreignId('permission_type_id')->index()->constrained();
+            $table->string('permissionable_type')->index();
+            $table->unsignedInteger('permissionable_id')->index();
+            $table->foreignId('capability_id')->constrain();
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ class CreatePermissionUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission_users');
+        Schema::dropIfExists('permissions');
     }
 }

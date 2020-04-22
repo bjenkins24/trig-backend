@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePermissionPeopleTable extends Migration
+class CreatePermissionTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class CreatePermissionPeopleTable extends Migration
      */
     public function up()
     {
-        Schema::create('permission_people', function (Blueprint $table) {
+        Schema::create('permission_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('permission_id')->index()->constrained();
-            $table->string('email')->index();
+            $table->unsignedInteger('permission_typeable_id')->index();
+            $table->string('permission_typeable_type')->index();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ class CreatePermissionPeopleTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission_people');
+        Schema::dropIfExists('permission_types');
     }
 }

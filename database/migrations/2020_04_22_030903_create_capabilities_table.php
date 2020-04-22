@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTeamsUsersTable extends Migration
+class CreateCapabilitiesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreateTeamsUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('teams_users', function (Blueprint $table) {
+        Schema::create('capabilities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('team_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ class CreateTeamsUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('teams_users');
+        Schema::dropIfExists('capabilities');
     }
 }

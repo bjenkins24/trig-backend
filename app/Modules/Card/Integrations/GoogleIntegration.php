@@ -107,6 +107,7 @@ class GoogleIntegration implements IntegrationInterface
 
     public function savePermissions(User $user, Card $card, $file): void
     {
+        dd($file);
         $permissions = collect($file->permissions);
         $permissions->each(function ($permission) {
             // Public on the internet - we can make this discoverable in Trig
