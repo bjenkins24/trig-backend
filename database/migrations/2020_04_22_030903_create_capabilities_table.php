@@ -16,8 +16,12 @@ class CreateCapabilitiesTable extends Migration
         Schema::create('capabilities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->timestamps();
         });
+
+        \DB::table('capabilities')->insert([
+            ['name' => 'writer'],
+            ['name' => 'reader'],
+        ]);
     }
 
     /**
