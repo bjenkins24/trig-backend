@@ -5,10 +5,10 @@ namespace App\Modules\Card\Integrations;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
+use App\Modules\Card\CardService;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
-use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -22,15 +22,11 @@ class GoogleIntegration implements IntegrationInterface
 
     private $client;
     private $oauthConnection;
-    private $oauthIntegration;
+    private $card;
 
-    public function __construct(
-        OauthConnectionService $oauthConnection,
-        OauthIntegrationService $oauthIntegration
-    ) {
-        return $this->oauthConnection = $oauthConnection;
-
-        return $this->oauthIntegration = $oauthIntegration;
+    public function __construct(OauthConnectionService $oauthConnection)
+    {
+        $this->oauthConnection = $oauthConnection;
     }
 
     private function setClient(User $user)
@@ -107,7 +103,6 @@ class GoogleIntegration implements IntegrationInterface
 
     public function savePermissions(User $user, Card $card, $file): void
     {
-        dd($file);
         $permissions = collect($file->permissions);
         $permissions->each(function ($permission) {
             // Public on the internet - we can make this discoverable in Trig
@@ -138,11 +133,7 @@ class GoogleIntegration implements IntegrationInterface
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
 
-        $oauthIntegration = $this->oauthIntegration->repo->findByName(GoogleConnection::getKey());
-        $card->cardIntegration()->create([
-            'foreign_id'           => $file->id,
-            'oauth_integration_id' => $oauthIntegration->id,
-        ]);
+        app(CardService::class)->repo->createIntegration($card, $file->id, GoogleConnection::getKey());
     }
 
     /**

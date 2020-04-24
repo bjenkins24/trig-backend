@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
+use App\Models\Capability;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +16,25 @@ class GoogleTest extends TestCase
     use RefreshDatabase;
     use CreateOauthConnection;
 
+    const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
+
+    public function syncDomains()
+    {
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $this->partialMock(GoogleIntegration::class, function ($mock) {
+            $domain = new DomainFake();
+            $domain->isPrimary = false;
+            $domain->domainName = self::DOMAIN_NAMES[1];
+
+            $mock->shouldReceive('getDomains')->andReturn(collect([new DomainFake(), $domain]))->once();
+        });
+
+        app(GoogleIntegration::class)->syncDomains($user);
+
+        return $user;
+    }
+
     /**
      * Test syncing domains.
      *
@@ -22,21 +42,10 @@ class GoogleTest extends TestCase
      */
     public function testSyncDomains()
     {
-        $user = User::find(1);
-        $this->createOauthConnection($user);
-        $this->partialMock(GoogleIntegration::class, function ($mock) {
-            $domain = new DomainFake();
-            $domain->isPrimary = false;
-            $domain->domainName = 'yourmusiclessons.com';
-
-            $mock->shouldReceive('getDomains')->andReturn(collect([new DomainFake(), $domain]))->once();
-        });
-
-        app(GoogleIntegration::class)->syncDomains($user);
-
+        $this->syncDomains();
         $this->assertDatabaseHas('users', [
             'id'         => '1',
-            'properties' => json_encode(['google_domains' => ['trytrig.com', 'yourmusiclessons.com']]),
+            'properties' => json_encode(['google_domains' => self::DOMAIN_NAMES]),
         ]);
     }
 
@@ -48,19 +57,29 @@ class GoogleTest extends TestCase
      */
     public function testSyncCards()
     {
-        $user = User::find(1);
-        $this->createOauthConnection($user);
+        $user = $this->syncDomains();
         $fakeTitle = "Brian's Title";
         $fakeThumbnailUrl = '/storage/public/card-thumbnails/1.jpg';
         $fakeUrl = 'http://myfakeurl.example.com';
         $fakeId = 'My fake Id';
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId) {
-            $file = new FileFake(['domain', 'user', 'anyone']);
+            // https://developers.google.com/drive/api/v3/ref-roles
+            // Valid Roles: 'organizer', 'owner', 'fileOrganizer', 'writer', 'commenter', 'reader'
+            $file = new FileFake([
+                ['type' => 'user', 'role' => 'reader'],
+                ['type' => 'domain', 'role' => 'owner', 'domain' => 'dexio.com'],
+                ['type' => 'domain', 'role' => 'fileOrganizer', 'domain' => self::DOMAIN_NAMES[0]],
+                ['type' => 'anyone', 'role' => 'commenter'],
+            ]);
             $file->name = $fakeTitle;
             $file->webViewLink = $fakeUrl;
             $file->id = $fakeId;
 
-            $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake(['domain', 'user', 'anyone']), $file]))->once();
+            $mock->shouldReceive('getFiles')->andReturn(collect([
+                new FileFake([['type' => 'user', 'role' => 'writer']]),
+                $file,
+            ]))->once();
+
             $mock->shouldReceive('getThumbnail')
                 ->andReturn(collect(['thumbnail' => 'content', 'extension' => 'jpeg']))
                 ->twice();
@@ -70,6 +89,12 @@ class GoogleTest extends TestCase
         \Storage::shouldReceive('url')->andReturn($fakeThumbnailUrl)->twice();
 
         $result = app(GoogleIntegration::class)->syncCards($user);
+
+        $this->assertDatabaseHas('permissions', [
+            'permissionable_type' => '\\App\\Models\\Card',
+            'permissionable_id'   => 1,
+            'capability_id'       => Capability::READER_ID,
+        ]);
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,

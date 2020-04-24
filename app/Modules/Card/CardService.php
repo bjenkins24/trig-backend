@@ -19,15 +19,19 @@ class CardService
      */
     private OauthConnectionService $oauthConnection;
 
+    public CardRepository $repo;
+
     /**
      * Make card service.
      */
     public function __construct(
         OauthIntegrationService $oauthIntegration,
-        OauthConnectionService $oauthConnection
+        OauthConnectionService $oauthConnection,
+        CardRepository $repo
     ) {
         $this->oauthIntegration = $oauthIntegration;
         $this->oauthConnection = $oauthConnection;
+        $this->repo = $repo;
     }
 
     /**

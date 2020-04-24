@@ -66,15 +66,15 @@ class FileFake
     public $capabilities;
     public $permissions;
 
-    public function __construct(array $permissionTypes = [])
+    public function __construct(array $permissionsParams = [])
     {
         $this->owners = [new FakeUser()];
         $this->lastModifyingUser = new FakeUser();
         $this->capabilities = new FakeCapabilities();
 
         $permissions = [];
-        foreach ($permissionTypes as $type) {
-            $permissions[] = new FakePermissions($type);
+        foreach ($permissionsParams as $params) {
+            $permissions[] = new FakePermissions($params);
         }
         $this->permissions = $permissions;
     }
@@ -140,9 +140,11 @@ class FakePermissions
     public $role;
     public $type;
 
-    public function __construct($type = 'domain')
+    public function __construct(array $permissions)
     {
-        if ('user' === $type) {
+        $this->role = $permissions['role'] ?? 'owner';
+        $this->domain = $permissions['domain'] ?? null;
+        if ('user' === $permissions['type']) {
             $this->allowFileDiscovery = false;
             $this->deleted = false;
             $this->allowFileDiscovery = null;
@@ -154,23 +156,20 @@ class FakePermissions
             $this->id = '07400812223864051214';
             $this->kind = 'drive#permission';
             $this->photoLink = null;
-            $this->role = 'owner';
             $this->type = 'user';
         }
-        if ('domain' === $type) {
+        if ('domain' === $permissions['type']) {
             $this->allowFileDiscovery = false;
             $this->deleted = null;
             $this->displayName = 'Trig';
-            $this->domain = 'trytrig.com';
             $this->emailAddress = null;
             $this->expirationTime = null;
             $this->id = '13567025846832636056k';
             $this->kind = 'drive#permission';
             $this->photoLink = null;
-            $this->role = 'reader';
             $this->type = 'domain';
         }
-        if ('anyone' === $type) {
+        if ('anyone' === $permissions['type']) {
             $this->allowFileDiscovery = true;
             $this->deleted = null;
             $this->displayName = null;
@@ -180,7 +179,6 @@ class FakePermissions
             $this->id = 'anyone';
             $this->kind = 'drive#permission';
             $this->photoLink = null;
-            $this->role = 'reader';
             $this->type = 'anyone';
         }
     }
