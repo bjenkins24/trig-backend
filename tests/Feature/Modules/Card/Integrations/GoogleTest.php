@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
-use App\Models\Capability;
 use App\Models\User;
+use App\Modules\Capability\CapabilityRepository;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
@@ -93,7 +93,7 @@ class GoogleTest extends TestCase
         $this->assertDatabaseHas('permissions', [
             'permissionable_type' => '\\App\\Models\\Card',
             'permissionable_id'   => 1,
-            'capability_id'       => Capability::READER_ID,
+            'capability_id'       => app(CapabilityRepository::class)->getCapability('reader')->id,
         ]);
 
         $this->assertDatabaseHas('cards', [

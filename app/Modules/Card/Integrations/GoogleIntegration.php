@@ -5,7 +5,7 @@ namespace App\Modules\Card\Integrations;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
-use App\Modules\Card\CardService;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
@@ -133,7 +133,7 @@ class GoogleIntegration implements IntegrationInterface
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
 
-        app(CardService::class)->repo->createIntegration($card, $file->id, GoogleConnection::getKey());
+        app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
     }
 
     /**
