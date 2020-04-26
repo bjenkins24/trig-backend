@@ -16,7 +16,6 @@ class CreateCardTypesTable extends Migration
         Schema::create('card_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable()->index();
-            $table->timestamps();
         });
     }
 

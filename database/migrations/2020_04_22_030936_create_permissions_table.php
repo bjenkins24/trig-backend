@@ -15,8 +15,7 @@ class CreatePermissionsTable extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('permissionable_type')->index();
-            $table->unsignedInteger('permissionable_id')->index();
+            $table->morphs('permissionable');
             $table->foreignId('capability_id')->constrain();
             $table->timestamps();
         });

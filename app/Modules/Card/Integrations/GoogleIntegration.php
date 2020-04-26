@@ -9,6 +9,7 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\Permission\PermissionRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -19,6 +20,19 @@ class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
     const PAGE_SIZE = 10;
+
+    /**
+     * The keys in this array are google roles and the values are what they map
+     * to in Trig.
+     */
+    const CAPABILITY_MAP = [
+        'organizer'     => 'writer',
+        'owner'         => 'writer',
+        'fileOrganizer' => 'writer',
+        'writer'        => 'writer',
+        'commenter'     => 'reader',
+        'reader'        => 'reader',
+    ];
 
     private $client;
     private $oauthConnection;
@@ -103,16 +117,28 @@ class GoogleIntegration implements IntegrationInterface
 
     public function savePermissions(User $user, Card $card, $file): void
     {
+        $linkShareRepo = app(LinkShareSettingRepository::class);
         $permissions = collect($file->permissions);
-        $permissions->each(function ($permission) {
+        $permissionRepo = app(PermissionRepository::class);
+        $permissions->each(function ($permission) use ($card) {
+            $capability = self::CAPABILITY_MAP[$permission->role];
             // Public on the internet - we can make this discoverable in Trig
             if ('anyone' === $permission->type) {
-                // $permission->role 'reader'
+                $linkShareRepo->createPublicIfNew($card, $capability);
             }
+
             if ('user' === $permission->type) {
+                $permissionRepo->createEmail($card, $capability, $permission->emailAddress);
             }
-            // This is public in company - but do we know it's the right company?
+
             if ('domain' === $permission->type) {
+                // This is public in company - if the domain on the file doesn't exist within
+                // Trig then we shouldn't do anything with this permission type - it's giving
+                // permission to a domain that Trig isn't aware of
+                if (! app(UserRepository::class)->isGoogleDomainActive($user, $permission->domain)) {
+                    return false;
+                }
+                $linkShareRepo->createAnyoneOrganizationIfNew($card, $capability);
             }
         });
     }
@@ -170,7 +196,7 @@ class GoogleIntegration implements IntegrationInterface
         $domains = $this->getDomains($user);
         $properties = ['google_domains' => []];
         foreach ($domains as $domain) {
-            $properties['google_domains'][] = $domain->domainName;
+            $properties['google_domains'][] = [$domain->domainName => true];
         }
         $user->properties = $properties;
         $user->save();

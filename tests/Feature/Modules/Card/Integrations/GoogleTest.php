@@ -91,14 +91,14 @@ class GoogleTest extends TestCase
         $result = app(GoogleIntegration::class)->syncCards($user);
 
         $this->assertDatabaseHas('permissions', [
-            'permissionable_type' => '\\App\\Models\\Card',
+            'permissionable_type' => 'App\\Models\\Card',
             'permissionable_id'   => 1,
-            'capability_id'       => app(CapabilityRepository::class)->getCapability('reader')->id,
+            'capability_id'       => app(CapabilityRepository::class)->get('reader')->id,
         ]);
 
         $this->assertDatabaseHas('cards', [
             'title' => $fakeTitle,
-            'link'  => $fakeUrl,
+            'url'   => $fakeUrl,
             'image' => \Config::get('app.url').$fakeThumbnailUrl,
         ]);
 

@@ -17,6 +17,22 @@ class UserRepository
         return $user->oauthConnections()->get();
     }
 
+    public function createPermission(User $user, Permission $permission): PermissionType
+    {
+        return $user->permissionType()->create([
+            'permission_id' => $permission->id,
+        ]);
+    }
+
+    /**
+     * Given a domain name is it an active google drive domain integration? Individual
+     * domains can be enabled and disabled from within Trig.
+     */
+    public function isGoogleDomainActive(User $user, string $domain): bool
+    {
+        return (bool) $user->properties->get('google_domains')->where($domain, true);
+    }
+
     public function create(array $input): User
     {
         $attrs = collect($input)->except([

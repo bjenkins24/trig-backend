@@ -72,19 +72,21 @@ commands below. But for reference this is what it does:
 (id, name)
 
 `permissions`
+nullable permissionable-Type and permissionable_id
 (id, permissionable_type, permissionable_id, permission_capability_id)
 
-`capabilities` - **edit** or **view** 
+`capabilities` - **writer** or **reader** 
 (id, name)
 
 `permission_types`
-id permission_typeable_types permission_typeable_id
+id typeable_types typeable_id
 
-`discoverability`
-id  discoverability_type_id
+card or deck can only morph one of these not multiple like permissions
+`link_share_settings`
+id shareable_id shareable_type link_share_type_id capability_id 
 
-`discoverability_type`
-id name  - anyoneWithLink, public
+`link_share_type`
+id name  **anyoneInOrganization** **anyone** **public**
 
 `people` - this will be unused but we need to save if in the future we allow for sharing with individuals
 id email
@@ -100,3 +102,6 @@ id email
 
 `views`
 (id, viewable_type, viewable_id, created_at)
+
+
+

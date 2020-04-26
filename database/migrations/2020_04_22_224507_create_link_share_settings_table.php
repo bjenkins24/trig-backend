@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLinkSharingSettingsTable extends Migration
+class CreateLinkShareSettingsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,11 @@ class CreateLinkSharingSettingsTable extends Migration
      */
     public function up()
     {
-        Schema::create('link_sharing_settings', function (Blueprint $table) {
+        Schema::create('link_share_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('link_sharing_type_id')->constrained();
+            $table->morphs('shareable');
+            $table->foreignId('link_share_type_id')->constrained();
+            $table->foreignId('capability_id')->constrained();
             $table->timestamps();
         });
     }
@@ -27,6 +29,6 @@ class CreateLinkSharingSettingsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('link_sharing_settings');
+        Schema::dropIfExists('link_share_settings');
     }
 }

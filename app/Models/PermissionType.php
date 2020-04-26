@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Support\Traits\Relationships\BelongsToPermissionType;
+use App\Support\Traits\Relationships\BelongsToPermission;
 use Illuminate\Database\Eloquent\Model;
 
 class PermissionType extends Model
 {
-    use BelongsToPermissionType;
+    use BelongsToPermission;
 
     /**
      * Get the owning imageable model.

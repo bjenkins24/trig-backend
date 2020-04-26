@@ -6,6 +6,7 @@ use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
+use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,6 +17,7 @@ class Card extends Model
     use HasCardFavorite;
     use HasCardIntegration;
     use Permissionables;
+    use LinkShareable;
 
     /**
      * The attributes that are mass assignable.

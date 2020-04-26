@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Support\Traits\Relationships\PermissionTypeable;
 use Illuminate\Database\Eloquent\Model;
 
-class People extends Model
+class Person extends Model
 {
     use PermissionTypeable;
 

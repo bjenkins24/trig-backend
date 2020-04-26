@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Support\Traits\Relationships\HasLinkSharingSettings;
+use App\Support\Traits\Relationships\HasLinkShareSettings;
 use Illuminate\Database\Eloquent\Model;
 
-class LinkSharingType extends Model
+class LinkShareType extends Model
 {
-    use HasLinkSharingSettings;
+    use HasLinkShareSettings;
 
     /**
      * The attributes that are mass assignable.

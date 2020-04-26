@@ -12,7 +12,7 @@ class AddUserPropertiesJsonField extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->json('properties')->nullable();
+            $table->json('properties')->nullable()->after('terms_of_service_accepted_at');
         });
     }
 

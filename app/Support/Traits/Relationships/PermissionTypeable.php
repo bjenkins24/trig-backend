@@ -7,8 +7,8 @@ trait PermissionTypeable
     /**
      * Get the owning permission model.
      */
-    public function permissionTypeable()
+    public function permissionType()
     {
-        return $this->morphOne('App\Models\PermissionType', 'permission_typeable');
+        return $this->morphOne('App\Models\PermissionType', 'typeable');
     }
 }

@@ -15,8 +15,7 @@ class CreatePermissionTypesTable extends Migration
     {
         Schema::create('permission_types', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('permission_typeable_id')->index();
-            $table->string('permission_typeable_type')->index();
+            $table->nullableMorphs('typeable');
             $table->timestamps();
         });
     }

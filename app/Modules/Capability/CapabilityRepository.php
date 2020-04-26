@@ -13,7 +13,7 @@ class CapabilityRepository
      *
      * @return void
      */
-    public function getCapability(string $name): Capability
+    public function get(string $name): Capability
     {
         return Capability::where(['name' => $name])->firstOrFail();
     }
