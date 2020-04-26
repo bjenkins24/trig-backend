@@ -2,6 +2,8 @@
 
 namespace App\Modules\User;
 
+use App\Models\Permission;
+use App\Models\PermissionType;
 use App\Models\User;
 use Illuminate\Support\Collection;
 

@@ -23,8 +23,8 @@ class PermissionType extends Model
      * @var array
      */
     protected $fillable = [
-        'permission_typeable_id',
-        'permission_typeable_type',
+        'typeable_type',
+        'typeable_id',
         'permission_id',
     ];
 }

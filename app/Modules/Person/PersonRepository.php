@@ -1,20 +1,13 @@
 <?php
 
-namespace App\Modules\Permission;
+namespace App\Modules\Person;
 
 use App\Models\Permission;
+use App\Models\PermissionType;
 use App\Models\Person;
-use App\Modules\Person\PersonRepository;
 
-class PermissionRepository
+class PersonRepository
 {
-    private PersonRepository $person;
-
-    public function __construct(PersonRepository $person)
-    {
-        $this->person = $person;
-    }
-
     public function findByEmail(string $email): Person
     {
         return Person::where(['email' => $email]);
@@ -27,7 +20,7 @@ class PermissionRepository
 
     public function createPermission(Person $person, Permission $permission): PermissionType
     {
-        return $this->person->permissionType()->create([
+        return $person->permissionType()->create([
             'permission_id' => $permission->id,
         ]);
     }

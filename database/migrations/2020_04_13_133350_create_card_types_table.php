@@ -17,6 +17,11 @@ class CreateCardTypesTable extends Migration
             $table->id();
             $table->string('name')->nullable()->index();
         });
+
+        \DB::table('card_types')->insert([
+            ['name' => 'link'],
+            ['name' => 'document'],
+        ]);
     }
 
     /**

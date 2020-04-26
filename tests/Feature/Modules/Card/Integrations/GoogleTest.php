@@ -53,7 +53,6 @@ class GoogleTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
-     * @group n
      */
     public function testSyncCards()
     {
