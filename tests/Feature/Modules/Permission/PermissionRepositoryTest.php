@@ -67,4 +67,29 @@ class PermissionRepositoryTest extends TestCase
             'email' => $email,
         ]);
     }
+
+    /**
+     * Test creating anyone permissions.
+     *
+     * @return void
+     */
+    public function testCreateAnyone()
+    {
+        $card = app(Card::class)->first();
+        $permissionRepo = app(PermissionRepository::class);
+        $email = \Config::get('constants.seed.email');
+        $permission = $permissionRepo->createAnyone($card, 'writer');
+
+        $this->assertDatabaseHas('permissions', [
+            'permissionable_type' => 'App\Models\Card',
+            'permissionable_id'   => 1,
+            'capability_id'       => 1,
+        ]);
+
+        $this->assertDatabaseHas('permission_types', [
+            'typeable_type' => null,
+            'typeable_id'   => null,
+            'permission_id' => $permission->id,
+        ]);
+    }
 }

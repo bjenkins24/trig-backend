@@ -4,7 +4,6 @@ namespace App\Modules\Permission;
 
 use App\Models\Permission;
 use App\Models\Person;
-use App\Models\Team;
 use App\Models\User;
 use App\Modules\Capability\CapabilityRepository;
 use App\Modules\Person\PersonRepository;
@@ -62,15 +61,7 @@ class PermissionRepository
     public function createAnyone($permissionType, string $capability): Permission
     {
         $permission = $this->create($permissionType, $capability);
-        $permisson->permissionType()->create();
-
-        return $permission;
-    }
-
-    public function createTeam($permissionType, string $capability, Team $team): Permission
-    {
-        $permission = $this->create($permissionType, $capability);
-        $this->team->createPermission($team, $permission);
+        $permission->permissionType()->create();
 
         return $permission;
     }
