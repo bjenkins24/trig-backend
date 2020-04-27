@@ -73,7 +73,6 @@ class LinkShareSettingRepositoryTest extends TestCase
      * Test creating an anyone organization link share setting.
      *
      * @return void
-     * @group n
      */
     public function testCreatePublic()
     {

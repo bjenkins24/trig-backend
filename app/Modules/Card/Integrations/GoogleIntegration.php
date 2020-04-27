@@ -7,6 +7,7 @@ use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
+use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\Permission\PermissionRepository;
@@ -97,15 +98,15 @@ class GoogleIntegration implements IntegrationInterface
      *
      * @param object $file
      */
-    public function saveThumbnail(User $user, Card $card, $file): void
+    public function saveThumbnail(User $user, Card $card, $file): bool
     {
-        if (! $file || ! $file->thumbnailLink || ! $card) {
-            return;
+        if (! $file || ! $file->thumbnailLink) {
+            return false;
         }
         $imagePath = self::IMAGE_PATH.'/'.$card->id;
         $thumbnail = $this->getThumbnail($user, $file);
         if ($thumbnail->isEmpty()) {
-            return;
+            return false;
         }
         $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
         $result = \Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
@@ -113,6 +114,8 @@ class GoogleIntegration implements IntegrationInterface
             $card->image = \Config::get('app.url').\Storage::url($imagePathWithExtension);
             $card = $card->save();
         }
+
+        return true;
     }
 
     public function savePermissions(User $user, Card $card, $file): void
