@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 50;
 
     /**
      * The keys in this array are google roles and the values are what they map
