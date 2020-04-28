@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Controllers;
 
-use App\Jobs\SyncCards;
+use App\Jobs\SetupGoogleIntegration;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\WelcomeMail;
 use App\Models\User;
@@ -315,9 +315,10 @@ class UserControllerTest extends TestCase
                 ]),
             ])->twice();
         });
-        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
+        // $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123']);
 
-        \Queue::assertPushed(SyncCards::class, 1);
+        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
         $this->assertLoggedIn($response, $email);
 
         $this->assertDatabaseHas('users', [
@@ -325,7 +326,7 @@ class UserControllerTest extends TestCase
         ]);
 
         $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200);
-        \Queue::assertPushed(SyncCards::class, 1);
+        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
         $this->assertLoggedIn($response, $email);
     }
 

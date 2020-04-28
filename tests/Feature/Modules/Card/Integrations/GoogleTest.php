@@ -58,7 +58,6 @@ class GoogleTest extends TestCase
      * Test syncing domains.
      *
      * @return void
-     * @group n
      */
     public function testSyncDomains()
     {

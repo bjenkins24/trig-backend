@@ -6,19 +6,13 @@ use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Modules\User\UserService;
 
 class CardService
 {
-    /**
-     * @var OauthIntegrationService
-     */
+    private UserService $user;
     private OauthIntegrationService $oauthIntegration;
-
-    /**
-     * @var OauthConnectionService
-     */
     private OauthConnectionService $oauthConnection;
-
     public CardRepository $repo;
 
     /**
@@ -27,10 +21,12 @@ class CardService
     public function __construct(
         OauthIntegrationService $oauthIntegration,
         OauthConnectionService $oauthConnection,
+        UserService $user,
         CardRepository $repo
     ) {
         $this->oauthIntegration = $oauthIntegration;
         $this->oauthConnection = $oauthConnection;
+        $this->user = $user;
         $this->repo = $repo;
     }
 

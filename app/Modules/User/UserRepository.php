@@ -55,7 +55,7 @@ class UserRepository
         ->merge(['password' => bcrypt($input['password'])])
         ->all();
 
-        User::create(array_merge($attrs, [
+        $user = User::create(array_merge($attrs, [
             'terms_of_service_accepted_at' => now(),
         ]));
 
