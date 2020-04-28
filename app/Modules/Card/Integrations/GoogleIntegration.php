@@ -11,6 +11,7 @@ use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\Permission\PermissionRepository;
+use App\Modules\User\UserRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -123,7 +124,7 @@ class GoogleIntegration implements IntegrationInterface
         $linkShareRepo = app(LinkShareSettingRepository::class);
         $permissions = collect($file->permissions);
         $permissionRepo = app(PermissionRepository::class);
-        $permissions->each(function ($permission) use ($card) {
+        $permissions->each(function ($permission) use ($card, $linkShareRepo, $permissionRepo, $user) {
             $capability = self::CAPABILITY_MAP[$permission->role];
             // Public on the internet - we can make this discoverable in Trig
             if ('anyone' === $permission->type) {
@@ -146,9 +147,14 @@ class GoogleIntegration implements IntegrationInterface
         });
     }
 
-    private function createCard(User $user, $file, CardType $cardType): void
+    private function createCard(User $user, $file): void
     {
-        $card = $user->cards()->create([
+        if ($file->trashed) {
+            return;
+        }
+        $cardType = CardType::firstOrCreate(['name' => $file->mimeType]);
+
+        $card = app(UserRepository::class)->createCard($user, [
             'card_type_id'              => $cardType->id,
             'title'                     => $file->name,
             'actual_created_at'         => $file->createdTime,
@@ -156,7 +162,7 @@ class GoogleIntegration implements IntegrationInterface
             'description'               => $file->description,
             'url'                       => $file->webViewLink,
         ]);
-        if (! $card || $file->trashed) {
+        if (! $card) {
             return;
         }
         $this->saveThumbnail($user, $card, $file);
@@ -210,18 +216,18 @@ class GoogleIntegration implements IntegrationInterface
      *
      * @return void
      */
-    public function syncCards(User $user)
+    public function syncCards(User $user): bool
     {
         $files = $this->getFiles($user);
 
         if (0 === $files->count()) {
-            return;
+            return false;
         }
 
-        $cardType = CardType::firstOrCreate(['name' => 'document']);
-
-        $files->each(function ($file) use ($user, $cardType) {
-            $this->createCard($user, $file, $cardType);
+        $files->each(function ($file) use ($user) {
+            $this->createCard($user, $file);
         });
+
+        return true;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\User;
 
+use App\Models\Card;
 use App\Models\Permission;
 use App\Models\PermissionType;
 use App\Models\User;
@@ -27,12 +28,22 @@ class UserRepository
     }
 
     /**
+     * Create Card.
+     *
+     * @return Card
+     */
+    public function createCard(User $user, array $input): ?Card
+    {
+        return $user->cards()->create($input);
+    }
+
+    /**
      * Given a domain name is it an active google drive domain integration? Individual
      * domains can be enabled and disabled from within Trig.
      */
     public function isGoogleDomainActive(User $user, string $domain): bool
     {
-        return (bool) $user->properties->get('google_domains')->where($domain, true);
+        return (bool) collect($user->properties->get('google_domains'))->where($domain, true);
     }
 
     public function create(array $input): User

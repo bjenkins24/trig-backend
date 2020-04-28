@@ -3,11 +3,14 @@
 namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Models\Card;
+use App\Models\CardType;
 use App\Models\User;
-use App\Modules\Capability\CapabilityRepository;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
+use App\Modules\Permission\PermissionRepository;
+use App\Modules\User\UserRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -20,15 +23,16 @@ class GoogleTest extends TestCase
 
     const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
 
-    private function getThumbnailSetup(string $thumbnailLink)
+    private function getSetup(?User $user = null)
     {
-        $user = User::find(1);
-        $this->createOauthConnection($user);
+        if (! $user) {
+            $user = User::find(1);
+            $this->createOauthConnection($user);
+        }
         $card = factory(Card::class)->create([
             'user_id' => $user->id,
         ]);
         $file = new FileFake();
-        $file->thumbnailLink = $thumbnailLink;
 
         return [$user, $card, $file];
     }
@@ -54,13 +58,18 @@ class GoogleTest extends TestCase
      * Test syncing domains.
      *
      * @return void
+     * @group n
      */
     public function testSyncDomains()
     {
         $this->syncDomains();
+        $domains = [];
+        foreach (self::DOMAIN_NAMES as $domain) {
+            $domains[] = [$domain => true];
+        }
         $this->assertDatabaseHas('users', [
             'id'         => '1',
-            'properties' => json_encode(['google_domains' => self::DOMAIN_NAMES]),
+            'properties' => json_encode(['google_domains' => $domains]),
         ]);
     }
 
@@ -72,75 +81,91 @@ class GoogleTest extends TestCase
     public function testSyncCards()
     {
         $user = $this->syncDomains();
-        $fakeTitle = "Brian's Title";
-        $fakeThumbnailUrl = '/storage/public/card-thumbnails/1.jpg';
-        $fakeUrl = 'http://myfakeurl.example.com';
-        $fakeId = 'My fake Id';
-        $filePermissions = [
-            ['type' => 'user', 'role' => 'reader'],
-            ['type' => 'domain', 'role' => 'owner', 'domain' => 'dexio.com'],
-            ['type' => 'domain', 'role' => 'fileOrganizer', 'domain' => self::DOMAIN_NAMES[0]],
-            ['type' => 'anyone', 'role' => 'commenter'],
-        ];
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeTitle, $fakeUrl, $fakeId, $filePermissions) {
-            // https://developers.google.com/drive/api/v3/ref-roles
-            // Valid Roles: 'organizer', 'owner', 'fileOrganizer', 'writer', 'commenter', 'reader'
-            $file = new FileFake($filePermissions);
-            $file->name = $fakeTitle;
-            $file->webViewLink = $fakeUrl;
-            $file->id = $fakeId;
-
-            $mock->shouldReceive('getFiles')->andReturn(collect([
-                new FileFake([['type' => 'user', 'role' => 'writer']]),
-                $file,
-            ]))->once();
-
-            $mock->shouldReceive('getThumbnail')
-                ->andReturn(collect(['thumbnail' => 'content', 'extension' => 'jpeg']))
-                ->twice();
+        $file = new FileFake();
+        $file->name = 'My cool title';
+        $file->id = 'fakeid';
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file) {
+            $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
+            $mock->shouldReceive('saveThumbnail')->once();
+            $mock->shouldReceive('savePermissions')->once();
         });
-
-        $this->partialMock(LinkShareSettingRepository::class, function ($mock) {
-            $mock->shouldReceive('createAnyoneOrganizationIfNew')->once();
-        });
-
-        \Storage::shouldReceive('put')->andReturn(true)->twice();
-        \Storage::shouldReceive('url')->andReturn($fakeThumbnailUrl)->twice();
 
         $result = app(GoogleIntegration::class)->syncCards($user);
 
-        $card = Card::where(['title', $fakeTitle]);
-
-        foreach ($filePermissions as $filePermission) {
-            $this->assertDatabaseHas('permissions', [
-                'permissionable_type' => 'App\\Models\\Card',
-                'permissionable_id'   => $card->id,
-                'capability_id'       => app(CapabilityRepository::class)->get(GoogleIntegration::CAPABILITY_MAP[$filePermission['role']])->id,
-            ]);
-            if ('user' === $filePermission['type']) {
-                // brian@trytrig.com is in the FakeFile class - this is me being lazy not referencing it
-                $person = Person::where(['email' => 'brian@trytrig.com']);
-                $this->assertDatabaseHas('permission_types', [
-                    'typeable_type' => 'App\\Models\\Person',
-                    'typeable_id'   => $person->id,
-                ]);
-            }
-            if ('anyone' === $filePermission['type']) {
-                $this->assertDatabaseHas('permission_types', [
-                    'typeable_type' => null,
-                    'typeable_id'   => null,
-                ]);
-            }
-        }
+        $card = Card::where(['title', $file->name]);
+        $cardType = CardType::where(['name' => $file->mimeType])->first();
 
         $this->assertDatabaseHas('cards', [
-            'title' => $fakeTitle,
-            'url'   => $fakeUrl,
-            'image' => \Config::get('app.url').$fakeThumbnailUrl,
+            'card_type_id'       => $cardType->id,
+            'title'              => $file->name,
+            'description'        => $file->description,
+            'url'                => $file->webViewLink,
+            'actual_created_at'  => Carbon::create($file->createdTime)->toDateTimeString(),
+            'actual_modified_at' => Carbon::create($file->modifiedTime)->toDateTimeString(),
         ]);
 
         $this->assertDatabaseHas('card_integrations', [
-            'foreign_id' => $fakeId,
+            'foreign_id' => $file->id,
+        ]);
+    }
+
+    private function syncCardsFail($file)
+    {
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file) {
+            $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
+        });
+
+        $result = app(GoogleIntegration::class)->syncCards($user);
+    }
+
+    /**
+     * Test syncing all integrations.
+     *
+     * @return void
+     */
+    public function testSyncCardsFail()
+    {
+        $this->partialMock(UserRepository::class, function ($mock) {
+            $mock->shouldReceive('createCard')->andReturn(null)->once();
+        });
+        $file = new FileFake();
+        $file->name = 'My failed name';
+        $this->syncCardsFail($file);
+        $this->assertDatabaseMissing('cards', [
+            'title' => $file->name,
+        ]);
+    }
+
+    /**
+     * If there are no files from google we should do nothing.
+     *
+     * @return void
+     */
+    public function testSyncCardsNoFiles()
+    {
+        $this->partialMock(GoogleIntegration::class, function ($mock) {
+            $mock->shouldReceive('getFiles')->andReturn(collect([]))->once();
+        });
+        $result = app(GoogleIntegration::class)->syncCards(User::find(1));
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test syncing all integrations.
+     *
+     * @return void
+     */
+    public function testSyncCardsTrashed()
+    {
+        $file = new FileFake();
+        $file->name = 'This card is super trash';
+        $file->trashed = true;
+
+        $this->syncCardsFail($file);
+        $this->assertDatabaseMissing('cards', [
+            'title' => $file->name,
         ]);
     }
 
@@ -148,11 +173,11 @@ class GoogleTest extends TestCase
      * Fail saving thumbnail.
      *
      * @return void
-     * @group n
      */
     public function testSaveThumbnailFail()
     {
-        list($user, $card, $file) = $this->getThumbnailSetup('');
+        list($user, $card, $file) = $this->getSetup();
+        $file->thumbnailLink = '';
         $result = app(GoogleIntegration::class)->saveThumbnail($user, $card, $file);
         $this->assertFalse($result);
         $result = app(GoogleIntegration::class)->saveThumbnail($user, $card, false);
@@ -163,11 +188,11 @@ class GoogleTest extends TestCase
      * Try to save a thumbnail with no thumbnail from google.
      *
      * @return void
-     * @group n
      */
     public function testSaveThumbnailNoAccess()
     {
-        list($user, $card, $file) = $this->getThumbnailSetup('https://mycoolpage.com/thing.jpg');
+        list($user, $card, $file) = $this->getSetup();
+        $file->thumbnailLink = 'https://mycoolpage.com/thing.jpg';
         $this->partialMock(GoogleIntegration::class, function ($mock) {
             $mock->shouldReceive('getThumbnail')->andReturn(collect([]))->once();
         });
@@ -179,13 +204,13 @@ class GoogleTest extends TestCase
      * Successfull save google thumbnail.
      *
      * @return void
-     * @group n
      */
     public function testSaveThumbnailSuccess()
     {
         $imageName = '/myCoolImage.jpg';
         $myCoolImage = 'https://mycoolimage.com'.$imageName;
-        list($user, $card, $file) = $this->getThumbnailSetup($myCoolImage);
+        list($user, $card, $file) = $this->getSetup();
+        $file->thumbnailLink = $myCoolImage;
         $this->partialMock(GoogleIntegration::class, function ($mock) {
             $mock->shouldReceive('getThumbnail')->andReturn(collect([
                 'extension' => 'jpg',
@@ -200,5 +225,44 @@ class GoogleTest extends TestCase
             'id'    => $card->id,
             'image' => \Config::get('app.url').$imageName,
         ]);
+    }
+
+    /**
+     * Save permissions.
+     */
+    public function testSavePermissions()
+    {
+        $user = $this->syncDomains();
+        list($user, $card, $file) = $this->getSetup($user);
+        $file->setPermissions([
+            ['type' => 'anyone'],
+            ['type' => 'user'],
+            ['type' => 'domain', 'domain' => 'trytrig.com'],
+        ]);
+        $this->partialMock(LinkShareSettingRepository::class, function ($mock) {
+            $mock->shouldReceive('createPublicIfNew')->once();
+            $mock->shouldReceive('createAnyoneOrganizationIfNew')->once();
+        });
+        $this->partialMock(PermissionRepository::class, function ($mock) {
+            $mock->shouldReceive('createEmail')->once();
+        });
+        app(GoogleIntegration::class)->savePermissions($user, $card, $file);
+    }
+
+    /**
+     * Don't save permission if it's a domain we don't recognize.
+     */
+    public function testSavePermissionNoDomain()
+    {
+        $user = $this->syncDomains();
+        list($user, $card, $file) = $this->getSetup($user);
+        $file->setPermissions([
+            ['type' => 'domain', 'domain' => 'dexio.com'],
+        ]);
+        $this->partialMock(LinkShareSettingRepository::class, function ($mock) {
+            $mock->shouldNotReceive('createAnyoneOrganizationIfNew')->once();
+        });
+
+        app(GoogleIntegration::class)->savePermissions($user, $card, $file);
     }
 }

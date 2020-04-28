@@ -66,14 +66,17 @@ class FileFake
     public $capabilities;
     public $permissions;
 
-    public function __construct(array $permissionsParams = [])
+    public function __construct()
     {
         $this->owners = [new FakeUser()];
         $this->lastModifyingUser = new FakeUser();
         $this->capabilities = new FakeCapabilities();
+    }
 
+    public function setPermissions($permissionParams)
+    {
         $permissions = [];
-        foreach ($permissionsParams as $params) {
+        foreach ($permissionParams as $params) {
             $permissions[] = new FakePermissions($params);
         }
         $this->permissions = $permissions;
