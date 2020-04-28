@@ -43,7 +43,15 @@ class UserRepository
      */
     public function isGoogleDomainActive(User $user, string $domain): bool
     {
-        return (bool) collect($user->properties->get('google_domains'))->where($domain, true);
+        foreach ($user->properties->get('google_domains') as $domainProperties) {
+            foreach ($domainProperties as $allowedDomain => $isActive) {
+                if ($allowedDomain === $domain && $isActive) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function create(array $input): User

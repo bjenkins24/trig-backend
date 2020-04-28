@@ -4,6 +4,7 @@ namespace Tests\Feature\Modules\LinkShareSetting;
 
 use App\Models\Card;
 use App\Modules\Capability\CapabilityRepository;
+use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -101,5 +102,16 @@ class LinkShareSettingRepositoryTest extends TestCase
         // Now that it exists let's make sure it's not created again
         $result = $this->linkShareSettingRepo->createPublicIfNew($this->card, $this->capability);
         $this->assertFalse($result);
+    }
+
+    /**
+     * Test that an error is thrown if we throw in a false type.
+     *
+     * @return void
+     */
+    public function testFalseType()
+    {
+        $this->expectException(LinkShareSettingTypeNotSupported::class);
+        $this->linkShareSettingRepo->createAnyoneIfNew('test', $this->capability);
     }
 }

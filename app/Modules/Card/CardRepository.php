@@ -23,9 +23,9 @@ class CardRepository
     {
         $oauthIntegration = $this->oauthIntegration->findByName($integrationName);
         if (! $oauthIntegration || ! $card->id) {
-            throw new CardIntegrationCreationValidate('The integration name you passed in doesn\'t exist. 
-                The card integration was not created for card '.$card->id.' with the foreign id of '.$foreignId.' 
-                and the key of '.$integrationName);
+            throw new CardIntegrationCreationValidate('The integration name you passed in doesn\'t exist. The card integration was not 
+                created for card '.$card->id.' with the foreign id of '.$foreignId.' and the key of 
+                '.$integrationName);
         }
 
         return $card->cardIntegration()->create([

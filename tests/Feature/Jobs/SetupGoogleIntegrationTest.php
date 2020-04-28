@@ -17,7 +17,6 @@ class SetupGoogleIntegrationTest extends TestCase
      * Test sync cards job.
      *
      * @return void
-     * @group n
      */
     public function testSetup()
     {

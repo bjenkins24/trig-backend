@@ -8,11 +8,6 @@ use App\Models\Person;
 
 class PersonRepository
 {
-    public function findByEmail(string $email): Person
-    {
-        return Person::where(['email' => $email]);
-    }
-
     public function firstOrCreate(string $email): Person
     {
         return Person::firstOrCreate(['email' => $email]);

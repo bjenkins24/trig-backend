@@ -7,6 +7,7 @@ use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
+use App\Modules\LinkShareType\LinkShareTypeRepository;
 use App\Modules\Permission\PermissionRepository;
 use App\Modules\User\UserRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,7 +17,7 @@ use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
-class GoogleTest extends TestCase
+class GoogleIntegrationTest extends TestCase
 {
     use RefreshDatabase;
     use CreateOauthConnection;
@@ -250,6 +251,8 @@ class GoogleTest extends TestCase
 
     /**
      * Don't save permission if it's a domain we don't recognize.
+     *
+     * @group n
      */
     public function testSavePermissionNoDomain()
     {
@@ -258,10 +261,16 @@ class GoogleTest extends TestCase
         $file->setPermissions([
             ['type' => 'domain', 'domain' => 'dexio.com'],
         ]);
-        $this->partialMock(LinkShareSettingRepository::class, function ($mock) {
-            $mock->shouldNotReceive('createAnyoneOrganizationIfNew')->once();
-        });
 
         app(GoogleIntegration::class)->savePermissions($user, $card, $file);
+
+        $shareType = LinkShareTypeRepository::ANYONE_ORGANIZATION;
+        $linkShareType = app(LinkShareTypeRepository::class)->get($shareType);
+
+        $this->assertDatabaseMissing('link_share_settings', [
+            'link_share_type_id' => $linkShareType->id,
+            'shareable_type'     => 'App\\Models\\Card',
+            'shareable_id'       => $card->id,
+        ]);
     }
 }
