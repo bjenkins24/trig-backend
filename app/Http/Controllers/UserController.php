@@ -12,6 +12,7 @@ use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
 use App\Models\User;
+use App\Modules\Card\CardService;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
@@ -138,5 +139,12 @@ class UserController extends Controller
         }
 
         return response()->json(['data' => compact('authToken', 'user')], $status);
+    }
+
+    public function testGoogle(Request $request)
+    {
+        $files = app(CardService::class)->makeIntegration('google')->getFiles($request->user());
+
+        return response()->json(['data' => $files]);
     }
 }

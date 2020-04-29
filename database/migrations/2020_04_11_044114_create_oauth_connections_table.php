@@ -20,6 +20,7 @@ class CreateOauthConnectionsTable extends Migration
             $table->string('access_token')->nullable();
             $table->string('refresh_token')->nullable();
             $table->string('expires')->nullable();
+            $table->json('properties')->nullable();
             $table->timestamps();
         });
     }

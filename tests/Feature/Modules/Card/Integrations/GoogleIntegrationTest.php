@@ -38,16 +38,21 @@ class GoogleIntegrationTest extends TestCase
         return [$user, $card, $file];
     }
 
-    public function syncDomains()
+    public function syncDomains($domains = true)
     {
-        $user = User::find(1);
-        $this->createOauthConnection($user);
-        $this->partialMock(GoogleIntegration::class, function ($mock) {
+        if ($domains) {
             $domain = new DomainFake();
             $domain->isPrimary = false;
             $domain->domainName = self::DOMAIN_NAMES[1];
+            $fakeDomains = [new DomainFake(), $domain];
+        } else {
+            $fakeDomains = [];
+        }
 
-            $mock->shouldReceive('getDomains')->andReturn(collect([new DomainFake(), $domain]))->once();
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeDomains) {
+            $mock->shouldReceive('getDomains')->andReturn($fakeDomains)->once();
         });
 
         app(GoogleIntegration::class)->syncDomains($user);
@@ -68,6 +73,24 @@ class GoogleIntegrationTest extends TestCase
             $domains[] = [$domain => true];
         }
         $this->assertDatabaseHas('users', [
+            'id'         => '1',
+            'properties' => json_encode(['google_domains' => $domains]),
+        ]);
+    }
+
+    /**
+     * Test syncing domains.
+     *
+     * @return void
+     */
+    public function testSyncDomainsNoDomains()
+    {
+        $this->syncDomains(false);
+        $domains = [];
+        foreach (self::DOMAIN_NAMES as $domain) {
+            $domains[] = [$domain => true];
+        }
+        $this->assertDatabaseMissing('users', [
             'id'         => '1',
             'properties' => json_encode(['google_domains' => $domains]),
         ]);
@@ -251,8 +274,6 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * Don't save permission if it's a domain we don't recognize.
-     *
-     * @group n
      */
     public function testSavePermissionNoDomain()
     {
@@ -271,6 +292,30 @@ class GoogleIntegrationTest extends TestCase
             'link_share_type_id' => $linkShareType->id,
             'shareable_type'     => 'App\\Models\\Card',
             'shareable_id'       => $card->id,
+        ]);
+    }
+
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
+    public function testGetFiles()
+    {
+        $nextPageToken = '12345';
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
+            $mock->shouldReceive('getNextPageToken')->andReturn($nextPageToken)->once();
+            $mock->shouldReceive('listFilesFromService')->andReturn(collect([]))->once();
+        });
+
+        app(GoogleIntegration::class)->getFiles($user);
+
+        $this->assertDatabaseHas('oauth_connections', [
+            'user_id'    => $user->id,
+            'properties' => json_encode([GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken]),
         ]);
     }
 }

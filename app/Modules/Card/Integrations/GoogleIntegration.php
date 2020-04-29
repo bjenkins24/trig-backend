@@ -22,6 +22,7 @@ class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
     const PAGE_SIZE = 50;
+    const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     /**
      * The keys in this array are google roles and the values are what they map
@@ -37,17 +38,20 @@ class GoogleIntegration implements IntegrationInterface
     ];
 
     private $client;
-    private $oauthConnection;
-    private $card;
 
-    public function __construct(OauthConnectionService $oauthConnection)
+    public function setClient(User $user)
     {
-        $this->oauthConnection = $oauthConnection;
+        $this->client = app(OauthConnectionService::class)->getClient($user, GoogleConnection::getKey());
     }
 
-    private function setClient(User $user)
+    public function listFilesFromService(GoogleServiceDrive $service, array $params)
     {
-        $this->client = $this->oauthConnection->getClient($user, GoogleConnection::getKey());
+        return collect($service->files->listFiles($params));
+    }
+
+    public function getNextPageToken(GoogleServiceDrive $service, array $params)
+    {
+        return $service->files->listFiles($params)->getNextPageToken();
     }
 
     public function getFiles(User $user): Collection
@@ -55,14 +59,21 @@ class GoogleIntegration implements IntegrationInterface
         if (! $this->client) {
             $this->setClient($user);
         }
-        $service = new GoogleServiceDrive($this->client);
+        $oauthConnectionRepo = app(OauthConnectionService::class)->repo;
+        $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
+        $pageToken = $oauthConnection->get(self::NEXT_PAGE_TOKEN_KEY);
 
-        $optParams = [
-            'pageSize' => self::PAGE_SIZE,
-            'fields'   => 'nextPageToken, files',
+        $service = new GoogleServiceDrive($this->client);
+        $params = [
+            'pageSize'  => self::PAGE_SIZE,
+            'fields'    => 'nextPageToken, files',
+            'pageToken' => $pageToken,
         ];
 
-        return collect($service->files->listFiles($optParams)->getFiles());
+        $nextPageToken = $this->getNextPageToken($service, $params);
+        $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
+
+        return $this->listFilesFromService($service, $params);
     }
 
     /**
@@ -74,7 +85,7 @@ class GoogleIntegration implements IntegrationInterface
      */
     public function getThumbnail(User $user, $file): Collection
     {
-        $accessToken = $this->oauthConnection->getAccessToken($user, GoogleConnection::getKey());
+        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, GoogleConnection::getKey());
         try {
             $thumbnail = file_get_contents($file->thumbnailLink.'&access_token='.$accessToken);
         } catch (Exception $e) {
@@ -189,26 +200,47 @@ class GoogleIntegration implements IntegrationInterface
      *
      * @return void
      */
-    public function getDomains(User $user): Collection
+    public function getDomains(User $user): array
     {
         if (! $this->client) {
             $this->setClient($user);
         }
         $service = new GoogleServiceDirectory($this->client);
-        // my_customer get's the domains for the current customer which is what we want
-        // weird API, but that's 100% Google
-        return collect($service->domains->listDomains('my_customer')->domains);
+
+        try {
+            // my_customer get's the domains for the current customer which is what we want
+            // weird API, but that's 100% Google
+            throw new \Exception('duh');
+
+            return $service->domains->listDomains('my_customer')->domains;
+        } catch (\Exception $e) {
+            $error = json_decode($e->getMessage());
+            if (! $error || 404 !== $error->error->code) {
+                \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
+
+                return [];
+            }
+
+            if (404 === $error) {
+                return [];
+            }
+        }
     }
 
-    public function syncDomains($user)
+    public function syncDomains($user): bool
     {
         $domains = $this->getDomains($user);
+        if (! $domains) {
+            return false;
+        }
         $properties = ['google_domains' => []];
         foreach ($domains as $domain) {
             $properties['google_domains'][] = [$domain->domainName => true];
         }
         $user->properties = $properties;
         $user->save();
+
+        return true;
     }
 
     /**
