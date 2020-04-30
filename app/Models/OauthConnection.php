@@ -22,6 +22,7 @@ class OauthConnection extends Model
         'access_token',
         'refresh_token',
         'expires',
+        'properties',
     ];
 
     /**
@@ -30,6 +31,7 @@ class OauthConnection extends Model
      * @var array
      */
     protected $casts = [
-        'expires' => 'datetime',
+        'expires'    => 'datetime',
+        'properties' => 'collection',
     ];
 }

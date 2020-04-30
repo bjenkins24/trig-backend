@@ -4,6 +4,7 @@ namespace App\Modules\Card\Integrations;
 
 use App\Models\Card;
 use App\Models\CardType;
+use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
@@ -49,19 +50,40 @@ class GoogleIntegration implements IntegrationInterface
         return collect($service->files->listFiles($params));
     }
 
-    public function getNextPageToken(GoogleServiceDrive $service, array $params)
+    /**
+     * Get the next page token from google if it exists - this will return null
+     * if there's no next page.
+     *
+     * @return void
+     */
+    public function getNewNextPageToken(GoogleServiceDrive $service, array $params): ?string
     {
         return $service->files->listFiles($params)->getNextPageToken();
     }
 
-    public function getFiles(User $user): Collection
+    /**
+     * Get the next page token in the database if it exists.
+     *
+     * @param OauthConnection $oauthConenection
+     */
+    public function getCurrentNextPageToken(OauthConnection $oauthConnection): ?string
+    {
+        $pageToken = null;
+        if ($oauthConnection->properties) {
+            $pageToken = $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY);
+        }
+
+        return $pageToken;
+    }
+
+    public function getFiles(User $user)
     {
         if (! $this->client) {
             $this->setClient($user);
         }
         $oauthConnectionRepo = app(OauthConnectionService::class)->repo;
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
-        $pageToken = $oauthConnection->get(self::NEXT_PAGE_TOKEN_KEY);
+        $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
         $service = new GoogleServiceDrive($this->client);
         $params = [
@@ -70,7 +92,7 @@ class GoogleIntegration implements IntegrationInterface
             'pageToken' => $pageToken,
         ];
 
-        $nextPageToken = $this->getNextPageToken($service, $params);
+        $nextPageToken = $this->getNewNextPageToken($service, $params);
         $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
 
         return $this->listFilesFromService($service, $params);
@@ -210,8 +232,6 @@ class GoogleIntegration implements IntegrationInterface
         try {
             // my_customer get's the domains for the current customer which is what we want
             // weird API, but that's 100% Google
-            throw new \Exception('duh');
-
             return $service->domains->listDomains('my_customer')->domains;
         } catch (\Exception $e) {
             $error = json_decode($e->getMessage());

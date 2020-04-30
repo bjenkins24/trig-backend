@@ -4,6 +4,8 @@ namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Models\Card;
 use App\Models\CardType;
+use App\Models\OauthConnection;
+use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
@@ -299,7 +301,6 @@ class GoogleIntegrationTest extends TestCase
      * Undocumented function.
      *
      * @return void
-     * @group n
      */
     public function testGetFiles()
     {
@@ -317,5 +318,35 @@ class GoogleIntegrationTest extends TestCase
             'user_id'    => $user->id,
             'properties' => json_encode([GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken]),
         ]);
+
+        app(GoogleIntegration::class)->getFiles($user);
+    }
+
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
+    public function testGetCurrentNextPageToken()
+    {
+        $token = '123';
+
+        OauthIntegration::create(['name' => 'google']);
+        $oauthConnection = OauthConnection::create([
+            'user_id'              => 1,
+            'oauth_integration_id' => 1,
+            'properties'           => [GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $token],
+        ]);
+        $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
+
+        $this->assertEquals($token, $nextPageToken);
+
+        $oauthConnection->properties = [];
+        $oauthConnection->save();
+
+        $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
+
+        $this->assertEquals($nextPageToken, null);
     }
 }

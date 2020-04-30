@@ -77,7 +77,7 @@ class OauthConnectionRepository
         return $oauthConnection->expires->isBefore(Carbon::now());
     }
 
-    public function saveGoogleNextPageToken(OauthConnection $oauthConnection, string $nextPageToken): bool
+    public function saveGoogleNextPageToken(OauthConnection $oauthConnection, ?string $nextPageToken): bool
     {
         $oauthConnection->properties = [GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken];
 
