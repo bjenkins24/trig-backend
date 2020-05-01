@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\OauthConnection;
@@ -76,6 +77,11 @@ class GoogleIntegration implements IntegrationInterface
         return $pageToken;
     }
 
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     */
     public function getFiles(User $user)
     {
         if (! $this->client) {
@@ -180,7 +186,7 @@ class GoogleIntegration implements IntegrationInterface
         });
     }
 
-    private function createCard(User $user, $file): void
+    public function createCard(User $user, $file): void
     {
         if ($file->trashed) {
             return;
@@ -279,6 +285,11 @@ class GoogleIntegration implements IntegrationInterface
         $files->each(function ($file) use ($user) {
             $this->createCard($user, $file);
         });
+
+        $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
+        if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
+            SyncCards::dispatch($user, 'google');
+        }
 
         return true;
     }

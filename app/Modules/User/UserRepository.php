@@ -3,9 +3,11 @@
 namespace App\Modules\User;
 
 use App\Models\Card;
+use App\Models\OauthConnection;
 use App\Models\Permission;
 use App\Models\PermissionType;
 use App\Models\User;
+use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
 
 class UserRepository
@@ -18,6 +20,13 @@ class UserRepository
     public function getAllOauthConnections(User $user): Collection
     {
         return $user->oauthConnections()->get();
+    }
+
+    public function getOauthConnection(User $user, string $key): OauthConnection
+    {
+        $oauthIntegrationId = app(OauthIntegrationRepository::class)->findByName($key)->id;
+
+        return $user->oauthConnections()->where(['oauth_integration_id' => $oauthIntegrationId])->first();
     }
 
     public function createPermission(User $user, Permission $permission): PermissionType

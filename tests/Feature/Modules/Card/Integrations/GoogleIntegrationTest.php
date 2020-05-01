@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
+use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\OauthConnection;
@@ -102,20 +103,27 @@ class GoogleIntegrationTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
-    public function testSyncCards()
+    public function testSyncCardsContinue()
     {
         $user = $this->syncDomains();
         $file = new FileFake();
         $file->name = 'My cool title';
         $file->id = 'fakeid';
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file) {
-            $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
-            $mock->shouldReceive('saveThumbnail')->once();
-            $mock->shouldReceive('savePermissions')->once();
+        $nextPageToken = 'next_page_token';
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file, $nextPageToken) {
+            $mock->shouldReceive('saveThumbnail')->twice();
+            $mock->shouldReceive('savePermissions')->twice();
+            $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->once();
+            $mock->shouldReceive('listFilesFromService')->andReturn(collect([new FileFake(), $file]))->once();
         });
 
+        \Queue::fake();
+
         $result = app(GoogleIntegration::class)->syncCards($user);
+
+        \Queue::assertPushed(SyncCards::class, 1);
 
         $card = Card::where(['title', $file->name]);
         $cardType = CardType::where(['name' => $file->mimeType])->first();
@@ -132,6 +140,26 @@ class GoogleIntegrationTest extends TestCase
         $this->assertDatabaseHas('card_integrations', [
             'foreign_id' => $file->id,
         ]);
+    }
+
+    /**
+     * @return void
+     * @group n
+     */
+    public function testSyncCardsStop()
+    {
+        $user = $this->syncDomains();
+        $nextPageToken = 'next_page_token';
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
+            $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake()]))->once();
+            $mock->shouldReceive('createCard')->once();
+        });
+
+        \Queue::fake();
+
+        $result = app(GoogleIntegration::class)->syncCards($user);
+
+        \Queue::assertPushed(SyncCards::class, 0);
     }
 
     private function syncCardsFail($file)
@@ -308,8 +336,8 @@ class GoogleIntegrationTest extends TestCase
         $user = User::find(1);
         $this->createOauthConnection($user);
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
-            $mock->shouldReceive('getNextPageToken')->andReturn($nextPageToken)->once();
-            $mock->shouldReceive('listFilesFromService')->andReturn(collect([]))->once();
+            $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->twice();
+            $mock->shouldReceive('listFilesFromService')->andReturn(collect([]))->twice();
         });
 
         app(GoogleIntegration::class)->getFiles($user);
@@ -326,7 +354,6 @@ class GoogleIntegrationTest extends TestCase
      * Undocumented function.
      *
      * @return void
-     * @group n
      */
     public function testGetCurrentNextPageToken()
     {
