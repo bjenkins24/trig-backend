@@ -28,12 +28,21 @@ class SyncCards implements ShouldQueue
     public string $integration;
 
     /**
+     * @var string
+     */
+    private CardService $cardService;
+
+    /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(User $user, string $integration)
-    {
+    public function __construct(
+        User $user, 
+        string $integration, 
+        CardService $cardService
+    ) {
+        $this->cardService = $cardService;
         $this->user = $user;
         $this->integration = $integration;
     }
@@ -45,6 +54,6 @@ class SyncCards implements ShouldQueue
      */
     public function handle()
     {
-        app(CardService::class)->makeIntegration($this->integration)->syncCards($this->user);
+        $this->cardService->makeIntegration($this->integration)->syncCards($this->user);
     }
 }

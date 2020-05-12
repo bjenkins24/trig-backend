@@ -6,7 +6,6 @@ use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\Card\CardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
@@ -22,13 +21,13 @@ class CardServiceTest extends TestCase
      */
     public function testSyncAll()
     {
-        Queue::fake();
+        \Queue::fake();
 
         $user = User::find(1);
         $this->createOauthConnection($user);
 
         app(CardService::class)->syncAllIntegrations($user);
 
-        Queue::assertPushed(SyncCards::class, 1);
+        \Queue::assertPushed(SyncCards::class, 1);
     }
 }

@@ -243,14 +243,9 @@ class GoogleIntegration implements IntegrationInterface
             $error = json_decode($e->getMessage());
             if (! $error || 404 !== $error->error->code) {
                 \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
-
-                return [];
-            }
-
-            if (404 === $error) {
-                return [];
             }
         }
+        return [];
     }
 
     public function syncDomains($user): bool

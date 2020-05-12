@@ -7,7 +7,6 @@ use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
-use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Support\Collection;
 
@@ -15,7 +14,7 @@ class UserService
 {
     public UserRepository $repo;
     public ResetPasswordHelper $resetPassword;
-    private OauthConnectionService $oauthConnection;
+    private CardService $cardService;
 
     /**
      * Create instance of user service.
@@ -23,11 +22,11 @@ class UserService
     public function __construct(
         UserRepository $repo,
         ResetPasswordHelper $resetPassword,
-        OauthConnectionService $oauthConnection
+        CardService $cardService
     ) {
         $this->repo = $repo;
         $this->resetPassword = $resetPassword;
-        $this->oauthConnection = $oauthConnection;
+        $this->cardService = $cardService;
     }
 
     public function create(array $input): User
@@ -57,7 +56,7 @@ class UserService
         $user = $this->create($authParams);
         $result = $this->oauthConnection->repo->create($user, GoogleConnection::getKey(), $oauthCredentials);
 
-        SetupGoogleIntegration::dispatch($user);
+        SetupGoogleIntegration::dispatch($user, $this->cardService);
 
         return $user;
     }

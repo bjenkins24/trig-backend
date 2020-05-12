@@ -17,16 +17,18 @@ class SetupGoogleIntegration implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public User $user;
+    private User $user;
+    private CardService $cardService;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(User $user)
+    public function __construct(User $user, CardService $cardService)
     {
         $this->user = $user;
+        $this->cardService = $cardService;
     }
 
     /**
@@ -36,7 +38,7 @@ class SetupGoogleIntegration implements ShouldQueue
      */
     public function handle()
     {
-        app(CardService::class)->makeIntegration('google')->syncDomains($this->user);
-        SyncCards::dispatch($this->user, 'google');
+        $this->cardService->makeIntegration('google')->syncDomains($this->user);
+        SyncCards::dispatch($this->user, 'google', $this->cardService);
     }
 }
