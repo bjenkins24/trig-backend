@@ -7,31 +7,32 @@ use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Support\Collection;
 
 class UserService
 {
-    public UserRepository $repo;
+    private UserRepository $userRepo;
+    private OauthConnectionRepository $oauthConnectionRepo;
     public ResetPasswordHelper $resetPassword;
-    private CardService $cardService;
 
     /**
      * Create instance of user service.
      */
     public function __construct(
-        UserRepository $repo,
-        ResetPasswordHelper $resetPassword,
-        CardService $cardService
+        UserRepository $userRepo,
+        OauthConnectionRepository $oauthConnectionRepo,
+        ResetPasswordHelper $resetPassword
     ) {
-        $this->repo = $repo;
+        $this->userRepo = $userRepo;
         $this->resetPassword = $resetPassword;
-        $this->cardService = $cardService;
+        $this->oauthConnectionRepo = $oauthConnectionRepo;
     }
 
     public function create(array $input): User
     {
-        $user = $this->repo->create($input);
+        $user = $this->userRepo->create($input);
         event(new AccountCreated($user));
 
         return $user;
@@ -54,9 +55,9 @@ class UserService
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
-        $result = $this->oauthConnection->repo->create($user, GoogleConnection::getKey(), $oauthCredentials);
+        $result = $this->oauthConnectionRepo->create($user, GoogleConnection::getKey(), $oauthCredentials);
 
-        SetupGoogleIntegration::dispatch($user, $this->cardService);
+        SetupGoogleIntegration::dispatch($user);
 
         return $user;
     }
@@ -77,5 +78,19 @@ class UserService
         }
 
         return $user->first_name.' '.$user->last_name;
+    }
+
+    /**
+     * Sync cards for all integrations.
+     *
+     * @return User
+     */
+    public function syncAllIntegrations(User $user)
+    {
+        $connections = $this->userRepo->getAllOauthConnections($user);
+        foreach ($connections as $connection) {
+            $integration = $this->oauthConnectionRepo->getIntegration($connection)->name;
+            SyncCards::dispatch($user, $integration);
+        }
     }
 }

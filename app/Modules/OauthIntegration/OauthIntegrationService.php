@@ -2,15 +2,30 @@
 
 namespace App\Modules\OauthIntegration;
 
+use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 
 class OauthIntegrationService
 {
-    public OauthIntegrationRepository $repo;
-
-    public function __construct(OauthIntegrationRepository $repo)
+    public function makeConnectionIntegration(string $integration): OauthConnectionInterface
     {
-        $this->repo = $repo;
+        return $this->makeIntegration(
+            'App\\Modules\\OauthConnection\\Connections',
+            $integration,
+            'connection'
+        );
+    }
+
+    /**
+     * Make card integration class.
+     */
+    public function makeCardIntegration(string $integration)
+    {
+        return $this->makeIntegration(
+            'App\\Modules\\Card\\Integrations',
+            $integration,
+            'integration'
+        );
     }
 
     /**

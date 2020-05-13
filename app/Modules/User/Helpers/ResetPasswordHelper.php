@@ -15,13 +15,13 @@ class ResetPasswordHelper
 {
     use HandlesAuth;
 
-    private UserRepository $user;
+    private UserRepository $userRepo;
     private PasswordBroker $passwordBroker;
 
-    public function __construct(PasswordBroker $passwordBroker, UserRepository $user)
+    public function __construct(PasswordBroker $passwordBroker, UserRepository $userRepo)
     {
         $this->passwordBroker = $passwordBroker;
-        $this->user = $user;
+        $this->userRepo = $userRepo;
     }
 
     /**
@@ -87,7 +87,7 @@ class ResetPasswordHelper
      */
     public function validateResetToken(array $args): bool
     {
-        $user = $this->user->findByEmail($this->decryptEmail($args['email_hash']));
+        $user = $this->userRepo->findByEmail($this->decryptEmail($args['email_hash']));
         if (! $user) {
             return false;
         }

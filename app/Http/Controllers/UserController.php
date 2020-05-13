@@ -12,8 +12,8 @@ use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
 use App\Models\User;
-use App\Modules\Card\CardService;
-use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Illuminate\Http\Request;
@@ -22,15 +22,18 @@ class UserController extends Controller
 {
     use HandlesAuth;
 
-    private UserService $user;
-    private OauthConnectionService $oauthConnection;
+    private UserService $userService;
+    private UserRepository $userRepo;
+    private OauthIntegrationService $oauthIntegrationService;
 
     public function __construct(
-        UserService $user,
-        OauthConnectionService $oauthConnection
+        UserService $userService,
+        UserRepository $userRepo,
+        OauthIntegrationService $oauthIntegrationService
     ) {
-        $this->user = $user;
-        $this->oauthConnection = $oauthConnection;
+        $this->userService = $userService;
+        $this->userRepo = $userRepo;
+        $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
     /**
@@ -48,11 +51,11 @@ class UserController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        if ($this->user->repo->findByEmail($request->get('email'))) {
+        if ($this->userRepo->findByEmail($request->get('email'))) {
             throw new UserExists();
         }
 
-        $user = $this->user->create($request->all());
+        $user = $this->userService->create($request->all());
 
         // Login the new user
         $authToken = $this->authRequest($request->all());
@@ -67,13 +70,13 @@ class UserController extends Controller
      */
     public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $user = $this->user->repo->findByEmail($request->get('email'));
+        $user = $this->userRepo->findByEmail($request->get('email'));
 
         if (! $user) {
             throw new NoUserFound();
         }
 
-        $this->user->resetPassword->sendForgotPasswordNotification($user);
+        $this->userService->resetPassword->sendForgotPasswordNotification($user);
 
         return response()->json([
             'data' => 'success',
@@ -87,10 +90,10 @@ class UserController extends Controller
      */
     public function resetPassword(ResetPasswordRequest $request)
     {
-        $args = $this->user->resetPassword->getPasswordResetArgs($request->all());
+        $args = $this->userService->resetPassword->getPasswordResetArgs($request->all());
 
         try {
-            $user = $this->user->resetPassword->passwordReset($args)->wait();
+            $user = $this->userService->resetPassword->passwordReset($args)->wait();
         } catch (\Error $e) {
             throw new ResetPasswordTokenExpired();
         }
@@ -108,7 +111,7 @@ class UserController extends Controller
      */
     public function validateResetToken(ValidateResetTokenRequest $request)
     {
-        $isValidToken = $this->user->resetPassword->validateResetToken($request->all()) ?
+        $isValidToken = $this->userService->resetPassword->validateResetToken($request->all()) ?
             'valid' : 'invalid';
 
         return response()->json(['data' => $isValidToken]);
@@ -116,22 +119,22 @@ class UserController extends Controller
 
     public function googleSso(GoogleSsoRequest $request)
     {
-        $response = $this->oauthConnection->makeIntegration('google')->getUser($request->get('code'));
+        $response = $this->oauthIntegrationService->makeConnectionIntegration('google')->getUser($request->get('code'));
         if (! $response) {
             throw new FailedGoogleSso();
         }
 
-        $user = $this->user->repo->findByEmail($response['payload']->get('email'));
+        $user = $this->userRepo->findByEmail($response['payload']->get('email'));
         $status = 200;
         if ($user) {
             // Login user that exists
-            $authToken['access_token'] = $this->user->getAccessToken($user);
+            $authToken['access_token'] = $this->userService->getAccessToken($user);
         } else {
             $authParams = [
                 'email'    => $response['payload']->get('email'),
                 'password' => \Str::random(24),
             ];
-            $user = $this->user->createFromGoogle($authParams, $response['oauthCredentials']);
+            $user = $this->userService->createFromGoogle($authParams, $response['oauthCredentials']);
 
             // Login the new user
             $authToken = $this->authRequest($authParams);
@@ -143,7 +146,7 @@ class UserController extends Controller
 
     public function testGoogle(Request $request)
     {
-        $files = app(CardService::class)->makeIntegration('google')->getFiles($request->user());
+        $files = $this->oauthIntegrationService->makeCardIntegration('google')->getFiles($request->user());
 
         return response()->json(['data' => $files]);
     }

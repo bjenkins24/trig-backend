@@ -5,42 +5,23 @@ namespace App\Modules\OauthConnection;
 use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
-use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Support\Collection;
 
 class OauthConnectionService
 {
-    /**
-     * Create connection repository.
-     *
-     * @var OauthConnectionRepository repository
-     */
-    public OauthConnectionRepository $repo;
-
-    /**
-     * @var OauthIntegrationService
-     */
-    private OauthIntegrationService $oauthIntegration;
+    private OauthConnectionRepository $oauthConnectionRepo;
+    private OauthIntegrationService $oauthIntegrationService;
 
     /**
      * Create instance of create connection service.
      */
     public function __construct(
-        OauthConnectionRepository $repo,
-        OauthIntegrationService $oauthIntegration
+        OauthConnectionRepository $oauthConnectionRepo,
+        OauthIntegrationService $oauthIntegrationService
     ) {
-        $this->repo = $repo;
-        $this->oauthIntegration = $oauthIntegration;
-    }
-
-    public function makeIntegration(string $integration): OauthConnectionInterface
-    {
-        return $this->oauthIntegration->makeIntegration(
-            'App\\Modules\\OauthConnection\\Connections',
-            $integration,
-            'connection'
-        );
+        $this->oauthConnectionRepo = $oauthConnectionRepo;
+        $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
     /**
@@ -48,8 +29,8 @@ class OauthConnectionService
      */
     public function getAccessToken(User $user, string $integration): string
     {
-        $integrationInstance = $this->makeIntegration($integration);
-        $oauthConnection = $this->repo->findUserConnection($user, $integration);
+        $integrationInstance = $this->oauthIntegrationService->makeConnectionIntegration($integration);
+        $oauthConnection = $this->oauthConnectionRepo->findUserConnection($user, $integration);
 
         if (! $oauthConnection) {
             throw new OauthUnauthorizedRequest('A '.$integration.' has not been authorized for user '.$user->id.'. Cannot get client for user.');
@@ -57,9 +38,9 @@ class OauthConnectionService
 
         $accessToken = $oauthConnection->access_token;
 
-        if ($this->repo->isExpired($oauthConnection)) {
+        if ($this->oauthConnectionRepo->isExpired($oauthConnection)) {
             $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthConnection->refresh_token);
-            $this->repo->create($user, $integration, $authConnection);
+            $this->oauthConnectionRepo->create($user, $integration, $authConnection);
             $accessToken = $authConnection->get('access_token');
         }
 
@@ -74,7 +55,7 @@ class OauthConnectionService
     public function getClient(User $user, string $integration)
     {
         $accessToken = $this->getAccessToken($user, $integration);
-        $integrationInstance = $this->makeIntegration($integration);
+        $integrationInstance = $this->oauthIntegrationService->makeConnectionIntegration($integration);
 
         return $integrationInstance->getClient($accessToken);
     }
@@ -88,7 +69,7 @@ class OauthConnectionService
     {
         $authConnection = $this->getAccessTokenWithCode($integration, $authToken);
 
-        return $this->repo->create($user, $integration, $authConnection);
+        return $this->oauthConnectionRepo->create($user, $integration, $authConnection);
     }
 
     /**
@@ -96,7 +77,7 @@ class OauthConnectionService
      */
     public function getAccessTokenWithCode(string $integration, string $authToken): Collection
     {
-        $integration = $this->makeIntegration($integration);
+        $integration = $this->oauthIntegrationService->makeConnectionIntegration($integration);
 
         return $integration->retrieveAccessTokenWithCode($authToken);
     }

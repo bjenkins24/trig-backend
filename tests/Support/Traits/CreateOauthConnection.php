@@ -3,7 +3,7 @@
 namespace Tests\Support\Traits;
 
 use App\Models\User;
-use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthConnection\OauthConnectionRepository;
 
 trait CreateOauthConnection
 {
@@ -17,7 +17,7 @@ trait CreateOauthConnection
      */
     private function createOauthConnection(User $user, int $expiresIn = 3600)
     {
-        app(OauthConnectionService::class)->repo->create(
+        app(OauthConnectionRepository::class)->create(
             $user,
             'google',
             collect([

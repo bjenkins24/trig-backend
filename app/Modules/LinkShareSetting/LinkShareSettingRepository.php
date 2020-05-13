@@ -12,20 +12,20 @@ use App\Modules\Permission\PermissionRepository;
 class LinkShareSettingRepository
 {
     private LinkShareSetting $linkShareSetting;
-    private LinkShareTypeRepository $linkShareType;
-    private PermissionRepository $permission;
-    private CapabilityRepository $capability;
+    private LinkShareTypeRepository $linkShareTypeRepo;
+    private PermissionRepository $permissionRepo;
+    private CapabilityRepository $capabilityRepo;
 
     public function __construct(
         LinkShareSetting $linkShareSetting,
-        LinkShareTypeRepository $linkShareType,
-        PermissionRepository $permission,
-        CapabilityRepository $capability
+        LinkShareTypeRepository $linkShareTypeRepo,
+        PermissionRepository $permissionRepo,
+        CapabilityRepository $capabilityRepo
     ) {
         $this->linkShareSetting = $linkShareSetting;
-        $this->linkShareType = $linkShareType;
-        $this->permission = $permission;
-        $this->capability = $capability;
+        $this->linkShareTypeRepo = $linkShareTypeRepo;
+        $this->permissionRepo = $permissionRepo;
+        $this->capabilityRepo = $capabilityRepo;
     }
 
     public function getClassPath($type)
@@ -39,8 +39,8 @@ class LinkShareSettingRepository
     public function createIfNew($type, string $shareType, string $capability)
     {
         $path = $this->getClassPath($type);
-        $linkShareType = $this->linkShareType->get($shareType);
-        $capabilityId = $this->capability->get($capability)->id;
+        $linkShareType = $this->linkShareTypeRepo->get($shareType);
+        $capabilityId = $this->capabilityRepo->get($capability)->id;
         $settingExists = $this->linkShareSetting->where([
             'link_share_type_id' => $linkShareType->id,
             'capability_id'      => $capabilityId,
@@ -70,7 +70,7 @@ class LinkShareSettingRepository
     public function createPublicIfNew($type, string $capability)
     {
         // If it's public it should be discoverable by anyone as well
-        $this->permission->createAnyone($type, $capability);
+        $this->permissionRepo->createAnyone($type, $capability);
 
         return $this->createIfNew($type, LinkShareTypeRepository::PUBLIC_SHARE, $capability);
     }

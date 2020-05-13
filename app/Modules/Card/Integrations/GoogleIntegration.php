@@ -11,6 +11,7 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\Permission\PermissionRepository;
 use App\Modules\User\UserRepository;
@@ -87,7 +88,7 @@ class GoogleIntegration implements IntegrationInterface
         if (! $this->client) {
             $this->setClient($user);
         }
-        $oauthConnectionRepo = app(OauthConnectionService::class)->repo;
+        $oauthConnectionRepo = app(OauthConnectionRepository::class);
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
@@ -245,6 +246,7 @@ class GoogleIntegration implements IntegrationInterface
                 \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
             }
         }
+
         return [];
     }
 

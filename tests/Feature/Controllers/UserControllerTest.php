@@ -168,6 +168,7 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'forgot-password', $params);
 
         $response->assertStatus(200);
+
         \Mail::assertSent(ForgotPasswordMail::class, function ($mail) {
             $emailHashExists = \Str::contains(
                 $mail->resetUrl,
@@ -315,8 +316,7 @@ class UserControllerTest extends TestCase
                 ]),
             ])->twice();
         });
-        // $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
-        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123']);
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
 
         \Queue::assertPushed(SetupGoogleIntegration::class, 1);
         $this->assertLoggedIn($response, $email);

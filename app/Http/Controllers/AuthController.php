@@ -5,18 +5,18 @@ namespace App\Http\Controllers;
 use App\Exceptions\Auth\NoAccessTokenSet;
 use App\Http\Requests\Auth\Login;
 use App\Models\User;
-use App\Modules\User\UserService;
+use App\Modules\User\UserRepository;
 use App\Support\Traits\HandlesAuth;
 
 class AuthController extends Controller
 {
     use HandlesAuth;
 
-    public UserService $user;
+    public UserRepository $userRepo;
 
-    public function __construct(UserService $user)
+    public function __construct(UserRepository $userRepo)
     {
-        $this->user = $user;
+        $this->userRepo = $userRepo;
     }
 
     /**
@@ -47,7 +47,7 @@ class AuthController extends Controller
             throw new NoAccessTokenSet();
         }
 
-        $user = $this->user->repo->findByEmail($request->get('email'));
+        $user = $this->userRepo->findByEmail($request->get('email'));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
     }

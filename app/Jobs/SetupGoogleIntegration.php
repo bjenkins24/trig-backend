@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\User;
-use App\Modules\Card\CardService;
+use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,17 +18,15 @@ class SetupGoogleIntegration implements ShouldQueue
     use SerializesModels;
 
     private User $user;
-    private CardService $cardService;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(User $user, CardService $cardService)
+    public function __construct(User $user)
     {
         $this->user = $user;
-        $this->cardService = $cardService;
     }
 
     /**
@@ -38,7 +36,7 @@ class SetupGoogleIntegration implements ShouldQueue
      */
     public function handle()
     {
-        $this->cardService->makeIntegration('google')->syncDomains($this->user);
-        SyncCards::dispatch($this->user, 'google', $this->cardService);
+        app(OauthIntegrationService::class)->makeCardIntegration('google')->syncDomains($this->user);
+        SyncCards::dispatch($this->user, 'google');
     }
 }

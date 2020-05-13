@@ -13,11 +13,11 @@ use Illuminate\Support\Collection;
 
 class OauthConnectionRepository
 {
-    public OauthIntegrationRepository $oauthIntegration;
+    private OauthIntegrationRepository $oauthIntegrationRepo;
 
-    public function __construct(OauthIntegrationRepository $oauthIntegration)
+    public function __construct(OauthIntegrationRepository $oauthIntegrationRepo)
     {
-        $this->oauthIntegration = $oauthIntegration;
+        $this->oauthIntegrationRepo = $oauthIntegrationRepo;
     }
 
     /**
@@ -25,12 +25,12 @@ class OauthConnectionRepository
      */
     public function findUserConnection(User $user, string $integration): ?OauthConnection
     {
-        $oauthIntegration = $this->oauthIntegration->findByName($integration);
-        if (! $oauthIntegration) {
+        $oauthIntegrationRepo = $this->oauthIntegrationRepo->findByName($integration);
+        if (! $oauthIntegrationRepo) {
             return null;
         }
 
-        return $oauthIntegration->oauthConnections()->where('user_id', $user->id)->first();
+        return $oauthIntegrationRepo->oauthConnections()->where('user_id', $user->id)->first();
     }
 
     /**
@@ -53,12 +53,12 @@ class OauthConnectionRepository
             if (env('APP_ENV', 'local')) {
                 $message = 'Your access refresh or expires was missing from the response. Sometimes services like
                 Google SSO will only give you the refresh token on their first connection. If your account is already 
-                connected to Google you\'ll need to remove permissions from your google account in your google account
+                connected to Google, you\'ll need to remove permissions from your google account in your google account
                 settings before trying again';
             }
             throw new OauthMissingTokens($message);
         }
-        $oauthIntegration = $this->oauthIntegration->firstOrCreate(['name' => $integration]);
+        $oauthIntegration = $this->oauthIntegrationRepo->firstOrCreate(['name' => $integration]);
 
         return OauthConnection::create([
             'user_id'              => $user->id,

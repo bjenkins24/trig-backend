@@ -103,7 +103,6 @@ class GoogleIntegrationTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
-     * @group n
      */
     public function testSyncCardsContinue()
     {
@@ -144,7 +143,6 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * @return void
-     * @group n
      */
     public function testSyncCardsStop()
     {
