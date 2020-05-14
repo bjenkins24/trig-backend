@@ -29,9 +29,21 @@
                 <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
                 <file>./app/Providers/BroadcastServiceProvider.php</file>
                 <file>./app/Exceptions/Handler.php</file>
+                <file>./app/Jobs/SendMail.php</file>
+                <file>./app/Jobs/SendMail.php</file>
+                <file>./app/Utils/FileHelper.php</file>
+                <!-- There are some methods in this service that aren't worth it to test some that are -->
+                <file>./app/Modules/OauthConnection/OauthConnectionService.php</file>
                 <directory suffix=".php">./app/Events</directory>
+                <directory suffix=".php">./app/Providers</directory>
+                <directory suffix=".php">./app/Http/Requests/User</directory>
+                <directory suffix=".php">./app/Http/Requests/Auth</directory>
+                <directory suffix=".php">./app/Support/Traits/Relationships</directory>
+                <directory suffix=".php">./app/Modules/OauthConnection/Connections</directory>
                 <directory suffix=".php">./app/Mail</directory>
                 <directory suffix=".php">./app/Console</directory>
+                <!-- Models should never contain testable code. That should go in a service or repo -->
+                <directory suffix=".php">./app/Models</directory>
             </exclude>
             <directory suffix=".php">./app</directory>
         </whitelist>

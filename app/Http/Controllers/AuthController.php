@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Auth\NoAccessTokenSet;
+use App\Http\Requests\Auth\Login;
 use App\Models\User;
+use App\Modules\User\UserRepository;
 use App\Support\Traits\HandlesAuth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
     use HandlesAuth;
+
+    public UserRepository $userRepo;
+
+    public function __construct(UserRepository $userRepo)
+    {
+        $this->userRepo = $userRepo;
+    }
 
     /**
      * Log in user.
@@ -19,14 +27,8 @@ class AuthController extends Controller
      *
      * @return User
      */
-    public function login(Request $request)
+    public function login(Login $request)
     {
-        $rules = [
-            'email'     => 'required',
-            'password'  => 'required',
-        ];
-        $request->validate($rules);
-
         try {
             $authToken = $this->authRequest($request->all());
         } catch (\Exception $e) {
@@ -36,15 +38,16 @@ class AuthController extends Controller
                 'Something went wrong. Please try again';
 
             return response()->json([
-                'error'   => $e->getMessage(),
+                'error'   => $error,
                 'message' => $message,
             ]);
         }
 
-        $user = null;
-        if (! empty(Arr::get($authToken, 'access_token'))) {
-            $user = User::where('email', $request->get('email'))->first()->toArray();
+        if (empty(\Arr::get($authToken, 'access_token'))) {
+            throw new NoAccessTokenSet();
         }
+
+        $user = $this->userRepo->findByEmail($request->get('email'));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
     }

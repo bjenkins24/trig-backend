@@ -18,10 +18,12 @@ Route::post('register', 'UserController@register');
 Route::post('forgot-password', 'UserController@forgotPassword');
 Route::post('reset-password', 'UserController@resetPassword');
 Route::post('validate-reset-token', 'UserController@validateResetToken');
-Route::post('google-sso', 'UserController@google');
+Route::post('google-sso', 'UserController@googleSso');
 Route::middleware('auth:api')->get('/me', 'UserController@me');
+Route::middleware('auth:api')->get('/cards/{queryConstraints?}', 'CardController@get');
+Route::middleware('auth:api')->get('/testGoogle', 'UserController@testGoogle');
 
 Route::fallback(function () {
     return response()->json([
-        'message' => 'Page Not Found. If the error persists, contact info@trytrig.com', ], 404);
+        'message' => 'Page Not Found. If the error persists, contact support@trytrig.com', ], 404);
 });

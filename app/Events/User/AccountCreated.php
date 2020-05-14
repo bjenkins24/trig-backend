@@ -15,14 +15,14 @@ class AccountCreated
     use SerializesModels;
 
     /**
-     * New user account.
-     *
-     * @var User
+     * User $user.
      */
-    public $user;
+    public User $user;
 
     /**
      * Create a new event instance.
+     *
+     * @return void
      */
     public function __construct(User $user)
     {

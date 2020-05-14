@@ -34,6 +34,8 @@ return [
     ],
 
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'drive_api_key' => env('GOOGLE_DRIVE_API_KEY'),
     ],
 ];

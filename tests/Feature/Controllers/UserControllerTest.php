@@ -2,16 +2,14 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Jobs\SetupGoogleIntegration;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\WelcomeMail;
 use App\Models\User;
-use App\Utils\ResetPasswordHelper;
+use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
@@ -20,7 +18,7 @@ class UserControllerTest extends TestCase
 
     private function getResetToken()
     {
-        $user = User::where('email', Config::get('constants.seed.email'))->first();
+        $user = User::where('email', \Config::get('constants.seed.email'))->first();
 
         return app(PasswordBroker::class)->createToken($user);
     }
@@ -34,9 +32,9 @@ class UserControllerTest extends TestCase
 
     private function assertLoggedIn($response, $email)
     {
-        $this->assertTrue(Arr::has($response->json(), 'data.auth_token.access_token'));
+        $this->assertTrue(\Arr::has($response->json(), 'data.authToken.access_token'));
         $this->assertTrue(
-            Arr::get($response->json(), 'data.user.email') === $email
+            \Arr::get($response->json(), 'data.user.email') === $email
         );
     }
 
@@ -50,8 +48,8 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'register');
         $response->assertStatus(422);
         $this->assertTrue(
-            Arr::has(
-                Arr::get($response->json(), 'errors'),
+            \Arr::has(
+                \Arr::get($response->json(), 'errors'),
                 ['email', 'password', 'terms']
             )
         );
@@ -64,7 +62,7 @@ class UserControllerTest extends TestCase
      */
     public function testRegistrationSucceed()
     {
-        Mail::fake();
+        \Mail::fake();
         $email = 'sam_sung@example.com';
         $params = [
             'email'    => $email,
@@ -76,7 +74,7 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(201)->assertJsonMissing($userExistsJson);
         $this->assertLoggedIn($response, $email);
-        Mail::assertSent(WelcomeMail::class, function ($mail) use ($email) {
+        \Mail::assertSent(WelcomeMail::class, function ($mail) use ($email) {
             return $mail->hasTo($email);
         });
     }
@@ -89,8 +87,8 @@ class UserControllerTest extends TestCase
     public function testRegistrationUserExists()
     {
         $params = [
-            'email'    => Config::get('constants.seed.email'),
-            'password' => Config::get('constants.seed.password'),
+            'email'    => \Config::get('constants.seed.email'),
+            'password' => \Config::get('constants.seed.password'),
             'terms'    => true,
         ];
         $userExistsJson = ['error' => 'user_exists'];
@@ -107,9 +105,9 @@ class UserControllerTest extends TestCase
     {
         $response = $this->client('GET', 'me');
         $response->assertStatus(200)->assertJsonFragment([
-            'email'      => Config::get('constants.seed.email'),
-            'first_name' => Config::get('constants.seed.first_name'),
-            'last_name'  => Config::get('constants.seed.last_name'),
+            'email'      => \Config::get('constants.seed.email'),
+            'first_name' => \Config::get('constants.seed.first_name'),
+            'last_name'  => \Config::get('constants.seed.last_name'),
             'id'         => 1,
         ]);
     }
@@ -123,8 +121,8 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'forgot-password', $params);
         $response->assertStatus(422);
         $this->assertTrue(
-            Arr::has(
-                Arr::get($response->json(), 'errors'),
+            \Arr::has(
+                \Arr::get($response->json(), 'errors'),
                 ['email']
             )
         );
@@ -133,8 +131,8 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'forgot-password', $params);
         $response->assertStatus(422);
         $this->assertTrue(
-            Arr::has(
-                Arr::get($response->json(), 'errors'),
+            \Arr::has(
+                \Arr::get($response->json(), 'errors'),
                 ['email']
             )
         );
@@ -163,24 +161,25 @@ class UserControllerTest extends TestCase
      */
     public function testForgotPasswordSendsMail()
     {
-        Mail::fake();
+        \Mail::fake();
         $params = [
-            'email' => Config::get('constants.seed.email'),
+            'email' => \Config::get('constants.seed.email'),
         ];
         $response = $this->json('POST', 'forgot-password', $params);
 
         $response->assertStatus(200);
-        Mail::assertSent(ForgotPasswordMail::class, function ($mail) {
-            $emailHashExists = Str::contains(
+
+        \Mail::assertSent(ForgotPasswordMail::class, function ($mail) {
+            $emailHashExists = \Str::contains(
                 $mail->resetUrl,
                 [
-                    $this->encryptEmail(Config::get('constants.seed.email')),
+                    $this->encryptEmail(\Config::get('constants.seed.email')),
                     $this->getResetToken(),
                 ]
             );
-            $hasCorrectName = $mail->to[0]['name'] === Config::get('constants.seed.first_name').' '.Config::get('constants.seed.last_name');
+            $hasCorrectName = $mail->to[0]['name'] === \Config::get('constants.seed.first_name').' '.\Config::get('constants.seed.last_name');
 
-            return $mail->hasTo(Config::get('constants.seed.email')) && $emailHashExists && $hasCorrectName;
+            return $mail->hasTo(\Config::get('constants.seed.email')) && $emailHashExists && $hasCorrectName;
         });
     }
 
@@ -193,8 +192,8 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'reset-password', $params);
         $response->assertStatus(422);
         $this->assertTrue(
-            Arr::has(
-                Arr::get($response->json(), 'errors'),
+            \Arr::has(
+                \Arr::get($response->json(), 'errors'),
                 ['password', 'password_confirmation', 'token', 'email_hash']
             )
         );
@@ -212,7 +211,7 @@ class UserControllerTest extends TestCase
             'password'              => $password,
             'password_confirmation' => $password,
             'token'                 => $this->getResetToken(),
-            'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
+            'email_hash'            => $this->encryptEmail(\Config::get('constants.seed.email')),
         ];
         $response = $this->json('POST', 'reset-password', $params);
         $response = $this->json('POST', 'reset-password', $params)->
@@ -231,10 +230,10 @@ class UserControllerTest extends TestCase
             'password'              => $password,
             'password_confirmation' => $password,
             'token'                 => $this->getResetToken(),
-            'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
+            'email_hash'            => $this->encryptEmail(\Config::get('constants.seed.email')),
         ];
         $response = $this->json('POST', 'reset-password', $params);
-        $this->assertLoggedIn($response, Config::get('constants.seed.email'));
+        $this->assertLoggedIn($response, \Config::get('constants.seed.email'));
     }
 
     /**
@@ -246,8 +245,8 @@ class UserControllerTest extends TestCase
         $response = $this->json('POST', 'reset-password', $params);
         $response->assertStatus(422);
         $this->assertTrue(
-            Arr::has(
-                Arr::get($response->json(), 'errors'),
+            \Arr::has(
+                \Arr::get($response->json(), 'errors'),
                 ['token', 'email_hash']
             )
         );
@@ -265,7 +264,7 @@ class UserControllerTest extends TestCase
             'password'              => $password,
             'password_confirmation' => $password,
             'token'                 => 'Fake token',
-            'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
+            'email_hash'            => $this->encryptEmail(\Config::get('constants.seed.email')),
         ];
         $response = $this->json('POST', 'validate-reset-token', $params);
         $response->assertJsonFragment(['data' => 'invalid']);
@@ -292,9 +291,60 @@ class UserControllerTest extends TestCase
             'password'              => $password,
             'password_confirmation' => $password,
             'token'                 => $this->getResetToken(),
-            'email_hash'            => $this->encryptEmail(Config::get('constants.seed.email')),
+            'email_hash'            => $this->encryptEmail(\Config::get('constants.seed.email')),
         ];
         $response = $this->json('POST', 'validate-reset-token', $params);
         $response->assertJsonFragment(['data' => 'valid']);
+    }
+
+    /**
+     * Test login and register sso google.
+     *
+     * @return void
+     */
+    public function testGoogleSso()
+    {
+        \Queue::fake();
+        $email = 'sam_sung@example.com';
+        $this->partialMock(GoogleConnection::class, function ($mock) use ($email) {
+            $mock->shouldReceive('getUser')->andReturn([
+                'payload'          => collect(['email' => $email]),
+                'oauthCredentials' => collect([
+                    'access_token'  => '123',
+                    'refresh_token' => '456',
+                    'expires_in'    => 0,
+                ]),
+            ])->twice();
+        });
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(201);
+
+        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
+        $this->assertLoggedIn($response, $email);
+
+        $this->assertDatabaseHas('users', [
+            'email' => $email,
+        ]);
+
+        $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200);
+        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
+        $this->assertLoggedIn($response, $email);
+    }
+
+    /**
+     * Test google sso failed.
+     *
+     * @return void
+     */
+    public function testGoogleSsoFail()
+    {
+        \Queue::fake();
+        $email = 'sam_sung@example.com';
+        $this->partialMock(GoogleConnection::class, function ($mock) {
+            $mock->shouldReceive('getUser')->andReturn([])->once();
+        });
+
+        $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200)->assertJsonFragment([
+            'error' => 'auth_failed',
+        ]);
     }
 }
