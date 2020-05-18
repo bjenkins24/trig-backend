@@ -52,6 +52,8 @@ commands below. But for reference this is what it does:
   * `php artisan storage:link` - will make `/storage/` accessible. Needed for images to work locally
   * `php artisan horizon:install` 
 
+## Performance on PROD
+* `php artisan config:cache` - https://laravel.com/docs/7.x/configuration#configuration-caching
 
 # DB Design
 `cards`
