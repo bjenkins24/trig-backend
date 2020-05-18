@@ -33,9 +33,7 @@ class CardController extends Controller
 
     public function get(Request $request, ?string $queryConstraints = null)
     {
-        // \DB::enableQueryLog();
-        $cards = $this->cardRepo->searchCards($request->user());
-        //  $result = \DB::getQueryLog();
+        $cards = $this->cardRepo->searchCards($request->user(), $queryConstraints);
 
         return response()->json(['data' => $cards]);
     }

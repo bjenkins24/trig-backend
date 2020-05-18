@@ -67,11 +67,18 @@ class CardRepository
         });
     }
 
-    public function searchCardsRaw(User $user)
+    public function searchCardsRaw(User $user, ?string $queryConstraints = null)
     {
+        $searchLimit = 30;
+        parse_str($queryConstraints, $queryConstraints);
+        $constraints = collect($queryConstraints);
+
+        $page = $constraints->get('page', 0);
+
         return Card::rawSearch()
-            ->query($this->elasticQueryBuilderHelper->baseQuery($user))
-            ->size(30)
+            ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
+            ->from($page * $searchLimit)
+            ->size($searchLimit)
             ->raw();
     }
 
@@ -80,9 +87,9 @@ class CardRepository
      *
      * @return void
      */
-    public function searchCards(User $user)
+    public function searchCards(User $user, ?string $queryConstraints = null)
     {
-        $result = $this->searchCardsRaw($user);
+        $result = $this->searchCardsRaw($user, $queryConstraints);
         $hits = collect($result['hits']['hits']);
         $ids = $hits->map(function ($hit) {
             return $hit['_id'];
