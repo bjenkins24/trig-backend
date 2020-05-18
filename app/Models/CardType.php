@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\HasCards;
-use Illuminate\Database\Eloquent\Model;
 
-class CardType extends Model
+class CardType extends BaseModel
 {
     use HasCards;
 

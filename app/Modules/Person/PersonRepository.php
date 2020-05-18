@@ -19,4 +19,9 @@ class PersonRepository
             'permission_id' => $permission->id,
         ]);
     }
+
+    public function getByEmail(string $email)
+    {
+        return Person::where('email', $email)->first();
+    }
 }

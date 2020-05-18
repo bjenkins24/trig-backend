@@ -13,6 +13,38 @@ class CardRepositoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    const MOCK_SEARCH_RESPONSE = [
+        'took'      => 1,
+        'timed_out' => false,
+        '_shards'   => [
+            'total'      => 1,
+            'successful' => 1,
+            'skipped'    => 0,
+            'failed'     => 0,
+        ],
+        'hits' => [
+            'total' => [
+                'value'    => 4026,
+                'relation' => 'eq',
+            ],
+            'max_score' => 1.0,
+            'hits'      => [
+                [
+                    '_index' => 'card',
+                    '_type'  => 'cards',
+                    '_id'    => '1',
+                    '_score' => 1.0,
+                ],
+                [
+                    '_index' => 'card',
+                    '_type'  => 'cards',
+                    '_id'    => '2',
+                    '_score' => 1.0,
+                ],
+            ],
+        ],
+    ];
+
     /**
      * Test syncing all integrations.
      *
@@ -26,5 +58,24 @@ class CardRepositoryTest extends TestCase
         });
 
         app(CardRepository::class)->createIntegration(Card::find(1), 123, 'google');
+    }
+
+    /**
+     * Test if search for cards returns card objects.
+     *
+     * @return void
+     * @group n
+     */
+    public function testSearchCards()
+    {
+        $this->partialMock(CardRepository::class, function ($mock) {
+            $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
+        });
+        $result = app(CardRepository::class)->searchCards();
+        $id = 1;
+        $result->each(function ($card) use (&$id) {
+            $this->assertEquals($card->id, $id);
+            ++$id;
+        });
     }
 }

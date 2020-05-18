@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\HasLinkShareSettings;
-use Illuminate\Database\Eloquent\Model;
 
-class LinkShareType extends Model
+class LinkShareType extends BaseModel
 {
     use HasLinkShareSettings;
 

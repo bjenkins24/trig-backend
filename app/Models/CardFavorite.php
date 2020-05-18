@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCard;
 use App\Support\Traits\Relationships\BelongsToUser;
-use Illuminate\Database\Eloquent\Model;
 
-class CardFavorite extends Model
+class CardFavorite extends BaseModel
 {
     use BelongsToCard;
     use BelongsToUser;

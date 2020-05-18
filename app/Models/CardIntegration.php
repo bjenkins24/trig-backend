@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCard;
 use App\Support\Traits\Relationships\BelongsToOauthIntegration;
-use Illuminate\Database\Eloquent\Model;
 
-class CardIntegration extends Model
+class CardIntegration extends BaseModel
 {
     use BelongsToOauthIntegration;
     use BelongsToCard;

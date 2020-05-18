@@ -35,6 +35,9 @@ class ScaffoldSeeder extends Seeder
                 'email'      => \Config::get('constants.seed.email'),
                 'password'   => bcrypt(\Config::get('constants.seed.password')),
             ]);
+            $user->organizations()->firstOrCreate([
+                'name' => 'Trig',
+            ]);
         }
         factory(Card::class, 3)->create([
             'user_id' => $user->id,

@@ -5,9 +5,8 @@ namespace App\Models;
 use App\Support\Traits\Relationships\BelongsToCapability;
 use App\Support\Traits\Relationships\BelongsToLinkShareType;
 use App\Support\Traits\Relationships\PermissionTypeable;
-use Illuminate\Database\Eloquent\Model;
 
-class LinkShareSetting extends Model
+class LinkShareSetting extends BaseModel
 {
     use PermissionTypeable;
     use BelongsToCapability;

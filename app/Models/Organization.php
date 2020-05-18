@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToManyUsers;
-use Illuminate\Database\Eloquent\Model;
 
-class Organization extends Model
+class Organization extends BaseModel
 {
     use BelongsToManyUsers;
 

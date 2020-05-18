@@ -3,8 +3,9 @@
     "scripts": {
         "coverage": "open-cli coverage/dashboard.html",
         "test": "php artisan test && vendor/bin/coverage-check clover.xml 85",
-        "fresh": "php artisan migrate:fresh && php artisan passport:install",
+        "fresh": "php artisan elastic:migrate:reset && php artisan migrate:fresh && php artisan passport:install && php artisan elastic:migrate",
         "bootstrap": "composer install && npm run fresh && php artisan storage:link && php artisan horizon:install",
+        "elastic": "php artisan elastic:migrate:refresh && php artisan scout:import \"App\\Models\\Card\"",
         "log": "vi storage/logs/laravel.log",
         "tn": "php artisan test --group n"
     },

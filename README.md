@@ -4,10 +4,20 @@ Things you have to install:
 * `brew install mysql@8.0`
 * `brew install php@7.4.3`
 * `brew install redis@5.0.8`
-
+* `brew tap elastic/tap && brew install elastic/tap/elasticsearch-full` run elastic search locally with `elasticsearch` then access it at `localhost:9200`
+* `brew install elastic/tap/kibana-full` (it hung on downloading for around 45 minutes for me but finally finished) then run kibana (make sure elasticsearch is running first) with `kibana` it can be accessed at `localhost:5601`
+  
 ## Composer
 * Download: https://getcomposer.org/download/ 
 * `mv composer.phar /usr/local/bin/composer`
+
+## ElasticSearch
+### Cerebro
+Download and unzip: https://github.com/lmenezes/cerebro
+`chmod 777 cerebro-0.9.0/bin/cerebro && cerebro-0.9.0/bin/cerebro`
+
+### Kibana
+`brew install elastic/tap/kibana-full`
 
 ## .env
 * Copy `.env.development` and rename it to `.env`.
