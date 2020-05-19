@@ -262,10 +262,14 @@ class GoogleIntegrationTest extends TestCase
         $myCoolImage = 'https://mycoolimage.com'.$imageName;
         list($user, $card, $file) = $this->getSetup();
         $file->thumbnailLink = $myCoolImage;
-        $this->partialMock(GoogleIntegration::class, function ($mock) {
+        $imageWidth = 200;
+        $imageHeight = 400;
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($imageWidth, $imageHeight) {
             $mock->shouldReceive('getThumbnail')->andReturn(collect([
                 'extension' => 'jpg',
                 'thumbnail' => 'coolimagestuff',
+                'width'     => $imageWidth,
+                'height'    => $imageHeight,
             ]))->once();
         });
         \Storage::shouldReceive('put')->andReturn(true)->once();
@@ -273,8 +277,10 @@ class GoogleIntegrationTest extends TestCase
         $result = app(GoogleIntegration::class)->saveThumbnail($user, $card, $file);
         $this->assertTrue($result);
         $this->assertDatabaseHas('cards', [
-            'id'    => $card->id,
-            'image' => \Config::get('app.url').$imageName,
+            'id'           => $card->id,
+            'image'        => \Config::get('app.url').$imageName,
+            'image_width'  => $imageWidth,
+            'image_height' => $imageHeight,
         ]);
     }
 

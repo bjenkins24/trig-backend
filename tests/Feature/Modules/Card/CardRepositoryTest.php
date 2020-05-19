@@ -3,6 +3,7 @@
 namespace Tests\Feature\Modules\Card;
 
 use App\Models\Card;
+use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
@@ -64,14 +65,13 @@ class CardRepositoryTest extends TestCase
      * Test if search for cards returns card objects.
      *
      * @return void
-     * @group n
      */
     public function testSearchCards()
     {
         $this->partialMock(CardRepository::class, function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
-        $result = app(CardRepository::class)->searchCards();
+        $result = app(CardRepository::class)->searchCards(User::find(1));
         $id = 1;
         $result->each(function ($card) use (&$id) {
             $this->assertEquals($card->id, $id);
