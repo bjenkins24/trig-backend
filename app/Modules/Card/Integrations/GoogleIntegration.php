@@ -124,6 +124,7 @@ class GoogleIntegration implements IntegrationInterface
         }
 
         $fileInfo = collect(getimagesizefromstring($thumbnail));
+
         if (! $fileInfo->has('mime')) {
             return collect([]);
         }
@@ -131,6 +132,8 @@ class GoogleIntegration implements IntegrationInterface
         return collect([
             'thumbnail' => $thumbnail,
             'extension' => FileHelper::mimeToExtension($fileInfo->get('mime')),
+            'width'     => $fileInfo->get(0),
+            'height'    => $fileInfo->get(1),
         ]);
     }
 
@@ -153,6 +156,8 @@ class GoogleIntegration implements IntegrationInterface
         $result = \Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
         if ($result) {
             $card->image = \Config::get('app.url').\Storage::url($imagePathWithExtension);
+            $card->image_width = $thumbnail->get('width');
+            $card->image_height = $thumbnail->get('height');
             $card = $card->save();
         }
 

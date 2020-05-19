@@ -4,10 +4,29 @@ Things you have to install:
 * `brew install mysql@8.0`
 * `brew install php@7.4.3`
 * `brew install redis@5.0.8`
-
+* `brew tap elastic/tap && brew install elastic/tap/elasticsearch-full` run elastic search locally with `elasticsearch` then access it at `localhost:9200`
+* `brew install elastic/tap/kibana-full` (it hung on downloading for around 45 minutes for me but finally finished) then run kibana (make sure elasticsearch is running first) with `kibana` it can be accessed at `localhost:5601`
+* `brew install maven` - For installing apache tika
+  
 ## Composer
 * Download: https://getcomposer.org/download/ 
 * `mv composer.phar /usr/local/bin/composer`
+
+## Apache Tika
+Must be installed to pull data from documents (for searching)
+`git clone https://github.com/apache/tika.git`
+`cd tika`
+`mvn install` (this took one hour and four minutes literally)
+`cd ./tika-server/target/`
+`java -jar tika-server-2.0.0-SNAPSHOT.jar` - starts apache tika on `localhost:9998`
+
+## ElasticSearch
+### Cerebro
+Download and unzip: https://github.com/lmenezes/cerebro
+`chmod 777 cerebro-0.9.0/bin/cerebro && cerebro-0.9.0/bin/cerebro`
+
+### Kibana
+`brew install elastic/tap/kibana-full`
 
 ## .env
 * Copy `.env.development` and rename it to `.env`.
@@ -42,6 +61,8 @@ commands below. But for reference this is what it does:
   * `php artisan storage:link` - will make `/storage/` accessible. Needed for images to work locally
   * `php artisan horizon:install` 
 
+## Performance on PROD
+* `php artisan config:cache` - https://laravel.com/docs/7.x/configuration#configuration-caching
 
 # DB Design
 `cards`

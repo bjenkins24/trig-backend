@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToPermission;
-use Illuminate\Database\Eloquent\Model;
 
-class PermissionType extends Model
+class PermissionType extends BaseModel
 {
     use BelongsToPermission;
 

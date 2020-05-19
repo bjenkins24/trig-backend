@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\HasLinkShareSettings;
 use App\Support\Traits\Relationships\HasPermissions;
-use Illuminate\Database\Eloquent\Model;
 
-class Capability extends Model
+class Capability extends BaseModel
 {
     use HasPermissions;
     use HasLinkShareSettings;

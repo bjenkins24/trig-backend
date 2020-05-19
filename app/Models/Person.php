@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\PermissionTypeable;
-use Illuminate\Database\Eloquent\Model;
 
-class Person extends Model
+class Person extends BaseModel
 {
     use PermissionTypeable;
 
