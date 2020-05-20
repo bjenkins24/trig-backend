@@ -15,7 +15,7 @@ class HelperServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(ExtractDataHelper::class, function ($app) {
+        $this->app->singleton(ExtractDataHelper::class, function () {
             return new ExtractDataHelper(TikaClient::make(\Config::get('app.tika_url')));
         });
     }
