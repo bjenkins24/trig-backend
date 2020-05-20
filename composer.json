@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.2.5",
+        "andreskrey/readability.php": "^2.1",
         "babenkoivan/elastic-migrations": "^1.0",
         "babenkoivan/elastic-scout-driver": "^1.0",
         "babenkoivan/elastic-scout-driver-plus": "^1.0",
@@ -17,6 +18,7 @@
         "genealabs/laravel-model-caching": "^0.8.6",
         "google/apiclient": "^2.4",
         "guzzlehttp/guzzle": "^6.3",
+        "html2text/html2text": "^4.3",
         "laravel/framework": "^7.0",
         "laravel/horizon": "^4.3",
         "laravel/passport": "^8.4",

@@ -59,6 +59,11 @@ return [
     'client_url' => env('CLIENT_URL', 'http://localhost:8080'),
 
     /*
+     * Apache Tika URL
+     */
+    'tika_url' => env('TIKA_URL', 'http://localhost:9998'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
