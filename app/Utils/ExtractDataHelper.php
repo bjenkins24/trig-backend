@@ -6,20 +6,48 @@ use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
 use Html2Text\Html2Text;
-use Vaites\ApacheTika\Client as TikaClient;
+use Vaites\ApacheTika\Clients\WebClient as TikaWebClient;
 
 class ExtractDataHelper
 {
-    private $client;
+    private TikaWebClient $client;
 
-    public function __construct()
+    public function __construct(TikaWebClient $client)
     {
-        $this->client = TikaClient::make(\Config::get('app.tika_url'));
+        $this->client = $client;
     }
 
-    public function __call(string $name, array $arguments)
+    public function getData(string $file): array
     {
-        return call_user_func_array([$this->client, $name], $arguments);
+        $data = collect(json_decode(json_encode($this->client->getMetadata($file)), true));
+        $meta = collect($data->get('meta'));
+        $content = $this->client->getText($file);
+
+        return [
+            'title'                       => $meta->get('dc:title'),
+            'keyword'                     => $meta->get('meta:keyword'),
+            'author'                      => $meta->get('meta:author'),
+            'encoding'                    => $meta->get('encoding'),
+            'last_author'                 => $meta->get('meta:last-author'),
+            'comment'                     => $meta->get('comment'),
+            'language'                    => $meta->get('language'),
+            'subject'                     => $meta->get('cp:subject'),
+            'revisions'                   => $meta->get('cp:revision'),
+            'created'                     => $meta->get('meta:creation-date'),
+            'modified'                    => $meta->get('Last-Modified'),
+            'print_date'                  => $meta->get('meta:print-date'),
+            'save_date'                   => $meta->get('meta:save-date'),
+            'line_count'                  => $meta->get('meta:line-count'),
+            'page_count'                  => $meta->get('meta:page-count') ?? $data->get('pages'),
+            'paragraph_count'             => $meta->get('meta:paragraph-count'),
+            'word_count'                  => $meta->get('meta:word-count'),
+            'character_count'             => $meta->get('meta:character-count'),
+            'character_count_with_spaces' => $meta->get('meta:character-count-with-spaces'),
+            'width'                       => $data->get('width'),
+            'height'                      => $data->get('height'),
+            'copyright'                   => $data->get('Copyright'),
+            'content'                     => $content,
+        ];
     }
 
     public function getWebsite(string $url)
