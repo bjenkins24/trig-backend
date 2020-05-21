@@ -15,6 +15,7 @@ use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\Permission\PermissionRepository;
 use App\Modules\User\UserRepository;
+use App\Utils\ExtractDataHelper;
 use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
@@ -103,6 +104,30 @@ class GoogleIntegration implements IntegrationInterface
         $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
 
         return $this->listFilesFromService($service, $params);
+    }
+
+    public function getFile($user)
+    {
+        if (! $this->client) {
+            $this->setClient($user);
+        }
+        $service = new GoogleServiceDrive($this->client);
+        $id = '1XAncPsrK16-_4XrszEZhpiIhluWXP3Dy';
+        $extension = FileHelper::mimeToExtension('application/pdf');
+        $filename = "$id.$extension";
+
+        $content = $service->files->get($id, ['alt' => 'media']);
+
+        $result = \Storage::put($filename, $content->getBody());
+
+        try {
+            $data = app(ExtractDataHelper::class)->getData(base_path().'/storage/app/'.$filename);
+        } catch (\Exception $e) {
+        }
+
+        \Storage::delete($filename);
+
+        return $data;
     }
 
     /**
