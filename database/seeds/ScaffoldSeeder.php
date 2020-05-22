@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Card;
+use App\Models\CardIntegration;
 use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
@@ -41,6 +42,11 @@ class ScaffoldSeeder extends Seeder
         }
         factory(Card::class, 3)->create([
             'user_id' => $user->id,
+        ]);
+
+        // The first card is a google integrated card
+        factory(CardIntegration::class)->create([
+            'card_id' => 1,
         ]);
     }
 }

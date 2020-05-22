@@ -25,7 +25,7 @@ use Illuminate\Support\Collection;
 class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
-    const PAGE_SIZE = 50;
+    const PAGE_SIZE = 400;
     const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     /**
@@ -46,6 +46,15 @@ class GoogleIntegration implements IntegrationInterface
     public function setClient(User $user)
     {
         $this->client = app(OauthConnectionService::class)->getClient($user, GoogleConnection::getKey());
+    }
+
+    public function getDriveService(User $user): GoogleServiceDrive
+    {
+        if (! $this->client) {
+            $this->setClient($user);
+        }
+
+        return new GoogleServiceDrive($this->client);
     }
 
     public function listFilesFromService(GoogleServiceDrive $service, array $params)
@@ -86,14 +95,11 @@ class GoogleIntegration implements IntegrationInterface
      */
     public function getFiles(User $user)
     {
-        if (! $this->client) {
-            $this->setClient($user);
-        }
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
-        $service = new GoogleServiceDrive($this->client);
+        $service = $this->getDriveService();
         $params = [
             'pageSize'  => self::PAGE_SIZE,
             'fields'    => 'nextPageToken, files',
@@ -106,28 +112,22 @@ class GoogleIntegration implements IntegrationInterface
         return $this->listFilesFromService($service, $params);
     }
 
-    public function getFile($user)
+    public function saveCardData(Card $card): void
     {
-        if (! $this->client) {
-            $this->setClient($user);
-        }
-        $service = new GoogleServiceDrive($this->client);
-        $id = '1XAncPsrK16-_4XrszEZhpiIhluWXP3Dy';
-        $extension = FileHelper::mimeToExtension('application/pdf');
-        $filename = "$id.$extension";
+        $id = $card->cardIntegration()->first()->oauth_integration_id;
+        $mimeType = $card->cardType()->first()->name;
 
-        $content = $service->files->get($id, ['alt' => 'media']);
+        $service = $this->getDriveService($card->user()->first());
 
-        $result = \Storage::put($filename, $content->getBody());
-
-        try {
-            $data = app(ExtractDataHelper::class)->getData(base_path().'/storage/app/'.$filename);
-        } catch (\Exception $e) {
+        // G Suite files need to be exported. Here we're converting to pdf
+        if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
+            $content = $service->files->export($id, 'application/pdf');
+        } else {
+            $content = $service->files->get($id, ['alt' => 'media']);
         }
 
-        \Storage::delete($filename);
-
-        return $data;
+        $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content->getBody());
+        $card->cardData()->create($data);
     }
 
     /**
@@ -219,7 +219,9 @@ class GoogleIntegration implements IntegrationInterface
 
     public function createCard(User $user, $file): void
     {
-        if ($file->trashed) {
+        // Don't save trashed files or google drive folders
+        // TODO: Save google drive folders so files can use the folders as tags
+        if ($file->trashed || 'application/vnd.google-apps.folder' === $file->mimeType) {
             return;
         }
         $cardType = CardType::firstOrCreate(['name' => $file->mimeType]);
@@ -237,6 +239,7 @@ class GoogleIntegration implements IntegrationInterface
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
+        $this->saveCardData($card);
 
         app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
     }
@@ -313,6 +316,7 @@ class GoogleIntegration implements IntegrationInterface
             $this->createCard($user, $file);
         });
 
+        // Run the next page of syncing
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
         if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
             SyncCards::dispatch($user, 'google');

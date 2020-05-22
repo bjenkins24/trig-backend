@@ -15,8 +15,8 @@ class CreateOrganizationUserTable extends Migration
     {
         Schema::create('organization_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organization_id')->index()->constrained();
-            $table->foreignId('user_id')->index()->constrained();
+            $table->foreignId('organization_id')->constrained();
+            $table->foreignId('user_id')->constrained();
         });
     }
 

@@ -5,14 +5,14 @@ namespace App\Utils;
 use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
+use App\Utils\TikaWebClient\TikaWebClientInterface;
 use Html2Text\Html2Text;
-use Vaites\ApacheTika\Clients\WebClient as TikaWebClient;
 
 class ExtractDataHelper
 {
-    private TikaWebClient $client;
+    private TikaWebClientInterface $client;
 
-    public function __construct(TikaWebClient $client)
+    public function __construct(TikaWebClientInterface $client)
     {
         $this->client = $client;
     }
@@ -48,6 +48,35 @@ class ExtractDataHelper
             'copyright'                   => $data->get('Copyright'),
             'content'                     => $content,
         ];
+    }
+
+    /**
+     * Get file data from a stream.
+     *
+     * @param [type] $content
+     */
+    public function getFileData(string $mimeType, $content): array
+    {
+        $extension = FileHelper::mimeToExtension($mimeType);
+        if (! $extension) {
+            return [];
+        }
+
+        $filename = \Str::random(16).'.'.$extension;
+
+        \Storage::put($filename, $content);
+
+        try {
+            $data = $this->getData(base_path().'/storage/app/'.$filename);
+        } catch (\Exception $e) {
+            \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
+
+            return [];
+        }
+
+        \Storage::delete($filename);
+
+        return $data;
     }
 
     public function getWebsite(string $url)

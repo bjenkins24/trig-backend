@@ -15,6 +15,7 @@ class CreateCardDataTable extends Migration
     {
         Schema::create('card_data', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('card_id')->constrained();
             $table->string('title')->nullable();
             $table->string('keyword')->nullable();
             $table->string('author')->nullable();

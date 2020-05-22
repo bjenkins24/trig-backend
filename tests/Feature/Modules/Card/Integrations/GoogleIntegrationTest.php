@@ -13,12 +13,16 @@ use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
 use App\Modules\Permission\PermissionRepository;
 use App\Modules\User\UserRepository;
+use App\Utils\ExtractDataHelper;
+use Google_Service_Drive as GoogleServiceDrive;
+use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
+use Tests\Utils\ExtractDataHelperTest;
 
 class GoogleIntegrationTest extends TestCase
 {
@@ -354,6 +358,34 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->getFiles($user);
     }
 
+    public function testSaveCardData()
+    {
+        $card = Card::find(1);
+        $this->createOauthConnection($card->user()->first());
+        $googleServiceMock = $this->mock(GoogleServiceDrive::class);
+        $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
+            $mock->shouldReceive('get')->andReturn(new FakeContent())->once();
+        });
+        $googleServiceMock->files = $fileResource;
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($googleServiceMock) {
+            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->once();
+        });
+
+        $cardData = (new ExtractDataHelperTest())->getMockDataResult('my cool content');
+        $this->mock(ExtractDataHelper::class, function ($mock) use ($cardData) {
+            $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
+        });
+
+        $cardData['created'] = Carbon::create($cardData['created'])->toDateTimeString();
+        $cardData['modified'] = Carbon::create($cardData['modified'])->toDateTimeString();
+        $cardData['print_date'] = Carbon::create($cardData['print_date'])->toDateTimeString();
+        $cardData['save_date'] = Carbon::create($cardData['save_date'])->toDateTimeString();
+        $cardData['card_id'] = 1;
+
+        app(GoogleIntegration::class)->saveCardData($card);
+        $this->assertDatabaseHas('card_data', $cardData);
+    }
+
     /**
      * Undocumented function.
      *
@@ -379,5 +411,13 @@ class GoogleIntegrationTest extends TestCase
         $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
 
         $this->assertEquals($nextPageToken, null);
+    }
+}
+
+class FakeContent
+{
+    public function getBody()
+    {
+        return null;
     }
 }

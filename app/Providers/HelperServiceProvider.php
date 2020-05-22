@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use App\Utils\ExtractDataHelper;
+use App\Utils\TikaWebClient\TikaWebClientWrapper;
 use Illuminate\Support\ServiceProvider;
-use Vaites\ApacheTika\Client as TikaClient;
 
 class HelperServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,7 @@ class HelperServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(ExtractDataHelper::class, function () {
-            return new ExtractDataHelper(TikaClient::make(\Config::get('app.tika_url')));
+            return new ExtractDataHelper(new TikaWebClientWrapper());
         });
     }
 

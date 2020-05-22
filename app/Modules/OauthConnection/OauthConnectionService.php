@@ -33,7 +33,7 @@ class OauthConnectionService
         $oauthConnection = $this->oauthConnectionRepo->findUserConnection($user, $integration);
 
         if (! $oauthConnection) {
-            throw new OauthUnauthorizedRequest('A '.$integration.' has not been authorized for user '.$user->id.'. Cannot get client for user.');
+            throw new OauthUnauthorizedRequest('A '.$integration.' integration has not been authorized for user '.$user->id.'. Cannot get client for user.');
         }
 
         $accessToken = $oauthConnection->access_token;
