@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\OauthConnection;
@@ -99,7 +100,7 @@ class GoogleIntegration implements IntegrationInterface
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
-        $service = $this->getDriveService();
+        $service = $this->getDriveService($user);
         $params = [
             'pageSize'  => self::PAGE_SIZE,
             'fields'    => 'nextPageToken, files',
@@ -225,7 +226,7 @@ class GoogleIntegration implements IntegrationInterface
             return;
         }
 
-        app(CardTypeRepository::class)->firstOrCreate($file->mimeType);
+        $cardType = app(CardTypeRepository::class)->firstOrCreate($file->mimeType);
 
         $card = app(UserRepository::class)->createCard($user, [
             'card_type_id'              => $cardType->id,
@@ -240,7 +241,7 @@ class GoogleIntegration implements IntegrationInterface
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
-        $this->saveCardData($card);
+        SaveCardData::dispatch($card, 'google');
 
         app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
     }

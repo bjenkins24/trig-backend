@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
+use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\CardType;
@@ -107,6 +108,7 @@ class GoogleIntegrationTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncCardsContinue()
     {
@@ -127,6 +129,7 @@ class GoogleIntegrationTest extends TestCase
         $result = app(GoogleIntegration::class)->syncCards($user);
 
         \Queue::assertPushed(SyncCards::class, 1);
+        \Queue::assertPushed(SaveCardData::class, 2);
 
         $card = Card::where(['title', $file->name]);
         $cardType = CardType::where(['name' => $file->mimeType])->first();
