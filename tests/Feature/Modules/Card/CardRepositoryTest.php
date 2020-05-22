@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
+use App\Modules\Permission\PermissionRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -77,5 +78,31 @@ class CardRepositoryTest extends TestCase
             $this->assertEquals($card->id, $id);
             ++$id;
         });
+    }
+
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
+    public function testDenormalizePermissions()
+    {
+        $card = Card::find(1);
+
+        $permissionRepo = app(PermissionRepository::class);
+        // User Permission
+        $permissionRepo->createEmail($card, 'writer', User::find(1)->email);
+        // Person Permission
+        $permissionRepo->createEmail($card, 'writer', 'testEmail@example.com');
+        // Anyone Permission
+        $permissionRepo->createAnyone($card, 'writer');
+
+        $permissions = app(CardRepository::class)->denormalizePermissions($card)->toArray();
+        $this->assertEquals([
+            ['type' => 'App\Models\User', 'id' => 1],
+            ['type' => 'App\Models\Person', 'id' => 1],
+            ['type' => null, 'id' => null],
+        ], $permissions);
     }
 }
