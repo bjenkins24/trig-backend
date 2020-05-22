@@ -4,11 +4,11 @@ namespace App\Modules\Card\Integrations;
 
 use App\Jobs\SyncCards;
 use App\Models\Card;
-use App\Models\CardType;
 use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface;
+use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionRepository;
@@ -224,7 +224,8 @@ class GoogleIntegration implements IntegrationInterface
         if ($file->trashed || 'application/vnd.google-apps.folder' === $file->mimeType) {
             return;
         }
-        $cardType = CardType::firstOrCreate(['name' => $file->mimeType]);
+
+        app(CardTypeRepository::class)->firstOrCreate($file->mimeType);
 
         $card = app(UserRepository::class)->createCard($user, [
             'card_type_id'              => $cardType->id,
