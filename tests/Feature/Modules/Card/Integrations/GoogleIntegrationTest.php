@@ -360,6 +360,11 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->getFiles($user);
     }
 
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     */
     public function testSaveCardData()
     {
         $card = Card::find(1);
@@ -378,18 +383,19 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
         });
 
-        $cardData['created'] = Carbon::create($cardData['created'])->toDateTimeString();
-        $cardData['modified'] = Carbon::create($cardData['modified'])->toDateTimeString();
-        $cardData['print_date'] = Carbon::create($cardData['print_date'])->toDateTimeString();
-        $cardData['save_date'] = Carbon::create($cardData['save_date'])->toDateTimeString();
-        $cardData['card_id'] = 1;
+        $cardData->put('created', Carbon::create($cardData->get('created'))->toDateTimeString());
+        $cardData->put('modified', Carbon::create($cardData->get('modified'))->toDateTimeString());
+        $cardData->put('print_date', Carbon::create($cardData->get('print_date'))->toDateTimeString());
+        $cardData->put('save_date', Carbon::create($cardData->get('save_date'))->toDateTimeString());
+        $content = $cardData->get('content');
 
         app(GoogleIntegration::class)->saveCardData($card);
-        $content = $cardData['content'];
-        unset($cardData['content']);
+
+        $cardData->forget('content');
+
         $this->assertDatabaseHas('cards', [
             'content'    => $content,
-            'properties' => $cardData,
+            'properties' => json_encode($cardData->toArray()),
         ]);
     }
 

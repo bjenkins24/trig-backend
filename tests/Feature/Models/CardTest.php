@@ -10,12 +10,6 @@ class CardTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testToSearchableArray()
     {
         $card = Card::find(1);

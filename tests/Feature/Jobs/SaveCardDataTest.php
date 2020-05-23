@@ -2,28 +2,23 @@
 
 namespace Tests\Feature\Jobs;
 
-use App\Jobs\SyncCards;
-use App\Models\User;
+use App\Jobs\SaveCardData;
+use App\Models\Card;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class SyncCardsTest extends TestCase
+class SaveCardDataTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Test sync cards job.
-     *
-     * @return void
-     */
-    public function testSyncCards()
+    public function testSaveCardData()
     {
         $this->partialMock(GoogleIntegration::class, function ($mock) {
-            $mock->shouldReceive('syncCards')->once();
+            $mock->shouldReceive('saveCardData')->once();
         });
 
-        $syncCards = new SyncCards(User::find(1), 'google');
+        $syncCards = new SaveCardData(Card::find(1), 'google');
         $syncCards->handle();
     }
 }

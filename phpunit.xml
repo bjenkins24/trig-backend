@@ -21,6 +21,9 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
+        <testsuite name="Utils">
+            <directory suffix="Test.php">./tests/Utils</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
@@ -41,6 +44,7 @@
                 <directory suffix=".php">./app/Support/Traits/Relationships</directory>
                 <directory suffix=".php">./app/Modules/OauthConnection/Connections</directory>
                 <directory suffix=".php">./app/Mail</directory>
+                <directory suffix=".php">./app/Utils/TikaWebClient</directory>
                 <directory suffix=".php">./app/Console</directory>
                 <!-- Models should never contain testable code. That should go in a service or repo -->
                 <directory suffix=".php">./app/Models</directory>

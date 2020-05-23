@@ -48,7 +48,7 @@ class ExtractDataHelperTest extends TestCase
         $data = new FakeMetaData();
         $meta = $data->meta;
 
-        return [
+        return collect([
             'title'                       => $meta->{'dc:title'},
             'keyword'                     => $meta->{'meta:keyword'},
             'author'                      => $meta->{'meta:author'},
@@ -72,7 +72,7 @@ class ExtractDataHelperTest extends TestCase
             'height'                      => $data->height,
             'copyright'                   => $data->Copyright,
             'content'                     => $content,
-        ];
+        ]);
     }
 
     public function testGetData()

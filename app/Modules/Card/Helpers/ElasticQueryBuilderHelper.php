@@ -95,18 +95,22 @@ class ElasticQueryBuilderHelper
             return [
                 'bool' => [
                     'filter' => [
-                        'match' => [
-                            'permissions.type' => 'App/Models/Team',
+                        [
+                            'match' => [
+                                'permissions.type' => 'App/Models/Team',
+                            ],
                         ],
-                        'match' => [
-                            'permissions.id' => $team->team_id,
+                        [
+                            'match' => [
+                                'permissions.id' => (int) $team->team_id,
+                            ],
                         ],
                     ],
                 ],
             ];
         });
 
-        $result['nested']['query']['bool']['should'] = $conditions;
+        $result['nested']['query']['bool']['should'] = $conditions->toArray();
 
         return $result;
     }

@@ -99,4 +99,12 @@ class CardRepositoryTest extends TestCase
             ['type' => null, 'id' => null],
         ], $permissions);
     }
+
+    public function testDenormalizePermissionsNoPermissions()
+    {
+        $card = Card::find(1);
+
+        $permissions = app(CardRepository::class)->denormalizePermissions($card)->toArray();
+        $this->assertEquals($permissions, []);
+    }
 }
