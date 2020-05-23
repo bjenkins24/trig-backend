@@ -128,7 +128,12 @@ class GoogleIntegration implements IntegrationInterface
         }
 
         $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content->getBody());
-        $card->cardData()->create($data);
+
+        // Save the card data retrieved from the extraction
+        $card->content = $data->get('content');
+        $data->forget('content');
+        $card->properties = $data->toArray();
+        $card->save();
     }
 
     /**

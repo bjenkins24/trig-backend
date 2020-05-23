@@ -40,6 +40,12 @@ class ScaffoldSeeder extends Seeder
                 'name' => 'Trig',
             ]);
         }
+        factory(Card::class, 1)->create([
+            'user_id'    => $user->id,
+            'content'    => \Config::get('constants.seed.card.content'),
+            'properties' => json_encode(['title' => \Config::get('constants.seed.card.doc_title')]),
+        ]);
+
         factory(Card::class, 3)->create([
             'user_id' => $user->id,
         ]);

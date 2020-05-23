@@ -19,10 +19,12 @@ class CreateCardsTable extends Migration
             $table->foreignId('card_type_id')->constrained();
             $table->string('title')->index();
             $table->text('description')->nullable();
+            $table->longText('content')->nullable();
             $table->string('image')->nullable();
             $table->string('url');
             $table->dateTime('actual_created_at')->index();
             $table->dateTime('actual_modified_at')->index();
+            $table->json('properties')->nullable();
             $table->timestamps();
         });
     }

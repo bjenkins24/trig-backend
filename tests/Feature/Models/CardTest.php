@@ -19,42 +19,20 @@ class CardTest extends TestCase
     public function testToSearchableArray()
     {
         $card = Card::find(1);
-        $card->cardData()->create([
-            'title'   => 'hello',
-            'content' => 'no way',
-            'created' => null,
-        ]);
+        $card->properties = ['title' => \Config::get('constants.seed.card.doc_title')];
+        $card->save();
         $result = $card->toSearchableArray();
         // Remove stuff that's hard to test for
         unset($result['title']);
         unset($result['actual_created_at']);
+
         $this->assertEquals($result, [
             'user_id'                     => '1',
             'card_type_id'                => '3',
             'organization_id'             => 1,
+            'doc_title'                   => \Config::get('constants.seed.card.doc_title'),
+            'content'                     => \Config::get('constants.seed.card.content'),
             'permissions'                 => [],
-            'keyword'                     => null,
-            'author'                      => null,
-            'last_author'                 => null,
-            'comment'                     => null,
-            'language'                    => null,
-            'subject'                     => null,
-            'revisions'                   => null,
-            'created'                     => null,
-            'modified'                    => null,
-            'print_date'                  => null,
-            'save_date'                   => null,
-            'line_count'                  => null,
-            'page_count'                  => null,
-            'paragraph_count'             => null,
-            'word_count'                  => null,
-            'character_count'             => null,
-            'character_count_with_spaces' => null,
-            'width'                       => null,
-            'height'                      => null,
-            'copyright'                   => null,
-            'content'                     => 'no way',
-            'doc_title'                   => 'hello',
         ]);
     }
 }

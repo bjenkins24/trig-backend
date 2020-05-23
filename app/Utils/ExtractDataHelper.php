@@ -7,6 +7,7 @@ use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
 use App\Utils\TikaWebClient\TikaWebClientInterface;
 use Html2Text\Html2Text;
+use Illuminate\Support\Collection;
 
 class ExtractDataHelper
 {
@@ -55,7 +56,7 @@ class ExtractDataHelper
      *
      * @param [type] $content
      */
-    public function getFileData(string $mimeType, $content): array
+    public function getFileData(string $mimeType, $content): Collection
     {
         $extension = FileHelper::mimeToExtension($mimeType);
         if (! $extension) {
@@ -76,7 +77,7 @@ class ExtractDataHelper
 
         \Storage::delete($filename);
 
-        return $data;
+        return collect($data);
     }
 
     public function getWebsite(string $url)

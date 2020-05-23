@@ -385,7 +385,12 @@ class GoogleIntegrationTest extends TestCase
         $cardData['card_id'] = 1;
 
         app(GoogleIntegration::class)->saveCardData($card);
-        $this->assertDatabaseHas('card_data', $cardData);
+        $content = $cardData['content'];
+        unset($cardData['content']);
+        $this->assertDatabaseHas('cards', [
+            'content'    => $content,
+            'properties' => $cardData,
+        ]);
     }
 
     /**

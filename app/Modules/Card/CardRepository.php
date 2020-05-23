@@ -42,29 +42,6 @@ class CardRepository
     }
 
     /**
-     * Get card data and return as array.
-     */
-    public function getCardDataForIndex(Card $card): array
-    {
-        $cardData = $card->cardData()->first();
-        if (! $cardData) {
-            return [];
-        }
-        $cardData = $cardData->toArray();
-
-        // Rename title so we don't override card title
-        $cardData['doc_title'] = $cardData['title'];
-        // Remove things we don't want to index
-        unset($cardData['title']);
-        unset($cardData['card_id']);
-        unset($cardData['id']);
-        unset($cardData['created_at']);
-        unset($cardData['updated_at']);
-
-        return $cardData;
-    }
-
-    /**
      * Denormalize permissions into a single array.
      */
     public function denormalizePermissions(Card $card): Collection

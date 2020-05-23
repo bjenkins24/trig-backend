@@ -49,6 +49,7 @@ class Card extends BaseModel
     protected $casts = [
         'actual_created_at'         => 'datetime',
         'actual_modified_at'        => 'datetime',
+        'properties'                => 'collection',
     ];
 
     /**
@@ -58,17 +59,17 @@ class Card extends BaseModel
      */
     public function toSearchableArray()
     {
-        $cardRepo = app(CardRepository::class);
-        $permissions = $cardRepo->denormalizePermissions($this)->toArray();
-        $cardData = $cardRepo->getCardDataForIndex($this);
+        $permissions = app(CardRepository::class)->denormalizePermissions($this)->toArray();
 
-        return array_merge([
+        return [
             'user_id'           => $this->user_id,
             'card_type_id'      => $this->card_type_id,
             'organization_id'   => $this->user()->first()->organizations()->first()->id,
             'title'             => $this->title,
+            'doc_title'         => $this->properties->get('title'),
+            'content'           => $this->content,
             'permissions'       => $permissions,
             'actual_created_at' => $this->actual_created_at,
-        ], $cardData);
+        ];
     }
 }

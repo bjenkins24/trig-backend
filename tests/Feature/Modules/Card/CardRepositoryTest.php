@@ -80,12 +80,6 @@ class CardRepositoryTest extends TestCase
         });
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testDenormalizePermissions()
     {
         $card = Card::find(1);

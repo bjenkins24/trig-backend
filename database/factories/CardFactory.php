@@ -14,6 +14,7 @@ $factory->define(Card::class, function (Faker $faker) {
         'description'        => $faker->realText(rand(50, 150)),
         'image'              => $faker->imageUrl(640, 480),
         'url'                => $faker->url,
+        'content'            => $faker->realText(rand(200, 400)),
         'actual_created_at'  => $faker->dateTime('2020-04-26 12:00:00'),
         'actual_modified_at' => $faker->dateTime('2020-04-26 14:00:00'),
     ];
