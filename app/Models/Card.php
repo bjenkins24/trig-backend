@@ -61,12 +61,22 @@ class Card extends BaseModel
     {
         $permissions = app(CardRepository::class)->denormalizePermissions($this)->toArray();
 
+        $docTitle = null;
+        if ($this->properties) {
+            $docTitle = $this->properties->get('title');
+        }
+        $organization = $this->user()->first()->organizations()->first();
+        $organizationId = null;
+        if ($organization) {
+            $organizationId = $organization->id;
+        }
+
         return [
             'user_id'           => $this->user_id,
             'card_type_id'      => $this->card_type_id,
-            'organization_id'   => $this->user()->first()->organizations()->first()->id,
+            'organization_id'   => $organizationId,
             'title'             => $this->title,
-            'doc_title'         => $this->properties->get('title'),
+            'doc_title'         => $docTitle,
             'content'           => $this->content,
             'permissions'       => $permissions,
             'actual_created_at' => $this->actual_created_at,

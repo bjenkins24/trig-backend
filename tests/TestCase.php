@@ -10,11 +10,11 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
-    public function setUp(): void
+    public function refreshDb()
     {
-        parent::setUp();
-        Artisan::call('passport:install', ['-vvv' => true]);
-        $this->seed('ScaffoldSeeder');
+        Artisan::call('migrate:fresh');
+        Artisan::call('passport:install');
+        Artisan::call('db:seed', ['--class' => 'ScaffoldSeeder']);
     }
 
     public function client(

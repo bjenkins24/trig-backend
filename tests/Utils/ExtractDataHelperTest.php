@@ -4,13 +4,16 @@ namespace Tests\Utils;
 
 use App\Utils\ExtractDataHelper;
 use App\Utils\TikaWebClient\TikaWebClientInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
-    use RefreshDatabase;
-
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
     public function testGetFileData()
     {
         \Storage::fake();

@@ -3,13 +3,10 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Card;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CardTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function testToSearchableArray()
     {
         $card = Card::find(1);

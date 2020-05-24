@@ -17,7 +17,6 @@ use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
@@ -27,7 +26,6 @@ use Tests\Utils\ExtractDataHelperTest;
 
 class GoogleIntegrationTest extends TestCase
 {
-    use RefreshDatabase;
     use CreateOauthConnection;
 
     const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
@@ -84,6 +82,7 @@ class GoogleIntegrationTest extends TestCase
             'id'         => '1',
             'properties' => json_encode(['google_domains' => $domains]),
         ]);
+        $this->refreshDb();
     }
 
     /**
@@ -145,26 +144,26 @@ class GoogleIntegrationTest extends TestCase
         $this->assertDatabaseHas('card_integrations', [
             'foreign_id' => $file->id,
         ]);
+        $this->refreshDb();
     }
 
     /**
      * @return void
      */
-    public function testSyncCardsStop()
-    {
-        $user = $this->syncDomains();
-        $nextPageToken = 'next_page_token';
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
-            $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake()]))->once();
-            $mock->shouldReceive('createCard')->once();
-        });
+    // public function testSyncCardsStop()
+    // {
+    //     $user = $this->syncDomains();
+    //     $this->partialMock(GoogleIntegration::class, function ($mock) {
+    //         $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake()]))->once();
+    //         $mock->shouldReceive('createCard')->once();
+    //     });
 
-        \Queue::fake();
+    //     \Queue::fake();
 
-        $result = app(GoogleIntegration::class)->syncCards($user);
+    //     $result = app(GoogleIntegration::class)->syncCards($user);
 
-        \Queue::assertPushed(SyncCards::class, 0);
-    }
+    //     \Queue::assertPushed(SyncCards::class, 0);
+    // }
 
     private function syncCardsFail($file)
     {

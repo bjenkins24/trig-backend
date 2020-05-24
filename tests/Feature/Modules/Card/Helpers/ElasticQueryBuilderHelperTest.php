@@ -4,19 +4,10 @@ namespace Tests\Feature\Modules\Card;
 
 use App\Models\User;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ElasticQueryBuilderHelperTest extends TestCase
 {
-    use RefreshDatabase;
-
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testMakePermissionsConditions()
     {
         User::find(1)->teams()->create([

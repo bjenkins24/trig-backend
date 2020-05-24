@@ -8,13 +8,10 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     const MOCK_SEARCH_RESPONSE = [
         'took'      => 1,
         'timed_out' => false,
@@ -73,11 +70,18 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
         $result = app(CardRepository::class)->searchCards(User::find(1));
-        $id = 1;
-        $result->each(function ($card) use (&$id) {
-            $this->assertEquals($card->id, $id);
-            ++$id;
+        $hasOne = false;
+        $hasTwo = false;
+        $result->each(function ($card) use (&$hasOne, &$hasTwo) {
+            if (1 === $card->id) {
+                $hasOne = true;
+            }
+            if (2 === $card->id) {
+                $hasTwo = true;
+            }
         });
+        $this->assertTrue($hasOne);
+        $this->assertTrue($hasTwo);
     }
 
     public function testDenormalizePermissions()
@@ -98,6 +102,7 @@ class CardRepositoryTest extends TestCase
             ['type' => 'App\Models\Person', 'id' => 1],
             ['type' => null, 'id' => null],
         ], $permissions);
+        $this->refreshDb();
     }
 
     public function testDenormalizePermissionsNoPermissions()

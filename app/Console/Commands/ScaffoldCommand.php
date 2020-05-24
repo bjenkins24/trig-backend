@@ -31,14 +31,20 @@ class ScaffoldCommand extends Command
      */
     public function handle()
     {
-        if ('production' == env('APP_ENV')) {
+        if ('production' == \Config::get('app.env')) {
             $this->error('Cannot scaffold application in production environment');
 
             return;
         }
 
+        if ('testing' !== \Config::get('app.env')) {
+            $this->call('elastic:migrate:reset');
+        }
         $this->call('migrate:fresh');
         $this->call('passport:install');
+        if ('testing' !== \Config::get('app.env')) {
+            $this->call('elastic:migrate');
+        }
 
         $email = \Config::get('constants.seed.email');
         $password = \Config::get('constants.seed.password');
@@ -56,6 +62,11 @@ class ScaffoldCommand extends Command
 
         $this->call('db:seed', ['--class' => 'ScaffoldSeeder']);
 
+        if ('testing' === \Config::get('app.env')) {
+            $this->info('Testing environment successfully setup!');
+
+            return;
+        }
         $this->line('');
         $this->info('Application successfully setup!');
         $this->line('Username: '.\Config::get('constants.seed.email'));

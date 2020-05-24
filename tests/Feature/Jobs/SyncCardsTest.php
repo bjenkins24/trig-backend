@@ -5,13 +5,10 @@ namespace Tests\Feature\Jobs;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SyncCardsTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Test sync cards job.
      *

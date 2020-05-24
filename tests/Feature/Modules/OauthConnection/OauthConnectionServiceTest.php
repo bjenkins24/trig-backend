@@ -6,13 +6,11 @@ use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthConnection\OauthConnectionService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
 class OauthConnectionServiceTest extends TestCase
 {
-    use RefreshDatabase;
     use CreateOauthConnection;
 
     /**
@@ -27,6 +25,7 @@ class OauthConnectionServiceTest extends TestCase
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
 
         $this->assertEquals($accessToken, self::$ACCESS_TOKEN);
+        $this->refreshDb();
     }
 
     /**
