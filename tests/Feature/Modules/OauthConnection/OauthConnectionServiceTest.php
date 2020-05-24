@@ -17,13 +17,14 @@ class OauthConnectionServiceTest extends TestCase
      * Get access token.
      *
      * @return void
+     * @group n
      */
     public function testGetAccessToken()
     {
+        $this->refreshDb();
         $user = User::find(1);
         $this->createOauthConnection($user);
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
-
         $this->assertEquals($accessToken, self::$ACCESS_TOKEN);
         $this->refreshDb();
     }
