@@ -24,11 +24,11 @@ jobs:
     - name: Create Database
       run: |
         mkdir -p database
-        touch database/database.sqlite
+        touch trig_test.db
     - name: Execute tests (Unit and Feature tests) via PHPUnit
       env:
         DB_CONNECTION: sqlite
-        DB_DATABASE: database/database.sqlite
+        DB_DATABASE: trig_test.db
       run: vendor/bin/phpunit
     - name: Execute coverage threshold
       run: vendor/bin/coverage-check clover.xml 85
