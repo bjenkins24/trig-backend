@@ -25,6 +25,8 @@ jobs:
       run: |
         mkdir -p database
         touch trig_test.db
+    - name: Scaffold Database
+      run: php artisan app:scaffold --env=testing
     - name: Execute tests (Unit and Feature tests) via PHPUnit
       env:
         DB_CONNECTION: sqlite
