@@ -10,6 +10,7 @@ use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
+use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
 use App\Modules\Permission\PermissionRepository;
@@ -359,11 +360,6 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->getFiles($user);
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     */
     public function testSaveCardData()
     {
         $card = Card::find(1);
@@ -371,15 +367,16 @@ class GoogleIntegrationTest extends TestCase
         $googleServiceMock = $this->mock(GoogleServiceDrive::class);
         $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
             $mock->shouldReceive('get')->andReturn(new FakeContent())->once();
+            $mock->shouldReceive('export')->andReturn(new FakeContent())->once();
         });
         $googleServiceMock->files = $fileResource;
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($googleServiceMock) {
-            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->once();
+            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->twice();
         });
 
         $cardData = (new ExtractDataHelperTest())->getMockDataResult('my cool content');
         $this->mock(ExtractDataHelper::class, function ($mock) use ($cardData) {
-            $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
+            $mock->shouldReceive('getFileData')->andReturn($cardData)->twice();
         });
 
         $cardData->put('created', Carbon::create($cardData->get('created'))->toDateTimeString());
@@ -396,6 +393,15 @@ class GoogleIntegrationTest extends TestCase
             'content'    => $content,
             'properties' => json_encode($cardData->toArray()),
         ]);
+
+        $googleDocCardType = app(CardTypeRepository::class)
+            ->firstOrCreate('application/vnd.google-apps.doc')->id;
+
+        $card->update(['card_type_id' => $googleDocCardType]);
+
+        app(GoogleIntegration::class)->saveCardData($card);
+
+        $this->refreshDb();
     }
 
     /**
