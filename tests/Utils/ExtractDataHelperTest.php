@@ -8,12 +8,6 @@ use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testGetFileData()
     {
         \Storage::fake();
@@ -26,13 +20,16 @@ class ExtractDataHelperTest extends TestCase
             $mock->shouldReceive('getData')->andReturn($myData)->once();
         });
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        $this->assertEquals($result, $myData);
+        $this->assertEquals($result->toArray(), $myData);
     }
 
     public function testGetFileDataNoExtension()
     {
+        $this->partialMock(ExtractDataHelper::class, function ($mock) {
+            $mock->shouldReceive('getFileData')->andReturn(collect([]));
+        });
         $result = app(ExtractDataHelper::class)->getFileData('fake-mime', 'my name is brian');
-        $this->assertEquals($result, []);
+        $this->assertEquals($result->toArray(), []);
     }
 
     public function testFailedGetFileData()
@@ -43,7 +40,7 @@ class ExtractDataHelperTest extends TestCase
             $mock->shouldReceive('getData')->andThrow(new \Exception('Yes!'))->once();
         });
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        $this->assertEquals([], $result);
+        $this->assertEquals($result->toArray(), []);
     }
 
     public function getMockDataResult($content)
@@ -89,7 +86,7 @@ class ExtractDataHelperTest extends TestCase
         $result = $extractDataHelper->getData('my file');
         $meta = $data->meta;
 
-        $this->assertEquals($this->getMockDataResult($content), $result);
+        $this->assertEquals($this->getMockDataResult($content)->toArray(), $result);
     }
 }
 

@@ -60,7 +60,7 @@ class ExtractDataHelper
     {
         $extension = FileHelper::mimeToExtension($mimeType);
         if (! $extension) {
-            return [];
+            return collect([]);
         }
 
         $filename = \Str::random(16).'.'.$extension;
@@ -72,7 +72,7 @@ class ExtractDataHelper
         } catch (\Exception $e) {
             \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
 
-            return [];
+            return collect([]);
         }
 
         \Storage::delete($filename);
