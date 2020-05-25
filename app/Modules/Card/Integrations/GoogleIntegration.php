@@ -152,7 +152,7 @@ class GoogleIntegration implements IntegrationInterface
 
         $service = $this->getDriveService($card->user()->first());
 
-        // G Suite files need to be exported. Here we're converting to pdf
+        // G Suite files need to be exported
         if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
             $mimeType = $this->googleToMime($mimeType);
             if (! $mimeType) {
