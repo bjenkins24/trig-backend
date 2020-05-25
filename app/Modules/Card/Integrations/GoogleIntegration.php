@@ -89,11 +89,6 @@ class GoogleIntegration implements IntegrationInterface
         return $pageToken;
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     */
     public function getFiles(User $user)
     {
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
@@ -186,7 +181,11 @@ class GoogleIntegration implements IntegrationInterface
     {
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, GoogleConnection::getKey());
         try {
-            $thumbnail = file_get_contents($file->thumbnailLink.'&access_token='.$accessToken);
+            $delimiter = '?';
+            if (\Str::contains('?', $file->thumbnailLink)) {
+                $delimiter = '&';
+            }
+            $thumbnail = file_get_contents($file->thumbnailLink.$delimiter.'access_token='.$accessToken);
         } catch (Exception $e) {
             // TODO: Observability?
             // If we couldn't get the thumbnail it's not necessary
