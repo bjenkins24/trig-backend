@@ -26,7 +26,7 @@ use Illuminate\Support\Collection;
 class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
-    const PAGE_SIZE = 400;
+    const PAGE_SIZE = 50;
     const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     /**
@@ -115,14 +115,15 @@ class GoogleIntegration implements IntegrationInterface
 
     public function saveCardData(Card $card): void
     {
-        $id = $card->cardIntegration()->first()->oauth_integration_id;
+        $id = $card->cardIntegration()->first()->foreign_id;
         $mimeType = $card->cardType()->first()->name;
 
         $service = $this->getDriveService($card->user()->first());
 
         // G Suite files need to be exported. Here we're converting to pdf
         if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
-            $content = $service->files->export($id, 'application/pdf');
+            $mimeType = 'text/plain';
+            $content = $service->files->export($id, $mimeType);
         } else {
             $content = $service->files->get($id, ['alt' => 'media']);
         }
@@ -246,7 +247,7 @@ class GoogleIntegration implements IntegrationInterface
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
-        SaveCardData::dispatch($card, 'google');
+        SaveCardData::dispatch($card, 'google')->onQueue('card-data');
 
         app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
     }
@@ -326,7 +327,7 @@ class GoogleIntegration implements IntegrationInterface
         // Run the next page of syncing
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
         if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
-            SyncCards::dispatch($user, 'google');
+            SyncCards::dispatch($user, 'google')->onQueue('sync-cards');
         }
 
         return true;

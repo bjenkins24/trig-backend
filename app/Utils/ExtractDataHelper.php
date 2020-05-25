@@ -52,6 +52,19 @@ class ExtractDataHelper
     }
 
     /**
+     * Some files are typically too large and don't return content anyways. For those files
+     * we should just exclude them altogether from apache tika.
+     */
+    private function isExcluded(string $mimeType): bool
+    {
+        $excludedTypes = collect(['zip', 'audio', 'video']);
+
+        return $excludedTypes->contains(function ($value) use ($mimeType) {
+            return \Str::contains($mimeType, $value);
+        });
+    }
+
+    /**
      * Get file data from a stream.
      *
      * @param [type] $content
@@ -60,6 +73,12 @@ class ExtractDataHelper
     {
         $extension = FileHelper::mimeToExtension($mimeType);
         if (! $extension) {
+            \Log::notice('The mimetype '.$mimeType.' could not be mapped to an extension.');
+
+            return collect([]);
+        }
+
+        if ($this->isExcluded($mimeType)) {
             return collect([]);
         }
 
@@ -71,11 +90,11 @@ class ExtractDataHelper
             $data = $this->getData(base_path().'/storage/app/'.$filename);
         } catch (\Exception $e) {
             \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
-
+            // \Storage::delete($filename);
             return collect([]);
         }
 
-        \Storage::delete($filename);
+        // \Storage::delete($filename);
 
         return collect($data);
     }

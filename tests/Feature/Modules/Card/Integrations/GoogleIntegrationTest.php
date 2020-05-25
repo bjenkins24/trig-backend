@@ -19,6 +19,7 @@ use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
 use Illuminate\Support\Carbon;
+use Mockery;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -371,12 +372,12 @@ class GoogleIntegrationTest extends TestCase
         });
         $googleServiceMock->files = $fileResource;
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($googleServiceMock) {
-            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->twice();
+            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->once();
         });
 
         $cardData = (new ExtractDataHelperTest())->getMockDataResult('my cool content');
         $this->mock(ExtractDataHelper::class, function ($mock) use ($cardData) {
-            $mock->shouldReceive('getFileData')->andReturn($cardData)->twice();
+            $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
         });
 
         $cardData->put('created', Carbon::create($cardData->get('created'))->toDateTimeString());
@@ -393,6 +394,24 @@ class GoogleIntegrationTest extends TestCase
             'content'    => $content,
             'properties' => json_encode($cardData->toArray()),
         ]);
+    }
+
+    public function testSaveCardDataGoogle()
+    {
+        $card = Card::find(1);
+        $this->createOauthConnection($card->user()->first());
+        $googleServiceMock = $this->mock(GoogleServiceDrive::class);
+        $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
+            $mock->shouldReceive('export')->andReturn(new FakeContent())->once();
+        });
+        $googleServiceMock->files = $fileResource;
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($googleServiceMock) {
+            $mock->shouldReceive('getDriveService')->andReturn($googleServiceMock)->once();
+        });
+
+        $this->mock(ExtractDataHelper::class, function ($mock) {
+            $mock->shouldReceive('getFileData')->withArgs(['application/pdf', Mockery::any()])->andReturn(collect([]))->once();
+        });
 
         $googleDocCardType = app(CardTypeRepository::class)
             ->firstOrCreate('application/vnd.google-apps.doc')->id;

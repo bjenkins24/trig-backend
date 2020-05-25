@@ -15,11 +15,11 @@ class TikaWebClientWrapper implements TikaWebClientInterface
 
     public function getMetaData($file, $recursive = null)
     {
-        $this->client->getMetadata($file, $recursive);
+        return $this->client->getMetadata($file, $recursive);
     }
 
     public function getText($file, $callback = null, $append = true)
     {
-        $this->client->getText($file, $callback, $append);
+        return $this->client->getText($file, $callback, $append);
     }
 }

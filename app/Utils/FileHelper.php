@@ -136,6 +136,7 @@ class FileHelper
             'audio/x-pn-realaudio'                                                      => 'ram',
             'application/x-rar'                                                         => 'rar',
             'application/rar'                                                           => 'rar',
+            'application/rtf'                                                           => 'rtf',
             'application/x-rar-compressed'                                              => 'rar',
             'audio/x-pn-realaudio-plugin'                                               => 'rpm',
             'application/x-pkcs7'                                                       => 'rsa',

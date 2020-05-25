@@ -17,7 +17,6 @@ class OauthConnectionServiceTest extends TestCase
      * Get access token.
      *
      * @return void
-     * @group n
      */
     public function testGetAccessToken()
     {

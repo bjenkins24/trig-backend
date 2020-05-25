@@ -26,10 +26,31 @@ class ExtractDataHelperTest extends TestCase
     public function testGetFileDataNoExtension()
     {
         $this->partialMock(ExtractDataHelper::class, function ($mock) {
-            $mock->shouldReceive('getFileData')->andReturn(collect([]));
+            $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
         });
         $result = app(ExtractDataHelper::class)->getFileData('fake-mime', 'my name is brian');
         $this->assertEquals($result->toArray(), []);
+    }
+
+    /**
+     * @dataProvider excludedExtensionProvider
+     */
+    public function testGetFileDataExcludedExtension($mimeType)
+    {
+        $this->partialMock(ExtractDataHelper::class, function ($mock) {
+            $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
+        });
+        $result = app(ExtractDataHelper::class)->getFileData($mimeType, 'my name is brian');
+        $this->assertEquals($result->toArray(), []);
+    }
+
+    public function excludedExtensionProvider()
+    {
+        return [
+            ['video/quicktime'],
+            ['audio/mpeg'],
+            ['application/zip'],
+        ];
     }
 
     public function testFailedGetFileData()
