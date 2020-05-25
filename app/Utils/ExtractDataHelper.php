@@ -55,7 +55,7 @@ class ExtractDataHelper
      * Some files are typically too large and don't return content anyways. For those files
      * we should just exclude them altogether from apache tika.
      */
-    private function isExcluded(string $mimeType): bool
+    public static function isExcluded(string $mimeType): bool
     {
         $excludedTypes = collect(['zip', 'audio', 'video']);
 

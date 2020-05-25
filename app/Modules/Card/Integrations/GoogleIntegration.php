@@ -247,7 +247,9 @@ class GoogleIntegration implements IntegrationInterface
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
-        SaveCardData::dispatch($card, 'google')->onQueue('card-data');
+        if (! ExtractDataHelper::isExcluded($file->mimeType)) {
+            SaveCardData::dispatch($card, 'google')->onQueue('card-data');
+        }
 
         app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
     }
