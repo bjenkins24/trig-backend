@@ -113,6 +113,38 @@ class GoogleIntegration implements IntegrationInterface
         return $this->listFilesFromService($service, $params);
     }
 
+    /**
+     * Google apps can be exported to normal file mime types. We need to know what to convert
+     * which is what this function does.
+     *
+     * @return void
+     */
+    public function googleToMime(string $mimeType): string
+    {
+        $googleTypes = [
+            'audio'        => '',
+            'document'     => 'text/plain',
+            'drive-sdk'    => '',
+            'drawing'      => 'application/pdf',
+            'file'         => '',
+            'folder'       => '',
+            'form'         => 'text/plain',
+            'fusiontable'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'map'          => 'application/pdf',
+            'photo'        => 'image/jpeg',
+            'presentation' => 'text/plain',
+            'script'       => 'application/vnd.google-apps.script+json',
+            'shortcut'     => '',
+            'site'         => 'application/pdf',
+            'spreadsheet'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'unknown'      => '',
+            'video'        => '',
+        ];
+        $type = \Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
+
+        return $googleTypes[$type];
+    }
+
     public function saveCardData(Card $card): void
     {
         $id = $card->cardIntegration()->first()->foreign_id;
@@ -122,7 +154,10 @@ class GoogleIntegration implements IntegrationInterface
 
         // G Suite files need to be exported. Here we're converting to pdf
         if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
-            $mimeType = 'text/plain';
+            $mimeType = $this->googleToMime($mimeType);
+            if (! $mimeType) {
+                return;
+            }
             $content = $service->files->export($id, $mimeType);
         } else {
             $content = $service->files->get($id, ['alt' => 'media']);

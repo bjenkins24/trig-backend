@@ -396,6 +396,12 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
     public function testSaveCardDataGoogle()
     {
         $card = Card::find(1);
@@ -410,11 +416,11 @@ class GoogleIntegrationTest extends TestCase
         });
 
         $this->mock(ExtractDataHelper::class, function ($mock) {
-            $mock->shouldReceive('getFileData')->withArgs(['application/pdf', Mockery::any()])->andReturn(collect([]))->once();
+            $mock->shouldReceive('getFileData')->withArgs(['text/plain', Mockery::any()])->andReturn(collect([]))->once();
         });
 
         $googleDocCardType = app(CardTypeRepository::class)
-            ->firstOrCreate('application/vnd.google-apps.doc')->id;
+            ->firstOrCreate('application/vnd.google-apps.document')->id;
 
         $card->update(['card_type_id' => $googleDocCardType]);
 
@@ -424,10 +430,22 @@ class GoogleIntegrationTest extends TestCase
     }
 
     /**
-     * Undocumented function.
-     *
-     * @return void
+     * @dataProvider googleToMimeProvider
      */
+    public function testGoogleToMime($mime, $expected)
+    {
+        $this->assertEquals($expected, app(GoogleIntegration::class)->googleToMime($mime));
+    }
+
+    public function googleToMimeProvider()
+    {
+        return [
+            ['application/vnd.google-apps.audio', ''],
+            ['application/vnd.google-apps.document', 'text/plain'],
+            ['application/vnd.google-apps.spreadsheet', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        ];
+    }
+
     public function testGetCurrentNextPageToken()
     {
         $token = '123';

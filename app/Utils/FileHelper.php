@@ -4,6 +4,7 @@ namespace App\Utils;
 
 class FileHelper
 {
+    const excluded
     public static function mimeToExtension($mime)
     {
         $mime_map = [
@@ -145,6 +146,7 @@ class FileHelper
             'video/vnd.rn-realvideo'                                                    => 'rv',
             'application/x-stuffit'                                                     => 'sit',
             'application/smil'                                                          => 'smil',
+            'application/sql'                                                           => 'sql',
             'text/srt'                                                                  => 'srt',
             'image/svg+xml'                                                             => 'svg',
             'application/x-shockwave-flash'                                             => 'swf',

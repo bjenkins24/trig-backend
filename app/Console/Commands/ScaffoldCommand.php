@@ -44,6 +44,7 @@ class ScaffoldCommand extends Command
         $this->call('passport:install');
         if ('testing' !== \Config::get('app.env')) {
             $this->call('elastic:migrate');
+            $this->call('horizon:purge');
         }
 
         $email = \Config::get('constants.seed.email');

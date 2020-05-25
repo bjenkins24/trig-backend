@@ -57,7 +57,7 @@ class ExtractDataHelper
      */
     public static function isExcluded(string $mimeType): bool
     {
-        $excludedTypes = collect(['zip', 'audio', 'video']);
+        $excludedTypes = collect(['zip', 'audio', 'video', 'sql']);
 
         return $excludedTypes->contains(function ($value) use ($mimeType) {
             return \Str::contains($mimeType, $value);
@@ -94,7 +94,7 @@ class ExtractDataHelper
             return collect([]);
         }
 
-        // \Storage::delete($filename);
+        \Storage::delete($filename);
 
         return collect($data);
     }
