@@ -368,7 +368,6 @@ class GoogleIntegrationTest extends TestCase
         $googleServiceMock = $this->mock(GoogleServiceDrive::class);
         $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
             $mock->shouldReceive('get')->andReturn(new FakeContent())->once();
-            $mock->shouldReceive('export')->andReturn(new FakeContent())->once();
         });
         $googleServiceMock->files = $fileResource;
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($googleServiceMock) {
@@ -389,6 +388,9 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->saveCardData($card);
 
         $cardData->forget('content');
+        $cardData = $cardData->reject(function ($value) {
+            return ! $value;
+        });
 
         $this->assertDatabaseHas('cards', [
             'content'    => $content,
@@ -396,12 +398,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testSaveCardDataGoogle()
     {
         $card = Card::find(1);

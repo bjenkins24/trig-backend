@@ -4,7 +4,6 @@ namespace App\Utils;
 
 class FileHelper
 {
-    const excluded
     public static function mimeToExtension($mime)
     {
         $mime_map = [
@@ -91,6 +90,8 @@ class FileHelper
             'text/x-log'                                                                => 'log',
             'audio/x-m4a'                                                               => 'm4a',
             'application/vnd.mpegurl'                                                   => 'm4u',
+            'text/markdown'                                                             => 'md',
+            'text/x-markdown'                                                           => 'md',
             'audio/midi'                                                                => 'mid',
             'application/vnd.mif'                                                       => 'mif',
             'video/quicktime'                                                           => 'mov',

@@ -168,6 +168,9 @@ class GoogleIntegration implements IntegrationInterface
         // Save the card data retrieved from the extraction
         $card->content = $data->get('content');
         $data->forget('content');
+        $data = $data->reject(function ($value) {
+            return ! $value;
+        });
         $card->properties = $data->toArray();
         $card->save();
     }
