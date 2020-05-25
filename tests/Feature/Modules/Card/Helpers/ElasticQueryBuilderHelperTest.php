@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\Card;
+namespace Tests\Feature\Modules\Card\Helpers;
 
 use App\Models\User;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;

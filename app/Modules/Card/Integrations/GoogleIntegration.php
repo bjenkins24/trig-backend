@@ -26,7 +26,7 @@ use Illuminate\Support\Collection;
 class GoogleIntegration implements IntegrationInterface
 {
     const IMAGE_PATH = 'public/card-thumbnails';
-    const PAGE_SIZE = 50;
+    const PAGE_SIZE = 30;
     const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     /**
@@ -123,7 +123,7 @@ class GoogleIntegration implements IntegrationInterface
             'drawing'      => 'application/pdf',
             'file'         => '',
             'folder'       => '',
-            'form'         => 'text/plain',
+            'form'         => '',
             'fusiontable'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'map'          => 'application/pdf',
             'photo'        => 'image/jpeg',
