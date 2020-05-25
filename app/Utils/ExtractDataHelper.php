@@ -85,12 +85,12 @@ class ExtractDataHelper
         $filename = \Str::random(16).'.'.$extension;
 
         \Storage::put($filename, $content);
-
         try {
             $data = $this->getData(base_path().'/storage/app/'.$filename);
         } catch (\Exception $e) {
             \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
-            // \Storage::delete($filename);
+            \Storage::delete($filename);
+
             return collect([]);
         }
 

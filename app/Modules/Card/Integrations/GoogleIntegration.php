@@ -182,19 +182,21 @@ class GoogleIntegration implements IntegrationInterface
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, GoogleConnection::getKey());
         try {
             $delimiter = '?';
-            if (\Str::contains('?', $file->thumbnailLink)) {
+            if (\Str::contains($file->thumbnailLink, $delimiter)) {
                 $delimiter = '&';
             }
             $thumbnail = file_get_contents($file->thumbnailLink.$delimiter.'access_token='.$accessToken);
         } catch (Exception $e) {
-            // TODO: Observability?
-            // If we couldn't get the thumbnail it's not necessary
+            \Log::notice('Couldn\'t get a thumbnail: '.$file->thumbnailLink.' - '.$e->getMessage());
+
             return collect([]);
         }
 
         $fileInfo = collect(getimagesizefromstring($thumbnail));
 
         if (! $fileInfo->has('mime')) {
+            \Log::notice('Couldn\'t get a thumbnail. It had no mime type: '.$file->thumbnailLink);
+
             return collect([]);
         }
 
