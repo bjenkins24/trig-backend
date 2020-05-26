@@ -7,13 +7,10 @@ use App\Modules\Capability\CapabilityRepository;
 use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LinkShareSettingRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function setUp(): void
     {
         parent::setUp();

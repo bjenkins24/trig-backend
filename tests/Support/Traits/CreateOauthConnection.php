@@ -15,7 +15,7 @@ trait CreateOauthConnection
      *
      * @return void
      */
-    private function createOauthConnection(User $user, int $expiresIn = 3600)
+    private function createOauthConnection(User $user, int $expiresIn = 3600000)
     {
         app(OauthConnectionRepository::class)->create(
             $user,

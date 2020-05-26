@@ -3,13 +3,10 @@
 namespace Tests\Feature\Controllers;
 
 use App\Http\Controllers\AuthController;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Validation fails on login endpoint.
      *

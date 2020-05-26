@@ -25,6 +25,14 @@ final class CreateCardsIndex implements MigrationInterface
                     ],
                 ],
             ]);
+            $mapping->text('doc_title', [
+                'fields' => [
+                    'keyword' => [
+                          'type' => 'keyword', 'ignore_above' => 256,
+                    ],
+                ],
+            ]);
+            $mapping->text('content');
             $mapping->nested('permissions', [
                 'properties' => [
                     'id' => [

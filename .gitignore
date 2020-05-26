@@ -4,6 +4,7 @@
 /storage/*.key
 /vendor
 /coverage
+trig_test.db
 clover.xml
 .env
 .env.backup

@@ -7,13 +7,11 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Modules\Permission\PermissionRepository;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     const MOCK_SEARCH_RESPONSE = [
         'took'      => 1,
         'timed_out' => false,
@@ -72,10 +70,46 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
         $result = app(CardRepository::class)->searchCards(User::find(1));
-        $id = 1;
-        $result->each(function ($card) use (&$id) {
-            $this->assertEquals($card->id, $id);
-            ++$id;
+        $hasOne = false;
+        $hasTwo = false;
+        $result->each(function ($card) use (&$hasOne, &$hasTwo) {
+            if (1 === $card->id) {
+                $hasOne = true;
+            }
+            if (2 === $card->id) {
+                $hasTwo = true;
+            }
         });
+        $this->assertTrue($hasOne);
+        $this->assertTrue($hasTwo);
+    }
+
+    public function testDenormalizePermissions()
+    {
+        $card = Card::find(1);
+
+        $permissionRepo = app(PermissionRepository::class);
+        // User Permission
+        $permissionRepo->createEmail($card, 'writer', User::find(1)->email);
+        // Person Permission
+        $permissionRepo->createEmail($card, 'writer', 'testEmail@example.com');
+        // Anyone Permission
+        $permissionRepo->createAnyone($card, 'writer');
+
+        $permissions = app(CardRepository::class)->denormalizePermissions($card)->toArray();
+        $this->assertEquals([
+            ['type' => 'App\Models\User', 'id' => 1],
+            ['type' => 'App\Models\Person', 'id' => 1],
+            ['type' => null, 'id' => null],
+        ], $permissions);
+        $this->refreshDb();
+    }
+
+    public function testDenormalizePermissionsNoPermissions()
+    {
+        $card = Card::find(1);
+
+        $permissions = app(CardRepository::class)->denormalizePermissions($card)->toArray();
+        $this->assertEquals($permissions, []);
     }
 }

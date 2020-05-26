@@ -5,13 +5,10 @@ namespace Tests\Feature\Modules\OauthConnection;
 use App\Models\User;
 use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class OauthConnectionRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Get access token.
      *

@@ -60,7 +60,7 @@ class OauthConnectionRepository
         }
         $oauthIntegration = $this->oauthIntegrationRepo->firstOrCreate(['name' => $integration]);
 
-        return OauthConnection::create([
+        return OauthConnection::firstOrCreate([
             'user_id'              => $user->id,
             'oauth_integration_id' => $oauthIntegration->id,
             'access_token'         => $authConnection->get('access_token'),

@@ -7,6 +7,7 @@ Things you have to install:
 * `brew tap elastic/tap && brew install elastic/tap/elasticsearch-full` run elastic search locally with `elasticsearch` then access it at `localhost:9200`
 * `brew install elastic/tap/kibana-full` (it hung on downloading for around 45 minutes for me but finally finished) then run kibana (make sure elasticsearch is running first) with `kibana` it can be accessed at `localhost:5601`
 * `brew install maven` - For installing apache tika
+* `brew install tesseract` - For use with apache tika (required for OCR)
   
 ## Composer
 * Download: https://getcomposer.org/download/ 
@@ -20,21 +21,16 @@ Must be installed to pull data from documents (for searching)
 `cd ./tika-server/target/`
 `java -jar tika-server-2.0.0-SNAPSHOT.jar` - starts apache tika on `localhost:9998`
 
-## ElasticSearch
-### Cerebro
-Download and unzip: https://github.com/lmenezes/cerebro
-`chmod 777 cerebro-0.9.0/bin/cerebro && cerebro-0.9.0/bin/cerebro`
-
-### Kibana
-`brew install elastic/tap/kibana-full`
-
 ## .env
 * Copy `.env.development` and rename it to `.env`.
 * Change `APP_URL` in .env `backend.test` to `folderName.test`, where folderName is the name of the folder that this repo appears in locally.
 * Create a MYSQL dev and test DB
   * `mysql -u root`
-  * `CREATE DATABASE trig;` `CREATE DATABASE trig_test`
+  * `CREATE DATABASE trig;`
 * You may need a username/pass for sendGrid if emails don't work. `MAIL_USERNAME` and `MAIL_PASSWORD`. You can ask for it.
+
+# Testing
+* `sqlite3 trig_test.db` - then run `.database` - `.quit` to close. That will create the test sqlite database.
 
 ## PHP Extensions
 * `pecl install redis` 
@@ -57,9 +53,9 @@ the full path. Use that. Make sure you restart your terminal too.
 commands below. But for reference this is what it does:
 
   * `composer install`
-  * `npm run fresh` - Gets oauth stuff - and runs all migrations fresh
   * `php artisan storage:link` - will make `/storage/` accessible. Needed for images to work locally
   * `php artisan horizon:install` 
+  * `npm run scaffold` - Gets oauth stuff - and runs all migrations fresh
 
 ## Performance on PROD
 * `php artisan config:cache` - https://laravel.com/docs/7.x/configuration#configuration-caching

@@ -42,7 +42,7 @@ class CardRepository
     }
 
     /**
-     * Denormalize permissions into single collection.
+     * Denormalize permissions into a single array.
      */
     public function denormalizePermissions(Card $card): Collection
     {
@@ -50,7 +50,7 @@ class CardRepository
             $permissionType = $permission->permissionType()->first();
 
             if (! $permissionType) {
-                return;
+                return [];
             }
 
             if (! $permissionType->typeable_type) {

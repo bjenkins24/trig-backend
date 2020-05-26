@@ -6,13 +6,11 @@ use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
 class UserServiceTest extends TestCase
 {
-    use RefreshDatabase;
     use CreateOauthConnection;
 
     public function setUp(): void
@@ -60,6 +58,7 @@ class UserServiceTest extends TestCase
      */
     public function testSyncAll()
     {
+        $this->refreshDb();
         \Queue::fake();
 
         $user = User::find(1);

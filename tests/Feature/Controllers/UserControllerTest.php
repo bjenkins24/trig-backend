@@ -9,13 +9,10 @@ use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     private function getResetToken()
     {
         $user = User::where('email', \Config::get('constants.seed.email'))->first();
@@ -77,6 +74,7 @@ class UserControllerTest extends TestCase
         \Mail::assertSent(WelcomeMail::class, function ($mail) use ($email) {
             return $mail->hasTo($email);
         });
+        $this->refreshDb();
     }
 
     /**

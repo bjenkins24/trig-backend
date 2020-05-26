@@ -59,6 +59,11 @@ return [
     'client_url' => env('CLIENT_URL', 'http://localhost:8080'),
 
     /*
+     * Apache Tika URL
+     */
+    'tika_url' => env('TIKA_URL', 'http://localhost:9998'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
@@ -158,8 +163,8 @@ return [
         Illuminate\Queue\QueueServiceProvider::class,
         Illuminate\Redis\RedisServiceProvider::class,
         Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
-        // Illuminate\Session\SessionServiceProvider::class,
-        // Illuminate\Translation\TranslationServiceProvider::class,
+        Illuminate\Session\SessionServiceProvider::class,
+        Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
@@ -176,6 +181,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\TelescopeServiceProvider::class,
+        App\Providers\HelperServiceProvider::class,
     ],
 
     /*

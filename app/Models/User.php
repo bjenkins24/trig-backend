@@ -38,15 +38,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
-    protected $dates = [
-        'terms_of_service_accepted_at',
-    ];
-
-    /**
      * The attributes that should be hidden for arrays.
      *
      * @var array
@@ -61,7 +52,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'properties'        => 'collection',
+        'email_verified_at'            => 'datetime',
+        'properties'                   => 'collection',
+        'terms_of_service_accepted_at' => 'datetime',
     ];
 }
