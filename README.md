@@ -70,6 +70,9 @@ commands below. But for reference this is what it does:
 `card_types` 
 (id, name) - file, link, etc
 
+`card_duplicates`
+(id, primary_card_id, duplicate_card_id)
+
 `decks`
 (id, user_id, title, description, image, link)
 
