@@ -133,7 +133,7 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('getDuplicates')->andReturn(collect([2, 3]));
         });
 
-        $result = app(CardRepository::class)->dedupe($card2);
+        $result = app(CardRepository::class)->dedupe($card1);
         $this->assertTrue($result);
 
         $this->assertDatabaseHas('card_duplicates', [
@@ -143,6 +143,10 @@ class CardRepositoryTest extends TestCase
         $this->assertDatabaseHas('card_duplicates', [
             'primary_card_id'   => 2,
             'duplicate_card_id' => 3,
+        ]);
+        $this->assertDatabaseMissing('card_duplicates', [
+            'primary_card_id'   => 2,
+            'duplicate_card_id' => 2,
         ]);
 
         $card3->actual_modified_at = Carbon::now()->subDays(1);
@@ -158,19 +162,20 @@ class CardRepositoryTest extends TestCase
             'primary_card_id'   => 3,
             'duplicate_card_id' => 2,
         ]);
+        $this->refreshDb();
     }
 
     public function testDedupeNoContent()
     {
         $card = Card::find(1);
-        $card->content('');
+        $card->content = '';
         $card->save();
         $result = app(CardRepository::class)->dedupe($card);
 
         $this->assertFalse($result);
 
         // Revert save so we don't have to rescaffold tests
-        $card->content('fake content here');
+        $card->content = 'fake content here';
         $card->save();
     }
 

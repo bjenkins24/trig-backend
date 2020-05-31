@@ -3,6 +3,7 @@
 namespace App\Modules\Card;
 
 use App\Models\Card;
+use App\Models\CardDuplicate;
 use App\Models\CardIntegration;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -116,10 +117,39 @@ class CardRepository
         if ($duplicateIds->isEmpty()) {
             return false;
         }
-        // $cards =
-        // $duplicateIds->map(function($id) {
-        //     Card::find($id)
-        // });
+        $duplicateIds->push($card->id);
+        // Get the most recently modified card duplicate and make that primary
+        $primary = $duplicateIds->reduce(function ($carry, $id) {
+            $card = Card::find($id);
+            if ($carry && $card->actual_modified_at->isBefore($carry['modified'])) {
+                return $carry;
+            }
+            if (! $carry || ($carry && $card->actual_modified_at->isAfter($carry['modified']))) {
+                return ['id' => $id, 'modified' => $card->actual_modified_at];
+            }
+        });
+
+        \DB::transaction(function () use ($card, $duplicateIds, $primary) {
+            $primaryDuplicates = $card->cardDuplicates()->get();
+            $primaryDuplicates->each(function ($cardDuplicate) {
+                $cardDuplicate->delete();
+            });
+            $primaryDuplicate = $card->primaryDuplicate()->first();
+            if ($primaryDuplicate) {
+                $primaryDuplicate->delete();
+            }
+
+            $duplicateIds->each(function ($id) use ($primary) {
+                if ($id === $primary['id']) {
+                    return;
+                }
+                CardDuplicate::create([
+                    'primary_card_id'   => $primary['id'],
+                    'duplicate_card_id' => $id,
+                ]);
+            });
+        });
+
         return true;
     }
 }
