@@ -8,6 +8,7 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
@@ -111,5 +112,76 @@ class CardRepositoryTest extends TestCase
 
         $permissions = app(CardRepository::class)->denormalizePermissions($card)->toArray();
         $this->assertEquals($permissions, []);
+    }
+
+    public function testDedupe()
+    {
+        $card1 = Card::find(1);
+        $card1->actual_modified_at = Carbon::now()->subDays(20);
+        $card1->save();
+
+        // Card 2 is more recent so it should become the primary_card_id
+        $card2 = Card::find(2);
+        $card2->actual_modified_at = Carbon::now()->subDays(10);
+        $card2->save();
+
+        $card3 = Card::find(3);
+        $card3->actual_modified_at = Carbon::now()->subDays(30);
+        $card3->save();
+
+        $this->partialMock(CardRepository::class, function ($mock) {
+            $mock->shouldReceive('getDuplicates')->andReturn(collect([2, 3]));
+        });
+
+        $result = app(CardRepository::class)->dedupe($card2);
+        $this->assertTrue($result);
+
+        $this->assertDatabaseHas('card_duplicates', [
+            'primary_card_id'   => 2,
+            'duplicate_card_id' => 1,
+        ]);
+        $this->assertDatabaseHas('card_duplicates', [
+            'primary_card_id'   => 2,
+            'duplicate_card_id' => 3,
+        ]);
+
+        $card3->actual_modified_at = Carbon::now()->subDays(1);
+        $card3->save();
+        $result = app(CardRepository::class)->dedupe($card1);
+        $this->assertTrue($result);
+
+        $this->assertDatabaseHas('card_duplicates', [
+            'primary_card_id'   => 3,
+            'duplicate_card_id' => 1,
+        ]);
+        $this->assertDatabaseHas('card_duplicates', [
+            'primary_card_id'   => 3,
+            'duplicate_card_id' => 2,
+        ]);
+    }
+
+    public function testDedupeNoContent()
+    {
+        $card = Card::find(1);
+        $card->content('');
+        $card->save();
+        $result = app(CardRepository::class)->dedupe($card);
+
+        $this->assertFalse($result);
+
+        // Revert save so we don't have to rescaffold tests
+        $card->content('fake content here');
+        $card->save();
+    }
+
+    public function testDedupeNoDuplicates()
+    {
+        $card = Card::find(1);
+        $this->partialMock(CardRepository::class, function ($mock) {
+            $mock->shouldReceive('getDuplicates')->andReturn(collect([]));
+        });
+
+        $result = app(CardRepository::class)->dedupe($card);
+        $this->assertFalse($result);
     }
 }

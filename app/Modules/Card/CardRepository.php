@@ -101,4 +101,25 @@ class CardRepository
             ->orderBy('actual_created_at', 'desc')
             ->get();
     }
+
+    public function getDuplicates(Card $card): Collection
+    {
+        return collect(json_decode(\exec("python ~/Projects/Trig/Repos/machine-learning/src/dedupe.py {$card->id}")));
+    }
+
+    public function dedupe(Card $card): bool
+    {
+        if (! $card->content) {
+            return false;
+        }
+        $duplicateIds = $this->getDuplicates($card);
+        if ($duplicateIds->isEmpty()) {
+            return false;
+        }
+        // $cards =
+        // $duplicateIds->map(function($id) {
+        //     Card::find($id)
+        // });
+        return true;
+    }
 }

@@ -15,6 +15,8 @@ class CreateCardDuplicatesTable extends Migration
     {
         Schema::create('card_duplicates', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('primary_card_id');
+            $table->unsignedBigInteger('duplicate_card_id');
             $table->foreign('primary_card_id')->references('id')->on('cards');
             $table->foreign('duplicate_card_id')->references('id')->on('cards');
             $table->timestamps();
