@@ -205,15 +205,14 @@ class CardRepositoryTest extends TestCase
             return
                 'http://localhost:5000/dedupe' == $request->url() &&
                 $request['id'] == $card->id &&
-                $request['content'] == $card->content;
-            $request['organization_id'] == app(CardRepository::class)->getOrganization($card)->id;
+                $request['content'] == $card->content &&
+                $request['organization_id'] == app(CardRepository::class)->getOrganization($card)->id;
         });
     }
 
     public function testGetDuplicatesForbidden()
     {
         $card = Card::find(1);
-        \Http::fake();
         \Http::fake([
             '*' => \Http::response('Hello World', 403, ['Headers']),
         ]);
