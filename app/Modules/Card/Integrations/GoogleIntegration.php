@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
@@ -169,6 +170,10 @@ class GoogleIntegration implements IntegrationInterface
         });
         $card->properties = $data->toArray();
         $card->save();
+
+        if ($card->content) {
+            CardDedupe::dispatch($card)->onQueue('card-dedupe');
+        }
     }
 
     /**
