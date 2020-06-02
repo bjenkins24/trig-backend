@@ -143,7 +143,7 @@ class GoogleIntegration implements IntegrationInterface
     public function saveCardData(Card $card): void
     {
         $cardRepo = app(CardRepository::class);
-        $id = $cardRepo->getCardIntegration($card)->id;
+        $id = $cardRepo->getCardIntegration($card)->foreign_id;
         $mimeType = $cardRepo->getCardType($card)->name;
 
         $service = $this->getDriveService($cardRepo->getUser($card));
