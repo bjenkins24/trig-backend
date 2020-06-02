@@ -10,6 +10,7 @@ use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 class CardRepository
 {
@@ -103,9 +104,19 @@ class CardRepository
             ->get();
     }
 
-    public function getDuplicates(Card $card): Collection
+    public function getOrganization(Card $card)
     {
-        return collect(json_decode(\exec("python ~/Projects/Trig/Repos/machine-learning/src/dedupe.py {$card->id}")));
+        return $card->user()->first()->organizations()->first();
+    }
+
+    public function getDuplicates(Card $card)
+    {
+        return Http::post(\Config::get('app.data_processing_url'), [
+            'id'              => $card->id,
+            'content'         => $card->content,
+            'organization_id' => $this->getOrganization($card)->id,
+            'key'             => \Config::get('app.data_processing_api_key'),
+        ]);
     }
 
     public function dedupe(Card $card): bool

@@ -114,6 +114,12 @@ class CardRepositoryTest extends TestCase
         $this->assertEquals($permissions, []);
     }
 
+    public function testGetOrganization()
+    {
+        $organization = app(CardRepository::class)->getOrganization(Card::find(1));
+        $this->assertEquals(1, $organization->id);
+    }
+
     public function testDedupe()
     {
         $card1 = Card::find(1);
