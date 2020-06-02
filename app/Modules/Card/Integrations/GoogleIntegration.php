@@ -142,10 +142,11 @@ class GoogleIntegration implements IntegrationInterface
 
     public function saveCardData(Card $card): void
     {
-        $id = $card->cardIntegration()->first()->foreign_id;
-        $mimeType = $card->cardType()->first()->name;
+        $cardRepo = app(CardRepository::class);
+        $id = $cardRepo->getCardIntegration($card)->id;
+        $mimeType = $cardRepo->getCardType($card)->name;
 
-        $service = $this->getDriveService($card->user()->first());
+        $service = $this->getDriveService($cardRepo->getUser($card));
 
         // G Suite files need to be exported
         if (\Str::contains($mimeType, 'application/vnd.google-apps')) {

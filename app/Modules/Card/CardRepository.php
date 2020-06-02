@@ -5,6 +5,7 @@ namespace App\Modules\Card;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardIntegration;
+use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
@@ -101,6 +102,21 @@ class CardRepository
             ->with(['user:id,first_name,last_name,email'])
             ->orderBy('actual_created_at', 'desc')
             ->get();
+    }
+
+    public function getCardIntegration(Card $card): CardIntegration
+    {
+        return $card->cardIntegration()->first();
+    }
+
+    public function getCardType(Card $card): CardType
+    {
+        return $card->cardType()->first();
+    }
+
+    public function getUser(Card $card): User
+    {
+        return $card->user()->first();
     }
 
     public function getOrganization(Card $card)

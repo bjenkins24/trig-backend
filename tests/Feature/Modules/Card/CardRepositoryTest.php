@@ -120,6 +120,24 @@ class CardRepositoryTest extends TestCase
         $this->assertEquals(1, $organization->id);
     }
 
+    public function testGetCardIntegration()
+    {
+        $cardIntegration = app(CardRepository::class)->getCardIntegration(Card::find(1));
+        $this->assertEquals(1, $cardIntegration->id);
+    }
+
+    public function testGetCardType()
+    {
+        $cardType = app(CardRepository::class)->getCardType(Card::find(1));
+        $this->assertEquals(3, $cardType->id);
+    }
+
+    public function testGetUser()
+    {
+        $user = app(CardRepository::class)->getUser(Card::find(1));
+        $this->assertEquals(1, $user->id);
+    }
+
     public function testDedupe()
     {
         $card1 = Card::find(1);
