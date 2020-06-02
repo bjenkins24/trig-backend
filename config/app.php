@@ -66,7 +66,7 @@ return [
     /*
      * Data processing url
      */
-    'data_processsing_url'    => env('DATA_PROCESSING_URL', 'http://localhost:5000'),
+    'data_processing_url'     => env('DATA_PROCESSING_URL', 'http://localhost:5000'),
     'data_processing_api_key' => env('DATA_PROCESSING_API_KEY', ''),
 
     /*

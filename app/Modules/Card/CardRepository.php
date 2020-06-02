@@ -10,7 +10,6 @@ use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 
 class CardRepository
 {
@@ -109,14 +108,22 @@ class CardRepository
         return $card->user()->first()->organizations()->first();
     }
 
-    public function getDuplicates(Card $card)
+    public function getDuplicates(Card $card): Collection
     {
-        return Http::post(\Config::get('app.data_processing_url'), [
+        $response = \Http::post(\Config::get('app.data_processing_url').'/dedupe', [
             'id'              => $card->id,
             'content'         => $card->content,
             'organization_id' => $this->getOrganization($card)->id,
             'key'             => \Config::get('app.data_processing_api_key'),
         ]);
+        $statusCode = $response->getStatusCode();
+        if (200 !== $statusCode) {
+            \Log::notice('Deduping the card with the id '.$card->id.' from user '.$card->user()->first()->id.' failed with status code '.$statusCode);
+
+            return collect([]);
+        }
+
+        return collect(json_decode((string) $response->getBody()));
     }
 
     public function dedupe(Card $card): bool

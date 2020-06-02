@@ -195,4 +195,29 @@ class CardRepositoryTest extends TestCase
         $result = app(CardRepository::class)->dedupe($card);
         $this->assertFalse($result);
     }
+
+    public function testGetDuplicates()
+    {
+        $card = Card::find(1);
+        \Http::fake();
+        $result = app(CardRepository::class)->getDuplicates($card);
+        \Http::assertSent(function ($request) use ($card) {
+            return
+                'http://localhost:5000/dedupe' == $request->url() &&
+                $request['id'] == $card->id &&
+                $request['content'] == $card->content;
+            $request['organization_id'] == app(CardRepository::class)->getOrganization($card)->id;
+        });
+    }
+
+    public function testGetDuplicatesForbidden()
+    {
+        $card = Card::find(1);
+        \Http::fake();
+        \Http::fake([
+            '*' => \Http::response('Hello World', 403, ['Headers']),
+        ]);
+        $result = app(CardRepository::class)->getDuplicates($card);
+        $this->assertEquals(collect([]), $result);
+    }
 }
