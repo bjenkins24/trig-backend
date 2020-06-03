@@ -177,7 +177,7 @@ return [
         'local' => [
             'supervisor-1' => [
                 'connection' => 'redis',
-                'queue'      => ['default', 'sync-cards', 'card-data'],
+                'queue'      => ['default', 'sync-cards', 'card-data', 'card-dedupe'],
                 'balance'    => 'simple',
                 'processes'  => 3,
                 'tries'      => 1,

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
@@ -142,10 +143,11 @@ class GoogleIntegration implements IntegrationInterface
 
     public function saveCardData(Card $card): void
     {
-        $id = $card->cardIntegration()->first()->foreign_id;
-        $mimeType = $card->cardType()->first()->name;
+        $cardRepo = app(CardRepository::class);
+        $id = $cardRepo->getCardIntegration($card)->foreign_id;
+        $mimeType = $cardRepo->getCardType($card)->name;
 
-        $service = $this->getDriveService($card->user()->first());
+        $service = $this->getDriveService($cardRepo->getUser($card));
 
         // G Suite files need to be exported
         if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
@@ -168,6 +170,10 @@ class GoogleIntegration implements IntegrationInterface
         });
         $card->properties = $data->toArray();
         $card->save();
+
+        if ($card->content) {
+            CardDedupe::dispatch($card)->onQueue('card-dedupe');
+        }
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
+use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
@@ -148,24 +149,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
         $this->refreshDb();
     }
-
-    /**
-     * @return void
-     */
-    // public function testSyncCardsStop()
-    // {
-    //     $user = $this->syncDomains();
-    //     $this->partialMock(GoogleIntegration::class, function ($mock) {
-    //         $mock->shouldReceive('getFiles')->andReturn(collect([new FileFake()]))->once();
-    //         $mock->shouldReceive('createCard')->once();
-    //     });
-
-    //     \Queue::fake();
-
-    //     $result = app(GoogleIntegration::class)->syncCards($user);
-
-    //     \Queue::assertPushed(SyncCards::class, 0);
-    // }
 
     private function syncCardsFail($file)
     {
@@ -361,9 +344,16 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->getFiles($user);
     }
 
+    /**
+     * Undocumented function.
+     *
+     * @return void
+     * @group n
+     */
     public function testSaveCardData()
     {
         $card = Card::find(1);
+        \Queue::fake();
         $this->createOauthConnection($card->user()->first());
         $googleServiceMock = $this->mock(GoogleServiceDrive::class);
         $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
@@ -396,6 +386,7 @@ class GoogleIntegrationTest extends TestCase
             'content'    => $content,
             'properties' => json_encode($cardData->toArray()),
         ]);
+        \Queue::assertPushed(CardDedupe::class, 1);
     }
 
     public function testSaveCardDataGoogle()

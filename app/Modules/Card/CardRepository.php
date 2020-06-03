@@ -3,7 +3,9 @@
 namespace App\Modules\Card;
 
 use App\Models\Card;
+use App\Models\CardDuplicate;
 use App\Models\CardIntegration;
+use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
@@ -100,5 +102,88 @@ class CardRepository
             ->with(['user:id,first_name,last_name,email'])
             ->orderBy('actual_created_at', 'desc')
             ->get();
+    }
+
+    public function getCardIntegration(Card $card): CardIntegration
+    {
+        return $card->cardIntegration()->first();
+    }
+
+    public function getCardType(Card $card): CardType
+    {
+        return $card->cardType()->first();
+    }
+
+    public function getUser(Card $card): User
+    {
+        return $card->user()->first();
+    }
+
+    public function getOrganization(Card $card)
+    {
+        return $card->user()->first()->organizations()->first();
+    }
+
+    public function getDuplicates(Card $card): Collection
+    {
+        $response = \Http::post(\Config::get('app.data_processing_url').'/dedupe', [
+            'id'              => $card->id,
+            'content'         => $card->content,
+            'organization_id' => $this->getOrganization($card)->id,
+            'key'             => \Config::get('app.data_processing_api_key'),
+        ]);
+        $statusCode = $response->getStatusCode();
+        if (200 !== $statusCode) {
+            \Log::notice('Deduping the card with the id '.$card->id.' from user '.$card->user()->first()->id.' failed with status code '.$statusCode);
+
+            return collect([]);
+        }
+
+        return collect(json_decode((string) $response->getBody()));
+    }
+
+    public function dedupe(Card $card): bool
+    {
+        if (! $card->content) {
+            return false;
+        }
+        $duplicateIds = $this->getDuplicates($card);
+        if ($duplicateIds->isEmpty()) {
+            return false;
+        }
+        $duplicateIds->push($card->id);
+        // Get the most recently modified card duplicate and make that primary
+        $primary = $duplicateIds->reduce(function ($carry, $id) {
+            $card = Card::find($id);
+            if ($carry && $card->actual_modified_at->isBefore($carry['modified'])) {
+                return $carry;
+            }
+            if (! $carry || ($carry && $card->actual_modified_at->isAfter($carry['modified']))) {
+                return ['id' => $id, 'modified' => $card->actual_modified_at];
+            }
+        });
+
+        \DB::transaction(function () use ($card, $duplicateIds, $primary) {
+            $primaryDuplicates = $card->cardDuplicates()->get();
+            $primaryDuplicates->each(function ($cardDuplicate) {
+                $cardDuplicate->delete();
+            });
+            $primaryDuplicate = $card->primaryDuplicate()->first();
+            if ($primaryDuplicate) {
+                $primaryDuplicate->delete();
+            }
+
+            $duplicateIds->each(function ($id) use ($primary) {
+                if ($id === $primary['id']) {
+                    return;
+                }
+                CardDuplicate::create([
+                    'primary_card_id'   => $primary['id'],
+                    'duplicate_card_id' => $id,
+                ]);
+            });
+        });
+
+        return true;
     }
 }
