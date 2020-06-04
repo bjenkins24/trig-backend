@@ -3,6 +3,7 @@
 namespace App\Support\Traits\Relationships;
 
 use App\Models\Card;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait BelongsToCardCardDuplicate
 {

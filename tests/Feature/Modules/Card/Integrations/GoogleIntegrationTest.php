@@ -344,12 +344,6 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->getFiles($user);
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     * @group n
-     */
     public function testSaveCardData()
     {
         $card = Card::find(1);

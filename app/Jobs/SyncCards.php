@@ -17,6 +17,8 @@ class SyncCards implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public $timeout = 360;
+
     /**
      * @var User
      */

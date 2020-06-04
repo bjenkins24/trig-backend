@@ -79,6 +79,7 @@ class CardRepository
 
         return Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
+            ->collapse('card_duplicate_ids')
             ->from($page * $searchLimit)
             ->size($searchLimit)
             ->raw();
@@ -182,8 +183,46 @@ class CardRepository
                     'duplicate_card_id' => $id,
                 ]);
             });
+            $card->searchable();
         });
 
         return true;
+    }
+
+    /**
+     * Get duplicate ids in the form of a string for elastic search
+     * we collapse the elastic search query based on this field to make
+     * sure we only get one card that has duplicates. In order to make that happen
+     * each card that is a duplicate must have an identical field which is what we're
+     * making here.
+     */
+    public function getDuplicateIds(Card $card): string
+    {
+        $duplicates = $card->cardDuplicates()->get();
+        if ($duplicates->isEmpty()) {
+            return (string) $card->id;
+        }
+        $ids = $duplicates->reduce(function ($carry, $duplicate) {
+            $primary = $duplicate->primary_card_id;
+            $secondary = $duplicate->duplicate_card_id;
+            if (! $carry->contains($primary)) {
+                $carry->push($primary);
+            }
+            if (! $carry->contains($secondary)) {
+                $carry->push($secondary);
+            }
+
+            return $carry;
+        }, collect([]));
+
+        $ids = $ids->sort()->values();
+
+        return $ids->sort()->values()->reduce(function ($carry, $id) {
+            if (! $carry) {
+                return (string) $id;
+            }
+
+            return "{$carry}_{$id}";
+        });
     }
 }
