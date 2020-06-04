@@ -61,7 +61,9 @@ class Card extends BaseModel
      */
     public function toSearchableArray()
     {
-        $permissions = app(CardRepository::class)->denormalizePermissions($this)->toArray();
+        $cardRepo = app(CardRepository::class);
+        $permissions = $cardRepo->denormalizePermissions($this)->toArray();
+        $cardDuplicateIds = $cardRepo->getDuplicateIds();
 
         $docTitle = null;
         if ($this->properties) {
@@ -74,14 +76,15 @@ class Card extends BaseModel
         }
 
         return [
-            'user_id'           => $this->user_id,
-            'card_type_id'      => $this->card_type_id,
-            'organization_id'   => $organizationId,
-            'title'             => $this->title,
-            'doc_title'         => $docTitle,
-            'content'           => $this->content,
-            'permissions'       => $permissions,
-            'actual_created_at' => $this->actual_created_at,
+            'user_id'            => $this->user_id,
+            'card_type_id'       => $this->card_type_id,
+            'organization_id'    => $organizationId,
+            'title'              => $this->title,
+            'doc_title'          => $docTitle,
+            'content'            => $this->content,
+            'permissions'        => $permissions,
+            'actual_created_at'  => $this->actual_created_at,
+            'card_duplicate_ids' => $cardDuplicateIds,
         ];
     }
 }

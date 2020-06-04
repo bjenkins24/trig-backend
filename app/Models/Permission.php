@@ -11,6 +11,14 @@ class Permission extends BaseModel
     use HasPermissionType;
 
     /**
+     * Update a card when a permission is updated to make sure
+     * elastic search is up to date.
+     *
+     * @var array
+     */
+    protected $touches = ['permissionable'];
+
+    /**
      * Get the owning permissionable model.
      */
     public function permissionable()

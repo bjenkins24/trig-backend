@@ -3,6 +3,7 @@
 namespace Tests\Feature\Modules\Card;
 
 use App\Models\Card;
+use App\Models\CardDuplicate;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -236,5 +237,27 @@ class CardRepositoryTest extends TestCase
         ]);
         $result = app(CardRepository::class)->getDuplicates($card);
         $this->assertEquals(collect([]), $result);
+    }
+
+    public function testGetDuplicateIdsNoDuplicates()
+    {
+        $card = Card::find(1);
+        $result = app(CardRepository::class)->getDuplicateIds($card);
+        $this->assertEquals('1', $result);
+    }
+
+    public function testGetDuplicateIds()
+    {
+        $card = Card::find(2);
+        CardDuplicate::create([
+            'primary_card_id'   => 2,
+            'duplicate_card_id' => 4,
+        ]);
+        CardDuplicate::create([
+            'primary_card_id'   => 2,
+            'duplicate_card_id' => 3,
+        ]);
+        $result = app(CardRepository::class)->getDuplicateIds($card);
+        $this->assertEquals('2_3_4', $result);
     }
 }

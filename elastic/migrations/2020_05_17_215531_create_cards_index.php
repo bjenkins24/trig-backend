@@ -33,6 +33,7 @@ final class CreateCardsIndex implements MigrationInterface
                 ],
             ]);
             $mapping->text('content');
+            $mapping->keyword('card_duplicate_ids');
             $mapping->nested('permissions', [
                 'properties' => [
                     'id' => [
