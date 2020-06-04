@@ -24,6 +24,7 @@ class CardTest extends TestCase
             'doc_title'                   => \Config::get('constants.seed.card.doc_title'),
             'content'                     => \Config::get('constants.seed.card.content'),
             'permissions'                 => [],
+            'card_duplicate_ids'          => '1',
         ]);
     }
 }

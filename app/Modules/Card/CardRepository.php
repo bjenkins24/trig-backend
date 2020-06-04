@@ -183,6 +183,7 @@ class CardRepository
                     'duplicate_card_id' => $id,
                 ]);
             });
+            $card->searchable();
         });
 
         return true;

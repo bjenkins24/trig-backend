@@ -63,7 +63,7 @@ class Card extends BaseModel
     {
         $cardRepo = app(CardRepository::class);
         $permissions = $cardRepo->denormalizePermissions($this)->toArray();
-        $cardDuplicateIds = $cardRepo->getDuplicateIds();
+        $cardDuplicateIds = $cardRepo->getDuplicateIds($this);
 
         $docTitle = null;
         if ($this->properties) {
