@@ -82,13 +82,4 @@ class UserRepository
 
         return $user;
     }
-
-    public function getAllActiveIntegrations(User $user): Collection
-    {
-        $oauthConnections = $user->oauthConnections()->get();
-
-        return $oauthConnections->reduce(function ($carry, $connection) {
-            return $carry->push($connection->oauthIntegration()->first()->name);
-        }, collect([]));
-    }
 }

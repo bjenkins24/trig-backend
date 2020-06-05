@@ -35,11 +35,13 @@ class SyncCards implements ShouldQueue
      * @return void
      */
     public function __construct(
-        User $user,
-        string $integration
+        int $userId,
+        string $integration,
+        ?int $since = null
     ) {
-        $this->user = $user;
+        $this->userId = $userId;
         $this->integration = $integration;
+        $this->since = $since;
     }
 
     /**
@@ -49,6 +51,6 @@ class SyncCards implements ShouldQueue
      */
     public function handle()
     {
-        app(OauthIntegrationService::class)->makeCardIntegration($this->integration)->syncCards($this->user);
+        app(OauthIntegrationService::class)->makeCardIntegration($this->integration)->syncCards($this->userId, $since);
     }
 }

@@ -319,11 +319,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     */
     public function testGetFiles()
     {
         $nextPageToken = '12345';

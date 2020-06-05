@@ -37,6 +37,6 @@ class SetupGoogleIntegration implements ShouldQueue
     public function handle()
     {
         app(OauthIntegrationService::class)->makeCardIntegration('google')->syncDomains($this->user);
-        SyncCards::dispatch($this->user, 'google')->onQueue('sync-cards');
+        SyncCards::dispatch($this->user->id, 'google')->onQueue('sync-cards');
     }
 }

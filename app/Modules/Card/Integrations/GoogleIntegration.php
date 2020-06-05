@@ -22,6 +22,7 @@ use App\Utils\FileHelper;
 use Exception;
 use Google_Service_Directory as GoogleServiceDirectory;
 use Google_Service_Drive as GoogleServiceDrive;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class GoogleIntegration implements IntegrationInterface
@@ -90,21 +91,31 @@ class GoogleIntegration implements IntegrationInterface
         return $pageToken;
     }
 
-    public function getFiles(User $user)
+    public function getFiles(User $user, ?int $since = null)
     {
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
         $service = $this->getDriveService($user);
-        $params = [
-            'pageSize'  => self::PAGE_SIZE,
-            'fields'    => 'nextPageToken, files',
-            'pageToken' => $pageToken,
-        ];
 
-        $nextPageToken = $this->getNewNextPageToken($service, $params);
-        $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
+        if ($since) {
+            $params = [
+                'fields' => 'files',
+                'q'      => "modifiedTime > '".Carbon::createFromTimestamp($since)->toDateTimeLocalString()."'",
+            ];
+        } else {
+            $params = ['fields' => 'nextPageToken, files', 'pageToken' => $pageToken];
+        }
+
+        $params = array_merge([
+            'pageSize'  => self::PAGE_SIZE,
+        ], $params);
+
+        if (! $since) {
+            $nextPageToken = $this->getNewNextPageToken($service, $params);
+            $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
+        }
 
         return $this->listFilesFromService($service, $params);
     }
@@ -356,11 +367,10 @@ class GoogleIntegration implements IntegrationInterface
 
     /**
      * Sync cards from google.
-     *
-     * @return void
      */
-    public function syncCards(User $user): bool
+    public function syncCards(int $userId, ?int $since = null): bool
     {
+        $user = User::find($userId);
         $files = $this->getFiles($user);
 
         if (0 === $files->count()) {
@@ -374,7 +384,7 @@ class GoogleIntegration implements IntegrationInterface
         // Run the next page of syncing
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
         if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
-            SyncCards::dispatch($user, 'google')->onQueue('sync-cards');
+            SyncCards::dispatch($user->id, 'google')->onQueue('sync-cards');
         }
 
         return true;
