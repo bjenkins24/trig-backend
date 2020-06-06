@@ -184,9 +184,6 @@ class GoogleIntegrationTest extends TestCase
         $this->refreshDb();
     }
 
-    /**
-     * @group n
-     */
     public function testSyncCardsExistingCard()
     {
         $this->refreshDb();
