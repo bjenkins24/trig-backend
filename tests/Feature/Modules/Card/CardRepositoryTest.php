@@ -4,6 +4,7 @@ namespace Tests\Feature\Modules\Card;
 
 use App\Models\Card;
 use App\Models\CardDuplicate;
+use App\Models\Permission;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -259,5 +260,70 @@ class CardRepositoryTest extends TestCase
         ]);
         $result = app(CardRepository::class)->getDuplicateIds($card);
         $this->assertEquals('2_3_4', $result);
+    }
+
+    public function testGetByForeignId()
+    {
+        $cardId = 1;
+        $foreignId = Card::find($cardId)->cardIntegration()->first()->foreign_id;
+        $card = app(CardRepository::class)->getByForeignId($foreignId);
+        $this->assertEquals($card->id, $cardId);
+
+        $card = app(CardRepository::class)->getByForeignId('no way is this real');
+        $this->assertNull($card);
+    }
+
+    public function testNeedsUpdate()
+    {
+        $card = Card::find(1);
+        $card->actual_updated_at = Carbon::now()->subMonth();
+        $cardRepo = app(CardRepository::class);
+        $needsUpdate = $cardRepo->needsUpdate($card, time());
+        $this->assertTrue($needsUpdate);
+
+        $needsUpdate = $cardRepo->needsUpdate($card, strtotime('1980-04-26 14:00:00'));
+        $this->assertFalse($needsUpdate);
+
+        // If there's no card it def needs an update
+        $needsUpdate = $cardRepo->needsUpdate(null, time());
+        $this->assertTrue($needsUpdate);
+    }
+
+    public function testUpdateOrInsert()
+    {
+        $card = Card::find(1);
+        $title = 'my cool title';
+        app(CardRepository::class)->updateOrInsert(['title' => $title], $card);
+        $this->assertDatabaseHas('cards', [
+            'id'    => 1,
+            'title' => $title,
+        ]);
+
+        $newCardTitle = 'my new card';
+        $newCard = app(CardRepository::class)->updateOrInsert([
+            'title'              => $newCardTitle,
+            'user_id'            => 1,
+            'card_type_id'       => 2,
+            'url'                => 'haha',
+            'actual_created_at'  => '123',
+            'actual_modified_at' => '123',
+        ], null);
+        $this->assertDatabaseHas('cards', [
+            'title' => $newCardTitle,
+        ]);
+        $this->assertEquals($newCard->title, $newCardTitle);
+        $this->refreshDb();
+    }
+
+    public function testRemovePermissions()
+    {
+        $fields = [
+            'permissionable_type' => 'App\Models\Card',
+            'permissionable_id'   => 1,
+            'capability_id'       => 1,
+        ];
+        Permission::create($fields);
+        app(CardRepository::class)->removeAllPermissions(Card::find(1));
+        $this->assertDatabaseMissing('permissions', $fields);
     }
 }

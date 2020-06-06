@@ -15,8 +15,8 @@ class CreateCardIntegrationsTable extends Migration
     {
         Schema::create('card_integrations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('card_id')->constrained();
-            $table->foreignId('oauth_integration_id')->constrained();
+            $table->foreignId('card_id')->constrained()->onDelete('cascade');
+            $table->foreignId('oauth_integration_id')->constrained()->onDelete('cascade');
             $table->string('foreign_id')->index();
             $table->timestamps();
         });

@@ -15,8 +15,8 @@ class CreateOauthConnectionsTable extends Migration
     {
         Schema::create('oauth_connections', function (Blueprint $table) {
             $table->increments('id');
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('oauth_integration_id')->constrained();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('oauth_integration_id')->constrained()->onDelete('cascade');
             $table->string('access_token')->nullable();
             $table->string('refresh_token')->nullable();
             $table->string('expires')->nullable();

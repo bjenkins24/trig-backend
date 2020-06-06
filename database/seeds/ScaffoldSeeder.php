@@ -25,7 +25,7 @@ class ScaffoldSeeder extends Seeder
         $faker = Factory::create();
 
         if ('production' === env('APP_ENV')) {
-            throw new \Exception('The scaffolding seeder can not be run on production.');
+            throw new \Exception('The scaffolding seeder cannot be run on production.');
         }
 
         $user = User::where('email', \Config::get('constants.seed.email'))->first();

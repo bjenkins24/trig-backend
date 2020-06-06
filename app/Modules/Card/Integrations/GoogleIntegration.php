@@ -257,6 +257,10 @@ class GoogleIntegration implements IntegrationInterface
         $linkShareRepo = app(LinkShareSettingRepository::class);
         $permissions = collect($file->permissions);
         $permissionRepo = app(PermissionRepository::class);
+
+        // Remove permissions first so the sync isn't creating duplicates if we're just updating
+        app(CardRepository::class)->removeAllPermissions($card);
+
         $permissions->each(function ($permission) use ($card, $linkShareRepo, $permissionRepo, $user) {
             $capability = self::CAPABILITY_MAP[$permission->role];
             // Public on the internet - we can make this discoverable in Trig
@@ -280,24 +284,45 @@ class GoogleIntegration implements IntegrationInterface
         });
     }
 
-    public function createCard(User $user, $file): void
+    public function upsertCard(User $user, $file): void
     {
+        $cardRepo = app(CardRepository::class);
+        $card = $cardRepo->getByForeignId($file->id);
+        $isNew = false;
+        if (! $card) {
+            $isNew = true;
+        }
+
+        if ($file->trashed && $card) {
+            $card->delete();
+
+            return;
+        }
+
+        $needsUpdating = ! $cardRepo->needsUpdate($card, strtotime($file->modifiedTime));
+
         // Don't save trashed files or google drive folders
         // TODO: Save google drive folders so files can use the folders as tags
-        if ($file->trashed || 'application/vnd.google-apps.folder' === $file->mimeType) {
+        if (
+            $file->trashed ||
+            'application/vnd.google-apps.folder' === $file->mimeType ||
+            ! $needsUpdating
+        ) {
             return;
         }
 
         $cardType = app(CardTypeRepository::class)->firstOrCreate($file->mimeType);
 
-        $card = app(UserRepository::class)->createCard($user, [
+        $card = $cardRepo->updateOrInsert([
+            'user_id'                   => $user->id,
             'card_type_id'              => $cardType->id,
             'title'                     => $file->name,
             'actual_created_at'         => $file->createdTime,
             'actual_modified_at'        => $file->modifiedTime,
             'description'               => $file->description,
             'url'                       => $file->webViewLink,
-        ]);
+        ], $card);
+
         if (! $card) {
             return;
         }
@@ -307,7 +332,9 @@ class GoogleIntegration implements IntegrationInterface
             SaveCardData::dispatch($card, 'google')->onQueue('card-data');
         }
 
-        app(CardRepository::class)->createIntegration($card, $file->id, GoogleConnection::getKey());
+        if ($isNew) {
+            $cardRepo->createIntegration($card, $file->id, GoogleConnection::getKey());
+        }
     }
 
     /**
@@ -378,13 +405,13 @@ class GoogleIntegration implements IntegrationInterface
         }
 
         $files->each(function ($file) use ($user) {
-            $this->createCard($user, $file);
+            $this->upsertCard($user, $file);
         });
 
         // Run the next page of syncing
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
         if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
-            SyncCards::dispatch($user->id, 'google')->onQueue('sync-cards');
+            // SyncCards::dispatch($userId, 'google')->onQueue('sync-cards');
         }
 
         return true;

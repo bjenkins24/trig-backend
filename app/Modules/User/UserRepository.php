@@ -2,7 +2,6 @@
 
 namespace App\Modules\User;
 
-use App\Models\Card;
 use App\Models\OauthConnection;
 use App\Models\Permission;
 use App\Models\PermissionType;
@@ -34,16 +33,6 @@ class UserRepository
         return $user->permissionType()->create([
             'permission_id' => $permission->id,
         ]);
-    }
-
-    /**
-     * Create Card.
-     *
-     * @return Card
-     */
-    public function createCard(User $user, array $input): ?Card
-    {
-        return $user->cards()->create($input);
     }
 
     /**

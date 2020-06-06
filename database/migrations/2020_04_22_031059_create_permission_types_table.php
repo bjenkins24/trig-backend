@@ -16,7 +16,7 @@ class CreatePermissionTypesTable extends Migration
         Schema::create('permission_types', function (Blueprint $table) {
             $table->id();
             $table->nullableMorphs('typeable');
-            $table->foreignId('permission_id')->constrained();
+            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
