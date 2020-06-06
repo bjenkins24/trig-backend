@@ -17,7 +17,6 @@ use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
 use App\Modules\Permission\PermissionRepository;
-use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
@@ -127,13 +126,15 @@ class GoogleIntegrationTest extends TestCase
 
     public function testNoSyncWhenUpToDate()
     {
+        $this->refreshDb();
         $user = User::find(1);
         $file = new FileFake();
         $file->name = 'My cool title';
         $file->id = 'up_to_date_fake_id';
-        $file->modified_time = '1980-01-01 10:35:00';
+        $file->modifiedTime = '1980-01-01 10:35:00';
         $cardIntegration = CardIntegration::find(1);
         $cardIntegration->foreign_id = $file->id;
+        $cardIntegration->save();
 
         $this->partialMock(GoogleIntegration::class, function ($mock) {
             $mock->shouldNotReceive('saveThumbnail');
@@ -146,6 +147,7 @@ class GoogleIntegrationTest extends TestCase
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncCardsContinue()
     {
@@ -222,25 +224,7 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
         });
 
-        $result = app(GoogleIntegration::class)->syncCards($user->id);
-    }
-
-    /**
-     * Test syncing all integrations.
-     *
-     * @return void
-     */
-    public function testSyncCardsFail()
-    {
-        $this->partialMock(UserRepository::class, function ($mock) {
-            $mock->shouldReceive('createCard')->andReturn(null)->once();
-        });
-        $file = new FileFake();
-        $file->name = 'My failed name';
-        $this->syncCardsFail($file);
-        $this->assertDatabaseMissing('cards', [
-            'title' => $file->name,
-        ]);
+        return  app(GoogleIntegration::class)->syncCards($user->id);
     }
 
     /**

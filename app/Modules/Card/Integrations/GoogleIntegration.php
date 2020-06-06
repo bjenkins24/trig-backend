@@ -399,6 +399,8 @@ class GoogleIntegration implements IntegrationInterface
 
     /**
      * Sync cards from google.
+     *
+     * @group n
      */
     public function syncCards(int $userId, ?int $since = null): bool
     {
