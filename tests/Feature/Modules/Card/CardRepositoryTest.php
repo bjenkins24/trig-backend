@@ -276,7 +276,7 @@ class CardRepositoryTest extends TestCase
     public function testNeedsUpdate()
     {
         $card = Card::find(1);
-        $card->actual_updated_at = Carbon::now()->subMonth();
+        $card->actual_modified_at = Carbon::now()->subMonth();
         $cardRepo = app(CardRepository::class);
         $needsUpdate = $cardRepo->needsUpdate($card, time());
         $this->assertTrue($needsUpdate);

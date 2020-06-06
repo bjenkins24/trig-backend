@@ -259,7 +259,7 @@ class CardRepository
             return true;
         }
 
-        return $lastModified > strtotime($card->actual_updated_at);
+        return $lastModified > strtotime($card->actual_modified_at);
     }
 
     public function removeAllPermissions(Card $card): void

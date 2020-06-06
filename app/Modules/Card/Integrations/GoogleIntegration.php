@@ -299,7 +299,7 @@ class GoogleIntegration implements IntegrationInterface
             return;
         }
 
-        $needsUpdating = ! $cardRepo->needsUpdate($card, strtotime($file->modifiedTime));
+        $needsUpdating = $cardRepo->needsUpdate($card, strtotime($file->modifiedTime));
 
         // Don't save trashed files or google drive folders
         // TODO: Save google drive folders so files can use the folders as tags
@@ -411,7 +411,7 @@ class GoogleIntegration implements IntegrationInterface
         // Run the next page of syncing
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, GoogleConnection::getKey());
         if ($oauthConnection->properties && $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY)) {
-            // SyncCards::dispatch($userId, 'google')->onQueue('sync-cards');
+            SyncCards::dispatch($userId, 'google')->onQueue('sync-cards');
         }
 
         return true;

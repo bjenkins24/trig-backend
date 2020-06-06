@@ -189,12 +189,14 @@ class GoogleIntegrationTest extends TestCase
      */
     public function testSyncCardsExistingCard()
     {
+        $this->refreshDb();
         $user = $this->syncDomains();
         $file = new FileFake();
         $file->name = 'My cool title';
         $file->id = 'super fake id';
         $file->modifiedTime = '2020-06-24 12:00:00';
         $nextPageToken = 'next_page_token';
+        \Queue::fake();
         CardIntegration::create([
             'card_id'              => 1,
             'oauth_integration_id' => 1,
@@ -209,7 +211,7 @@ class GoogleIntegrationTest extends TestCase
         });
 
         $result = app(GoogleIntegration::class)->syncCards($user->id);
-
+        \Queue::assertPushed(SaveCardData::class, 1);
         $this->refreshDb();
     }
 
