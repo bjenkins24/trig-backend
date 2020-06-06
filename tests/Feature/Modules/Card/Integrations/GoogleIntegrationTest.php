@@ -130,14 +130,16 @@ class GoogleIntegrationTest extends TestCase
         $user = User::find(1);
         $file = new FileFake();
         $file->name = 'My cool title';
-        $file->id = 'not_up_to_date_fake_id';
+        $file->id = 'up_to_date_fake_id';
         $file->modified_time = '1980-01-01 10:35:00';
+        $cardIntegration = CardIntegration::find(1);
+        $cardIntegration->foreign_id = $file->id;
+
+        $this->partialMock(GoogleIntegration::class, function ($mock) {
+            $mock->shouldNotReceive('saveThumbnail');
+        });
 
         app(GoogleIntegration::class)->upsertCard($user, $file);
-
-        $this->assertDatabaseMissing('card_integrations', [
-            'foreign_id' => $file->id,
-        ]);
     }
 
     /**

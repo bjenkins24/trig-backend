@@ -6,6 +6,7 @@ use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardIntegration;
 use App\Models\CardType;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
@@ -105,22 +106,22 @@ class CardRepository
             ->get();
     }
 
-    public function getCardIntegration(Card $card): CardIntegration
+    public function getCardIntegration(Card $card): ?CardIntegration
     {
         return $card->cardIntegration()->first();
     }
 
-    public function getCardType(Card $card): CardType
+    public function getCardType(Card $card): ?CardType
     {
         return $card->cardType()->first();
     }
 
-    public function getUser(Card $card): User
+    public function getUser(Card $card): ?User
     {
         return $card->user()->first();
     }
 
-    public function getOrganization(Card $card)
+    public function getOrganization(Card $card): Organization
     {
         return $card->user()->first()->organizations()->first();
     }

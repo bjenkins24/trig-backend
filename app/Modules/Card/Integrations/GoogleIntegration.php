@@ -155,7 +155,11 @@ class GoogleIntegration implements IntegrationInterface
     public function saveCardData(Card $card): void
     {
         $cardRepo = app(CardRepository::class);
-        $id = $cardRepo->getCardIntegration($card)->foreign_id;
+        $cardIntegration = $cardRepo->getCardIntegration($card);
+        if (! $cardIntegration) {
+            return;
+        }
+        $id = $cardIntegration->foreign_id;
         $mimeType = $cardRepo->getCardType($card)->name;
 
         $service = $this->getDriveService($cardRepo->getUser($card));
@@ -328,12 +332,13 @@ class GoogleIntegration implements IntegrationInterface
         }
         $this->saveThumbnail($user, $card, $file);
         $this->savePermissions($user, $card, $file);
-        if (! ExtractDataHelper::isExcluded($file->mimeType)) {
-            SaveCardData::dispatch($card, 'google')->onQueue('card-data');
-        }
 
         if ($isNew) {
             $cardRepo->createIntegration($card, $file->id, GoogleConnection::getKey());
+        }
+
+        if (! ExtractDataHelper::isExcluded($file->mimeType)) {
+            SaveCardData::dispatch($card, 'google')->onQueue('card-data');
         }
     }
 
