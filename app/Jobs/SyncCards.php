@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,9 +19,9 @@ class SyncCards implements ShouldQueue
     public $timeout = 360;
 
     /**
-     * @var User
+     * @var int
      */
-    public User $user;
+    public int $userId;
 
     /**
      * @var string
@@ -30,16 +29,23 @@ class SyncCards implements ShouldQueue
     public string $integration;
 
     /**
+     * @var int
+     */
+    public ?int $since;
+
+    /**
      * Create a new job instance.
      *
      * @return void
      */
     public function __construct(
-        User $user,
-        string $integration
+        int $userId,
+        string $integration,
+        ?int $since = null
     ) {
-        $this->user = $user;
+        $this->userId = $userId;
         $this->integration = $integration;
+        $this->since = $since;
     }
 
     /**
@@ -49,6 +55,8 @@ class SyncCards implements ShouldQueue
      */
     public function handle()
     {
-        app(OauthIntegrationService::class)->makeCardIntegration($this->integration)->syncCards($this->user);
+        app(OauthIntegrationService::class)
+            ->makeCardIntegration($this->integration)
+            ->syncCards($this->userId, $this->since);
     }
 }

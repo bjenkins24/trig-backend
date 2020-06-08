@@ -90,7 +90,7 @@ class UserService
         $connections = $this->userRepo->getAllOauthConnections($user);
         foreach ($connections as $connection) {
             $integration = $this->oauthConnectionRepo->getIntegration($connection)->name;
-            SyncCards::dispatch($user, $integration)->onQueue('sync-cards');
+            SyncCards::dispatch($user->id, $integration)->onQueue('sync-cards');
         }
     }
 }

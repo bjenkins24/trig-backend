@@ -6,6 +6,7 @@ use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardIntegration;
 use App\Models\CardType;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
@@ -105,22 +106,22 @@ class CardRepository
             ->get();
     }
 
-    public function getCardIntegration(Card $card): CardIntegration
+    public function getCardIntegration(Card $card): ?CardIntegration
     {
         return $card->cardIntegration()->first();
     }
 
-    public function getCardType(Card $card): CardType
+    public function getCardType(Card $card): ?CardType
     {
         return $card->cardType()->first();
     }
 
-    public function getUser(Card $card): User
+    public function getUser(Card $card): ?User
     {
         return $card->user()->first();
     }
 
-    public function getOrganization(Card $card)
+    public function getOrganization(Card $card): Organization
     {
         return $card->user()->first()->organizations()->first();
     }
@@ -223,6 +224,53 @@ class CardRepository
             }
 
             return "{$carry}_{$id}";
+        });
+    }
+
+    public function getByForeignId(string $foreignId): ?Card
+    {
+        $cardIntegration = CardIntegration::where(['foreign_id' => $foreignId])->first();
+        if (! $cardIntegration) {
+            return null;
+        }
+
+        return $cardIntegration->card()->first();
+    }
+
+    public function updateOrInsert(array $fields, ?Card $card): ?Card
+    {
+        if ($card) {
+            $card->update($fields);
+
+            return $card;
+        }
+
+        return Card::create($fields);
+    }
+
+    /**
+     * Check if the card has been modified after our entry.
+     *
+     * @param Card $card
+     * @param int  $lastModified
+     */
+    public function needsUpdate(?Card $card, ?int $lastModified): bool
+    {
+        if (! $card || ! $lastModified) {
+            return true;
+        }
+
+        return $lastModified > strtotime($card->actual_modified_at);
+    }
+
+    public function removeAllPermissions(Card $card): void
+    {
+        $permissions = $card->permissions()->get();
+        if (! $permissions) {
+            return;
+        }
+        $permissions->each(function ($permission) {
+            $permission->delete();
         });
     }
 }

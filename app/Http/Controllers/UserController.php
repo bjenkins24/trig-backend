@@ -11,7 +11,6 @@ use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
-use App\Models\Card;
 use App\Models\User;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
@@ -147,8 +146,8 @@ class UserController extends Controller
 
     public function testGoogle(Request $request)
     {
-        $card = Card::find(6);
-        $files = $this->oauthIntegrationService->makeCardIntegration('google')->saveCardData($card);
+        $user = $request->user();
+        $files = $this->oauthIntegrationService->makeCardIntegration('google')->getFiles($user, strtotime('-20 days'));
 
         return response()->json(['data' => $files]);
     }

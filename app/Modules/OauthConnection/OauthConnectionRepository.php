@@ -83,4 +83,20 @@ class OauthConnectionRepository
 
         return $oauthConnection->save();
     }
+
+    public function getAllActiveConnections(): Collection
+    {
+        $connections = OauthConnection::select('user_id', 'oauth_integration_id')->get();
+        $integrations = OauthIntegration::select('id', 'name')->get();
+
+        $integrations = $integrations->reduce(function ($carry, $integration) {
+            $carry[$integration->id] = $integration->name;
+
+            return $carry;
+        });
+
+        return collect($connections->map(function ($connection) use ($integrations) {
+            return ['user_id' => $connection->user_id, 'key' => $integrations[$connection->oauth_integration_id]];
+        }));
+    }
 }

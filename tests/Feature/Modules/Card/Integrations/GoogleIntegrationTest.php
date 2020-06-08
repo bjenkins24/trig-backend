@@ -6,16 +6,17 @@ use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards;
 use App\Models\Card;
+use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
 use App\Modules\Permission\PermissionRepository;
-use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
@@ -106,17 +107,54 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
+    public function testDeleteTrashedCard()
+    {
+        $user = User::find(1);
+        $file = new FileFake();
+        $file->name = 'My cool title';
+        $foreign_id = Card::find(1)->cardIntegration()->first()->foreign_id;
+        $file->id = $foreign_id;
+        $file->trashed = true;
+
+        app(GoogleIntegration::class)->upsertCard($user, $file);
+
+        $this->assertDatabaseMissing('cards', [
+            'id' => 1,
+        ]);
+        $this->refreshDb();
+    }
+
+    public function testNoSyncWhenUpToDate()
+    {
+        $this->refreshDb();
+        $user = User::find(1);
+        $file = new FileFake();
+        $file->name = 'My cool title';
+        $file->id = 'up_to_date_fake_id';
+        $file->modifiedTime = '1980-01-01 10:35:00';
+        $cardIntegration = CardIntegration::find(1);
+        $cardIntegration->foreign_id = $file->id;
+        $cardIntegration->save();
+
+        $this->partialMock(GoogleIntegration::class, function ($mock) {
+            $mock->shouldNotReceive('saveThumbnail');
+        });
+
+        app(GoogleIntegration::class)->upsertCard($user, $file);
+    }
+
     /**
      * Test syncing all integrations.
      *
      * @return void
+     * @group n
      */
     public function testSyncCardsContinue()
     {
         $user = $this->syncDomains();
         $file = new FileFake();
         $file->name = 'My cool title';
-        $file->id = 'fakeid';
+        $file->id = 'super fake id';
         $nextPageToken = 'next_page_token';
         $this->partialMock(GoogleIntegration::class, function ($mock) use ($file, $nextPageToken) {
             $mock->shouldReceive('saveThumbnail')->twice();
@@ -127,7 +165,7 @@ class GoogleIntegrationTest extends TestCase
 
         \Queue::fake();
 
-        $result = app(GoogleIntegration::class)->syncCards($user);
+        $result = app(GoogleIntegration::class)->syncCards($user->id);
 
         \Queue::assertPushed(SyncCards::class, 1);
         \Queue::assertPushed(SaveCardData::class, 2);
@@ -150,6 +188,34 @@ class GoogleIntegrationTest extends TestCase
         $this->refreshDb();
     }
 
+    public function testSyncCardsExistingCard()
+    {
+        $this->refreshDb();
+        $user = $this->syncDomains();
+        $file = new FileFake();
+        $file->name = 'My cool title';
+        $file->id = 'super fake id';
+        $file->modifiedTime = '2020-06-24 12:00:00';
+        $nextPageToken = 'next_page_token';
+        \Queue::fake();
+        CardIntegration::create([
+            'card_id'              => 1,
+            'oauth_integration_id' => 1,
+            'foreign_id'           => $file->id,
+        ]);
+        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file, $nextPageToken) {
+            $mock->shouldNotReceive('createIntegration');
+            $mock->shouldReceive('saveThumbnail')->once();
+            $mock->shouldReceive('savePermissions')->once();
+            $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->once();
+            $mock->shouldReceive('listFilesFromService')->andReturn(collect([$file]))->once();
+        });
+
+        $result = app(GoogleIntegration::class)->syncCards($user->id);
+        \Queue::assertPushed(SaveCardData::class, 1);
+        $this->refreshDb();
+    }
+
     private function syncCardsFail($file)
     {
         $user = User::find(1);
@@ -158,25 +224,7 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
         });
 
-        $result = app(GoogleIntegration::class)->syncCards($user);
-    }
-
-    /**
-     * Test syncing all integrations.
-     *
-     * @return void
-     */
-    public function testSyncCardsFail()
-    {
-        $this->partialMock(UserRepository::class, function ($mock) {
-            $mock->shouldReceive('createCard')->andReturn(null)->once();
-        });
-        $file = new FileFake();
-        $file->name = 'My failed name';
-        $this->syncCardsFail($file);
-        $this->assertDatabaseMissing('cards', [
-            'title' => $file->name,
-        ]);
+        return  app(GoogleIntegration::class)->syncCards($user->id);
     }
 
     /**
@@ -189,7 +237,7 @@ class GoogleIntegrationTest extends TestCase
         $this->partialMock(GoogleIntegration::class, function ($mock) {
             $mock->shouldReceive('getFiles')->andReturn(collect([]))->once();
         });
-        $result = app(GoogleIntegration::class)->syncCards(User::find(1));
+        $result = app(GoogleIntegration::class)->syncCards(1);
         $this->assertFalse($result);
     }
 
@@ -274,9 +322,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
-    /**
-     * Save permissions.
-     */
     public function testSavePermissions()
     {
         $user = $this->syncDomains();
@@ -292,6 +337,9 @@ class GoogleIntegrationTest extends TestCase
         });
         $this->partialMock(PermissionRepository::class, function ($mock) {
             $mock->shouldReceive('createEmail')->once();
+        });
+        $this->partialMock(CardRepository::class, function ($mock) {
+            $mock->shouldReceive('removeAllPermissions')->once();
         });
         app(GoogleIntegration::class)->savePermissions($user, $card, $file);
     }
@@ -319,11 +367,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
-    /**
-     * Undocumented function.
-     *
-     * @return void
-     */
     public function testGetFiles()
     {
         $nextPageToken = '12345';
