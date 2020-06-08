@@ -31,6 +31,8 @@ class GoogleIntegration implements IntegrationInterface
     const PAGE_SIZE = 30;
     const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
+    const WEBHOOK_URL = '/webhooks/google-drive';
+
     /**
      * The keys in this array are google roles and the values are what they map
      * to in Trig.
@@ -397,10 +399,34 @@ class GoogleIntegration implements IntegrationInterface
         return true;
     }
 
+    public function watchFiles(User $user): void
+    {
+        $webhookId = \Str::uuid();
+
+        $oauthConnection = app(UserRepository::class)->getOauthConnection($user, 'google');
+        // If we are already watching for changes then no need to hit endpoint again
+        if ($oauthConnection->properties->webhook_id) {
+            return;
+        }
+
+        try {
+            $expiration = Carbon::now()->addSeconds(604800)->timestamp;
+            $response = \Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
+                'id'              => $webhookId,
+                'address'         => \Config::get('app.url').self::WEBHOOKS_URL,
+                'type'            => 'web_hook',
+                'expiration'      => $expiration * 1000,
+            ]);
+            $oauthConnection->properties['webhook_id'] = $webhookId;
+            $oauthConnection->properties['webhook_expiration'] = $expiration;
+            $oauthConnection->save();
+        } catch (\Exception $e) {
+            \Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
+        }
+    }
+
     /**
      * Sync cards from google.
-     *
-     * @group n
      */
     public function syncCards(int $userId, ?int $since = null): bool
     {
