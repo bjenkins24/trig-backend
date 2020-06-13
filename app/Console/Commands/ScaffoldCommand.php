@@ -42,6 +42,7 @@ class ScaffoldCommand extends Command
         }
         $this->call('migrate:fresh');
         $this->call('passport:install');
+        $this->call('elastic:migrate:refresh');
         if ('testing' !== \Config::get('app.env')) {
             $this->call('elastic:migrate');
             $this->call('queue:clear');

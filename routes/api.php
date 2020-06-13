@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Card\Integration\GoogleIntegration;
+use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Support\Facades\Route;
 
 /*

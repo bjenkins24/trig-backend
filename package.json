@@ -7,7 +7,12 @@
         "bootstrap": "composer install && php artisan storage:link && php artisan horizon:install && npm run scaffold",
         "elastic": "php artisan elastic:migrate:refresh && php artisan scout:import \"App\\Models\\Card\"",
         "log": "vi storage/logs/laravel.log",
-        "tn": "php artisan test --group n"
+        "tn": "php artisan test --group n",
+        "docker:stop": "docker container prune -f",
+        "docker:remove:volumes": "docker volume rm $(docker volume ls -qf dangling=true)",
+        "docker:remove:images": "docker image prune -a -f",
+        "docker:clean": "npm run docker:stop && npm run docker:remove:images && npm run docker:remove:volumes",
+        "start": "docker-compose up -d"
     },
     "husky": {
         "hooks": {

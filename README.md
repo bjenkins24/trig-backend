@@ -1,5 +1,9 @@
+# Docker start
+* `docker-compose up`
+* Docker is really slow on a mac. This will help, but it will still be slow: [Setting up NSF on Mac](https://blog.fingo.pl/speed-up-docker-using-nfs-volumes/). The docker-compose volumes are set up already just gotta enable it on your mac.
+
 # Get Up and Running
-Things you have to install:
+If you want to avoid docker locally you can do all of this:
 * `brew update`
 * `brew install mysql@8.0`
 * `brew install php@7.4.3`
