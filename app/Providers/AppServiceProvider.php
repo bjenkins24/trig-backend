@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\SQLiteConnection;
 
 class AppServiceProvider extends ServiceProvider
 {

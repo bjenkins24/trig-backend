@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,21 +17,9 @@ class SyncCards implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public $timeout = 360;
-
-    /**
-     * @var int
-     */
+    public int $timeout = 360;
     public int $userId;
-
-    /**
-     * @var string
-     */
     public string $integration;
-
-    /**
-     * @var int
-     */
     public ?int $since;
 
     /**
@@ -50,6 +39,8 @@ class SyncCards implements ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * @throws OauthIntegrationNotFound
      *
      * @return void
      */

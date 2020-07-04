@@ -56,8 +56,6 @@ class Card extends BaseModel
 
     /**
      * The fields index by elastic search.
-     *
-     * @return array
      */
     public function toSearchableArray(): array
     {

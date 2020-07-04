@@ -45,6 +45,7 @@ class OauthConnectionRepository
 
     /**
      * Create a new connection.
+     *
      * @throws OauthMissingTokens
      */
     public function create(User $user, string $integration, Collection $authConnection): OauthConnection

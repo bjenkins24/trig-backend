@@ -2,6 +2,7 @@
 
 namespace App\Modules\OauthIntegration;
 
+use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Exception;
@@ -24,7 +25,7 @@ class OauthIntegrationService
     /**
      * @throws OauthIntegrationNotFound
      */
-    public function makeCardIntegration(string $integration): OauthConnectionInterface
+    public function makeCardIntegration(string $integration): IntegrationInterface
     {
         return $this->makeIntegration(
             'App\\Modules\\Card\\Integrations',
@@ -34,11 +35,13 @@ class OauthIntegrationService
     }
 
     /**
-     * Make an integration class using the fully qualified path.
+     *  Make an integration class using the fully qualified path.
      *
      * @throws OauthIntegrationNotFound
+     *
+     * @return IntegrationInterface|OauthConnectionInterface
      */
-    public function makeIntegration(string $path, string $integration, string $type): OauthConnectionInterface
+    public function makeIntegration(string $path, string $integration, string $type)
     {
         $className = Str::studly($integration);
         $classType = Str::ucfirst($type);

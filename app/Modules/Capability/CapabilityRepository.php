@@ -8,9 +8,6 @@ class CapabilityRepository
 {
     /**
      * Get a Capability.
-     *
-     * @param string $name
-     * @return Capability
      */
     public function get(string $name): Capability
     {

@@ -34,6 +34,7 @@ class CardRepository
      * Find a connection for a user.
      *
      * @param string|int $foreignId
+     *
      * @throws CardIntegrationCreationValidate
      */
     public function createIntegration(Card $card, $foreignId, string $integrationName): ?CardIntegration
