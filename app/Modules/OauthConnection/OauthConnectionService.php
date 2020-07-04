@@ -26,6 +26,8 @@ class OauthConnectionService
 
     /**
      * Get an access token either from the DB or from a refresh token.
+     * @throws Exceptions\OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function getAccessToken(User $user, string $integration): string
     {
@@ -63,7 +65,7 @@ class OauthConnectionService
     /**
      * Get the access token and store the connection.
      *
-     * @return User
+     * @throws Exceptions\OauthMissingTokens
      */
     public function createConnection(User $user, string $integration, string $authToken): OauthConnection
     {

@@ -45,6 +45,7 @@ class OauthConnectionRepository
 
     /**
      * Create a new connection.
+     * @throws OauthMissingTokens
      */
     public function create(User $user, string $integration, Collection $authConnection): OauthConnection
     {
@@ -52,7 +53,7 @@ class OauthConnectionRepository
             $message = 'A token from the oauth authentication process was not present. The oauth connection failed.';
             if (env('APP_ENV', 'local')) {
                 $message = 'Your access refresh or expires was missing from the response. Sometimes services like
-                Google SSO will only give you the refresh token on their first connection. If your account is already 
+                Google SSO will only give you the refresh token on their first connection. If your account is already
                 connected to Google, you\'ll need to remove permissions from your google account in your google account
                 settings before trying again';
             }

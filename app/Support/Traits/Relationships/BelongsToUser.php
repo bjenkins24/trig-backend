@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToUser
 {
     /**
      * Belongs to user.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo('App\Models\User');
     }

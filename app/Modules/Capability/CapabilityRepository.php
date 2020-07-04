@@ -9,9 +9,8 @@ class CapabilityRepository
     /**
      * Get a Capability.
      *
-     * @param [string] $Capability like reader or writer
-     *
-     * @return void
+     * @param string $name
+     * @return Capability
      */
     public function get(string $name): Capability
     {

@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToOrganization
 {
     /**
      * Belongs to Organization.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function organization()
+    public function organization(): BelongsTo
     {
         return $this->belongsTo('App\Models\Organization');
     }

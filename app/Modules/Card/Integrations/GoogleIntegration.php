@@ -24,6 +24,10 @@ use Google_Service_Directory as GoogleServiceDirectory;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class GoogleIntegration implements IntegrationInterface
 {
@@ -81,7 +85,7 @@ class GoogleIntegration implements IntegrationInterface
     /**
      * Get the next page token in the database if it exists.
      *
-     * @param OauthConnection $oauthConenection
+     * @param OauthConnection $oauthConnection
      */
     public function getCurrentNextPageToken(OauthConnection $oauthConnection): ?string
     {
@@ -252,7 +256,7 @@ class GoogleIntegration implements IntegrationInterface
             $card->image = \Config::get('app.url').\Storage::url($imagePathWithExtension);
             $card->image_width = $thumbnail->get('width');
             $card->image_height = $thumbnail->get('height');
-            $card = $card->save();
+            $card->save();
         }
 
         return true;
@@ -373,7 +377,7 @@ class GoogleIntegration implements IntegrationInterface
             // my_customer get's the domains for the current customer which is what we want
             // weird API, but that's 100% Google
             return $service->domains->listDomains('my_customer')->domains;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $error = json_decode($e->getMessage());
             if (! $error || 404 !== $error->error->code) {
                 \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
@@ -401,7 +405,7 @@ class GoogleIntegration implements IntegrationInterface
 
     public function watchFiles(User $user): void
     {
-        $webhookId = \Str::uuid();
+        $webhookId = Str::uuid();
 
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, 'google');
         // If we are already watching for changes then no need to hit endpoint again
@@ -411,17 +415,17 @@ class GoogleIntegration implements IntegrationInterface
 
         try {
             $expiration = Carbon::now()->addSeconds(604800)->timestamp;
-            $response = \Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
+            Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
                 'id'              => $webhookId,
-                'address'         => \Config::get('app.url').self::WEBHOOKS_URL,
+                'address'         => Config::get('app.url').self::WEBHOOKS_URL,
                 'type'            => 'web_hook',
                 'expiration'      => $expiration * 1000,
             ]);
             $oauthConnection->properties['webhook_id'] = $webhookId;
             $oauthConnection->properties['webhook_expiration'] = $expiration;
             $oauthConnection->save();
-        } catch (\Exception $e) {
-            \Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
         }
     }
 

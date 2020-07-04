@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToOauthIntegration
 {
     /**
      * Belongs to oauthIntegration.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function oauthIntegration()
+    public function oauthIntegration(): BelongsTo
     {
         return $this->belongsTo('App\Models\OauthIntegration');
     }

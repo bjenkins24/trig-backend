@@ -7,7 +7,8 @@
         "bootstrap": "composer install && php artisan storage:link && php artisan horizon:install && npm run scaffold",
         "elastic": "php artisan elastic:migrate:refresh && php artisan scout:import \"App\\Models\\Card\"",
         "log": "vi storage/logs/laravel.log",
-        "tn": "php artisan test --group n"
+        "tn": "php artisan test --group n",
+        ""
     },
     "husky": {
         "hooks": {

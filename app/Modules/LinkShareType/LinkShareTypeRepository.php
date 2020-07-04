@@ -6,16 +6,12 @@ use App\Models\LinkShareType;
 
 class LinkShareTypeRepository
 {
-    const ANYONE = 'anyone';
-    const ANYONE_ORGANIZATION = 'anyoneInOrganization';
-    const PUBLIC_SHARE = 'public';
+    public const ANYONE = 'anyone';
+    public const ANYONE_ORGANIZATION = 'anyoneInOrganization';
+    public const PUBLIC_SHARE = 'public';
 
     /**
      * Get a LinkShareType.
-     *
-     * @param [string] $LinkShareType like reader or writer
-     *
-     * @return void
      */
     public function get(string $name): LinkShareType
     {

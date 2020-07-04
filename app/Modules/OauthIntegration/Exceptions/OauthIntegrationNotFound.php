@@ -2,6 +2,8 @@
 
 namespace App\Modules\OauthIntegration\Exceptions;
 
-class OauthIntegrationNotFound extends \Exception
+use Exception;
+
+class OauthIntegrationNotFound extends Exception
 {
 }

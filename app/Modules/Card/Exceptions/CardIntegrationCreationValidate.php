@@ -2,6 +2,8 @@
 
 namespace App\Modules\Card\Exceptions;
 
-class CardIntegrationCreationValidate extends \Exception
+use Exception;
+
+class CardIntegrationCreationValidate extends Exception
 {
 }
