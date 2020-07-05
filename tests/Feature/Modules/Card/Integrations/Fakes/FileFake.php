@@ -131,15 +131,15 @@ class FakeCapabilities
 
 class FakePermissions
 {
-    public $allowFileDiscovery;
-    public $deleted;
-    public $displayName;
-    public $domain;
-    public $emailAddress;
+    public bool $allowFileDiscovery;
+    public ?bool $deleted;
+    public ?string $displayName;
+    public ?string $domain;
+    public ?string $emailAddress;
     public $expirationTime;
-    public $id;
-    public $kind;
-    public $photoLink;
+    public string $id;
+    public string $kind;
+    public ?string $photoLink;
     public $role;
     public $type;
 
@@ -149,8 +149,6 @@ class FakePermissions
         $this->domain = $permissions['domain'] ?? null;
         if ('user' === $permissions['type']) {
             $this->allowFileDiscovery = false;
-            $this->deleted = false;
-            $this->allowFileDiscovery = null;
             $this->deleted = false;
             $this->displayName = 'Brian Jenkins';
             $this->domain = null;
