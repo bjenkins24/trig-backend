@@ -16,11 +16,15 @@ use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
+use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
@@ -32,7 +36,7 @@ class GoogleIntegrationTest extends TestCase
 {
     use CreateOauthConnection;
 
-    const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
+    public const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
 
     private function getSetup(?User $user = null)
     {
@@ -224,7 +228,7 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
         });
 
-        return  app(GoogleIntegration::class)->syncCards($user->id);
+        return app(GoogleIntegration::class)->syncCards($user->id);
     }
 
     /**
@@ -292,6 +296,9 @@ class GoogleIntegrationTest extends TestCase
     /**
      * Successfull save google thumbnail.
      *
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
+     *
      * @return void
      */
     public function testSaveThumbnailSuccess()
@@ -310,13 +317,13 @@ class GoogleIntegrationTest extends TestCase
                 'height'    => $imageHeight,
             ]))->once();
         });
-        \Storage::shouldReceive('put')->andReturn(true)->once();
-        \Storage::shouldReceive('url')->andReturn($imageName)->once();
+        Storage::shouldReceive('put')->andReturn(true)->once();
+        Storage::shouldReceive('url')->andReturn($imageName)->once();
         $result = app(GoogleIntegration::class)->saveThumbnail($user, $card, $file);
         $this->assertTrue($result);
         $this->assertDatabaseHas('cards', [
             'id'           => $card->id,
-            'image'        => \Config::get('app.url').$imageName,
+            'image'        => Config::get('app.url').$imageName,
             'image_width'  => $imageWidth,
             'image_height' => $imageHeight,
         ]);

@@ -97,7 +97,7 @@ class CardRepository
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
-    public function searchCards(User $user, ?string $queryConstraints = null): array
+    public function searchCards(User $user, ?string $queryConstraints = null): Collection
     {
         $result = $this->searchCardsRaw($user, $queryConstraints);
         $hits = collect($result['hits']['hits']);
