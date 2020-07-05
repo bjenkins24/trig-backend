@@ -152,8 +152,11 @@ class GoogleIntegrationTest extends TestCase
     /**
      * Test syncing all integrations.
      *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     *
      * @return void
-     * @group n
      */
     public function testSyncCardsContinue()
     {
@@ -221,6 +224,15 @@ class GoogleIntegrationTest extends TestCase
         $this->refreshDb();
     }
 
+    /**
+     * @param $file
+     *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     *
+     * @return bool
+     */
     private function syncCardsFail($file)
     {
         $user = User::find(1);
@@ -252,6 +264,10 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * Test syncing all integrations.
+     *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      *
      * @return void
      */
