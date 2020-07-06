@@ -6,6 +6,7 @@ use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\Card\Integrations\GoogleIntegration;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class SetupGoogleIntegrationTest extends TestCase
@@ -17,13 +18,13 @@ class SetupGoogleIntegrationTest extends TestCase
      */
     public function testSetup()
     {
-        \Queue::fake();
+        Queue::fake();
         $this->partialMock(GoogleIntegration::class, function ($mock) {
             $mock->shouldReceive('syncDomains')->once();
         });
 
         (new SetupGoogleIntegration(User::find(1)))->handle();
 
-        \Queue::assertPushed(SyncCards::class, 1);
+        Queue::assertPushed(SyncCards::class, 1);
     }
 }

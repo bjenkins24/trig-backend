@@ -17,9 +17,6 @@ class CardDedupe implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    /**
-     * @var Card
-     */
     public Card $card;
 
     /**

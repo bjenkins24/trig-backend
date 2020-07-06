@@ -4,24 +4,24 @@ namespace App\Exceptions\Auth;
 
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class NoAccessTokenSet extends Exception
 {
     /**
      * Report or log an exception.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function report(): void
     {
-        \Log::notice('A user tried to log in, they were authenticated, but the access token was not set');
+        Log::notice('A user tried to log in, they were authenticated, but the access token was not set');
     }
 
     /**
      * Render the exception into an HTTP response.
      */
-    public function render(Request $request): JsonResponse
+    public function render(): JsonResponse
     {
         return response()->json([
             'error'   => 'no_access_token',

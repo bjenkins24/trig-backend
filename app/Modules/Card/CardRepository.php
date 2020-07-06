@@ -12,6 +12,10 @@ use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class CardRepository
 {
@@ -28,13 +32,17 @@ class CardRepository
 
     /**
      * Find a connection for a user.
+     *
+     * @param string|int $foreignId
+     *
+     * @throws CardIntegrationCreationValidate
      */
     public function createIntegration(Card $card, $foreignId, string $integrationName): ?CardIntegration
     {
         $oauthIntegration = $this->oauthIntegration->findByName($integrationName);
         if (! $oauthIntegration || ! $card->id) {
-            throw new CardIntegrationCreationValidate('The integration name you passed in doesn\'t exist. The card integration was not 
-                created for card '.$card->id.' with the foreign id of '.$foreignId.' and the key of 
+            throw new CardIntegrationCreationValidate('The integration name you passed in doesn\'t exist. The card integration was not
+                created for card '.$card->id.' with the foreign id of '.$foreignId.' and the key of
                 '.$integrationName);
         }
 
@@ -88,10 +96,8 @@ class CardRepository
 
     /**
      * Take the raw result from elastic search and fetch all info from the db.
-     *
-     * @return void
      */
-    public function searchCards(User $user, ?string $queryConstraints = null)
+    public function searchCards(User $user, ?string $queryConstraints = null): Collection
     {
         $result = $this->searchCardsRaw($user, $queryConstraints);
         $hits = collect($result['hits']['hits']);
@@ -128,15 +134,15 @@ class CardRepository
 
     public function getDuplicates(Card $card): Collection
     {
-        $response = \Http::post(\Config::get('app.data_processing_url').'/dedupe', [
+        $response = Http::post(Config::get('app.data_processing_url').'/dedupe', [
             'id'              => $card->id,
             'content'         => $card->content,
             'organization_id' => $this->getOrganization($card)->id,
-            'key'             => \Config::get('app.data_processing_api_key'),
+            'key'             => Config::get('app.data_processing_api_key'),
         ]);
         $statusCode = $response->getStatusCode();
         if (200 !== $statusCode) {
-            \Log::notice('Deduping the card with the id '.$card->id.' from user '.$card->user()->first()->id.' failed with status code '.$statusCode);
+            Log::notice('Deduping the card with the id '.$card->id.' from user '.$card->user()->first()->id.' failed with status code '.$statusCode);
 
             return collect([]);
         }
@@ -165,7 +171,7 @@ class CardRepository
             }
         });
 
-        \DB::transaction(function () use ($card, $duplicateIds, $primary) {
+        DB::transaction(function () use ($card, $duplicateIds, $primary) {
             $primaryDuplicates = $card->cardDuplicates()->get();
             $primaryDuplicates->each(function ($cardDuplicate) {
                 $cardDuplicate->delete();
@@ -250,9 +256,6 @@ class CardRepository
 
     /**
      * Check if the card has been modified after our entry.
-     *
-     * @param Card $card
-     * @param int  $lastModified
      */
     public function needsUpdate(?Card $card, ?int $lastModified): bool
     {

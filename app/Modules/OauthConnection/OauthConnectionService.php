@@ -5,6 +5,7 @@ namespace App\Modules\OauthConnection;
 use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Support\Collection;
 
@@ -26,6 +27,9 @@ class OauthConnectionService
 
     /**
      * Get an access token either from the DB or from a refresh token.
+     *
+     * @throws Exceptions\OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function getAccessToken(User $user, string $integration): string
     {
@@ -50,7 +54,9 @@ class OauthConnectionService
     /**
      * Get a client (an authenticated integration service).
      *
-     * @return void
+     * @throws Exceptions\OauthMissingTokens
+     * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
      */
     public function getClient(User $user, string $integration)
     {
@@ -63,7 +69,7 @@ class OauthConnectionService
     /**
      * Get the access token and store the connection.
      *
-     * @return User
+     * @throws Exceptions\OauthMissingTokens
      */
     public function createConnection(User $user, string $integration, string $authToken): OauthConnection
     {

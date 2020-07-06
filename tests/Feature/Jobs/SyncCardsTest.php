@@ -4,12 +4,15 @@ namespace Tests\Feature\Jobs;
 
 use App\Jobs\SyncCards;
 use App\Modules\Card\Integrations\GoogleIntegration;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Tests\TestCase;
 
 class SyncCardsTest extends TestCase
 {
     /**
      * Test sync cards job.
+     *
+     * @throws OauthIntegrationNotFound
      *
      * @return void
      */

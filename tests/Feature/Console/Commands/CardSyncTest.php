@@ -5,6 +5,7 @@ namespace Tests\Feature\Console\Commands;
 use App\Console\Commands\CardSync;
 use App\Jobs\SyncCards;
 use App\Models\OauthConnection;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CardSyncTest extends TestCase
@@ -26,6 +27,6 @@ class CardSyncTest extends TestCase
         $syncCards = new CardSync();
         $syncCards->handle();
 
-        \Queue::assertPushed(SyncCards::class, 1);
+        Queue::assertPushed(SyncCards::class, 1);
     }
 }

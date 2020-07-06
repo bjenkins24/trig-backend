@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToCapability
 {
     /**
      * Belongs to Capability.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function capability()
+    public function capability(): BelongsTo
     {
         return $this->belongsTo('App\Models\Capability');
     }

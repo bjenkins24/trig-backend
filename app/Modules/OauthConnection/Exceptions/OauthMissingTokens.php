@@ -2,6 +2,8 @@
 
 namespace App\Modules\OauthConnection\Exceptions;
 
-class OauthMissingTokens extends \Exception
+use Exception;
+
+class OauthMissingTokens extends Exception
 {
 }

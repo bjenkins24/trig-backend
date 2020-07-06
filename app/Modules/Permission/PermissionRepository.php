@@ -15,8 +15,6 @@ class PermissionRepository
      * Create a permission.
      *
      * @param [mixed] $permissionType Card or Deck
-     *
-     * @return void
      */
     private function create($permissionType, string $capability): Permission
     {
@@ -55,8 +53,6 @@ class PermissionRepository
      * Anyone can discover/read a file. Blank permission_typeable fields allow for this.
      *
      * @param [mixed] $permissionType
-     *
-     * @return void
      */
     public function createAnyone($permissionType, string $capability): Permission
     {

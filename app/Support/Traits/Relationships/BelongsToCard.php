@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToCard
 {
     /**
      * Belongs to Card.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function card()
+    public function card(): BelongsTo
     {
         return $this->belongsTo('App\Models\Card');
     }

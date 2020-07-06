@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToLinkShareType
 {
     /**
      * Belongs to LinkShareType.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function linkShareType()
+    public function linkShareType(): BelongsTo
     {
         return $this->belongsTo('App\Models\LinkShareType');
     }

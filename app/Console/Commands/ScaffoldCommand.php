@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Support\Traits\HandlesAuth;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Config;
+use Laravel\Passport\Client;
 
 class ScaffoldCommand extends Command
 {
@@ -31,49 +33,48 @@ class ScaffoldCommand extends Command
      */
     public function handle()
     {
-        if ('production' == \Config::get('app.env')) {
+        if ('production' == Config::get('app.env')) {
             $this->error('Cannot scaffold application in production environment');
 
             return;
         }
 
-        if ('testing' !== \Config::get('app.env')) {
+        if ('testing' !== Config::get('app.env')) {
             $this->call('elastic:migrate:reset');
         }
         $this->call('migrate:fresh');
         $this->call('passport:install');
-        if ('testing' !== \Config::get('app.env')) {
+        if ('testing' !== Config::get('app.env')) {
             $this->call('elastic:migrate');
-            $this->call('queue:clear');
         }
 
-        $email = \Config::get('constants.seed.email');
-        $password = \Config::get('constants.seed.password');
+        $email = Config::get('constants.seed.email');
+        $password = Config::get('constants.seed.password');
 
         $user = factory(User::class)->create([
-            'first_name' => \Config::get('constants.seed.first_name'),
-            'last_name'  => \Config::get('constants.seed.last_name'),
+            'first_name' => Config::get('constants.seed.first_name'),
+            'last_name'  => Config::get('constants.seed.last_name'),
             'email'      => $email,
             'password'   => bcrypt($password),
         ]);
 
         $user->organizations()->create([
-            'name' => \Config::get('constants.seed.organization'),
+            'name' => Config::get('constants.seed.organization'),
         ]);
 
         $this->call('db:seed', ['--class' => 'ScaffoldSeeder']);
 
-        if ('testing' === \Config::get('app.env')) {
+        if ('testing' === Config::get('app.env')) {
             $this->info('Testing environment successfully setup!');
 
             return;
         }
         $this->line('');
         $this->info('Application successfully setup!');
-        $this->line('Username: '.\Config::get('constants.seed.email'));
-        $this->line('Password: '.\Config::get('constants.seed.password'));
+        $this->line('Username: '.Config::get('constants.seed.email'));
+        $this->line('Password: '.Config::get('constants.seed.password'));
 
-        $client = \Laravel\Passport\Client::where('name', 'like', '%Password%')->first();
+        $client = Client::where('name', 'like', '%Password%')->first();
         $response = $this->authResponse([
             'email'         => $email,
             'password'      => $password,

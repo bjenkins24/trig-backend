@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 trait HasLinkShareSettings
 {
     /**
      * Has many link share settings.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function linkShareSettings()
+    public function linkShareSettings(): HasMany
     {
         return $this->hasMany('App\Models\LinkShareSetting');
     }
