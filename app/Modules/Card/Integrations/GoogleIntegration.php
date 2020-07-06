@@ -9,12 +9,16 @@ use App\Models\Card;
 use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\Permission\PermissionRepository;
 use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
@@ -24,12 +28,16 @@ use Google_Service_Directory as GoogleServiceDirectory;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class GoogleIntegration implements IntegrationInterface
 {
-    const IMAGE_PATH = 'public/card-thumbnails';
-    const PAGE_SIZE = 30;
-    const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
+    public const IMAGE_PATH = 'public/card-thumbnails';
+    public const PAGE_SIZE = 30;
+    public const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     const WEBHOOK_URL = '/webhooks/google-drive';
 
@@ -37,7 +45,7 @@ class GoogleIntegration implements IntegrationInterface
      * The keys in this array are google roles and the values are what they map
      * to in Trig.
      */
-    const CAPABILITY_MAP = [
+    public const CAPABILITY_MAP = [
         'organizer'     => 'writer',
         'owner'         => 'writer',
         'fileOrganizer' => 'writer',
@@ -48,11 +56,21 @@ class GoogleIntegration implements IntegrationInterface
 
     private $client;
 
+    /**
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     */
     public function setClient(User $user)
     {
         $this->client = app(OauthConnectionService::class)->getClient($user, GoogleConnection::getKey());
     }
 
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
     public function getDriveService(User $user): GoogleServiceDrive
     {
         if (! $this->client) {
@@ -70,8 +88,6 @@ class GoogleIntegration implements IntegrationInterface
     /**
      * Get the next page token from google if it exists - this will return null
      * if there's no next page.
-     *
-     * @return void
      */
     public function getNewNextPageToken(GoogleServiceDrive $service, array $params): ?string
     {
@@ -80,8 +96,6 @@ class GoogleIntegration implements IntegrationInterface
 
     /**
      * Get the next page token in the database if it exists.
-     *
-     * @param OauthConnection $oauthConenection
      */
     public function getCurrentNextPageToken(OauthConnection $oauthConnection): ?string
     {
@@ -93,6 +107,11 @@ class GoogleIntegration implements IntegrationInterface
         return $pageToken;
     }
 
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
     public function getFiles(User $user, ?int $since = null)
     {
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
@@ -125,8 +144,6 @@ class GoogleIntegration implements IntegrationInterface
     /**
      * Google apps can be exported to normal file mime types. We need to know what to convert
      * which is what this function does.
-     *
-     * @return void
      */
     public function googleToMime(string $mimeType): string
     {
@@ -149,11 +166,16 @@ class GoogleIntegration implements IntegrationInterface
             'unknown'      => '',
             'video'        => '',
         ];
-        $type = \Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
+        $type = Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
 
         return $googleTypes[$type];
     }
 
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
     public function saveCardData(Card $card): void
     {
         $cardRepo = app(CardRepository::class);
@@ -198,7 +220,8 @@ class GoogleIntegration implements IntegrationInterface
      *
      * @param $file
      *
-     * @return void
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function getThumbnail(User $user, $file): Collection
     {
@@ -210,7 +233,7 @@ class GoogleIntegration implements IntegrationInterface
             }
             $thumbnail = file_get_contents($file->thumbnailLink.$delimiter.'access_token='.$accessToken);
         } catch (Exception $e) {
-            \Log::notice('Couldn\'t get a thumbnail: '.$file->thumbnailLink.' - '.$e->getMessage());
+            Log::notice('Couldn\'t get a thumbnail: '.$file->thumbnailLink.' - '.$e->getMessage());
 
             return collect([]);
         }
@@ -218,7 +241,7 @@ class GoogleIntegration implements IntegrationInterface
         $fileInfo = collect(getimagesizefromstring($thumbnail));
 
         if (! $fileInfo->has('mime')) {
-            \Log::notice('Couldn\'t get a thumbnail. It had no mime type: '.$file->thumbnailLink);
+            Log::notice('Couldn\'t get a thumbnail. It had no mime type: '.$file->thumbnailLink);
 
             return collect([]);
         }
@@ -234,7 +257,10 @@ class GoogleIntegration implements IntegrationInterface
     /**
      * Save the thumbnail from google drive.
      *
-     * @param object $file
+     * @param $file
+     *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function saveThumbnail(User $user, Card $card, $file): bool
     {
@@ -252,7 +278,7 @@ class GoogleIntegration implements IntegrationInterface
             $card->image = \Config::get('app.url').\Storage::url($imagePathWithExtension);
             $card->image_width = $thumbnail->get('width');
             $card->image_height = $thumbnail->get('height');
-            $card = $card->save();
+            $card->save();
         }
 
         return true;
@@ -290,6 +316,14 @@ class GoogleIntegration implements IntegrationInterface
         });
     }
 
+    /**
+     * @param $file
+     *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     * @throws CardIntegrationCreationValidate
+     * @throws Exception
+     */
     public function upsertCard(User $user, $file): void
     {
         $cardRepo = app(CardRepository::class);
@@ -360,7 +394,9 @@ class GoogleIntegration implements IntegrationInterface
      * A Trig admin will be able to select or deselect which domains their Trig account should be
      * accessible for, in the settings for Google from within Trig.
      *
-     * @return void
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function getDomains(User $user): array
     {
@@ -373,7 +409,7 @@ class GoogleIntegration implements IntegrationInterface
             // my_customer get's the domains for the current customer which is what we want
             // weird API, but that's 100% Google
             return $service->domains->listDomains('my_customer')->domains;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $error = json_decode($e->getMessage());
             if (! $error || 404 !== $error->error->code) {
                 \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
@@ -383,7 +419,12 @@ class GoogleIntegration implements IntegrationInterface
         return [];
     }
 
-    public function syncDomains($user): bool
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
+    public function syncDomains(User $user): bool
     {
         $domains = $this->getDomains($user);
         if (! $domains) {
@@ -401,7 +442,7 @@ class GoogleIntegration implements IntegrationInterface
 
     public function watchFiles(User $user): void
     {
-        $webhookId = \Str::uuid();
+        $webhookId = Str::uuid();
 
         $oauthConnection = app(UserRepository::class)->getOauthConnection($user, 'google');
         // If we are already watching for changes then no need to hit endpoint again
@@ -411,22 +452,26 @@ class GoogleIntegration implements IntegrationInterface
 
         try {
             $expiration = Carbon::now()->addSeconds(604800)->timestamp;
-            $response = \Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
+            Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
                 'id'              => $webhookId,
-                'address'         => \Config::get('app.url').self::WEBHOOKS_URL,
+                'address'         => Config::get('app.url').self::WEBHOOKS_URL,
                 'type'            => 'web_hook',
                 'expiration'      => $expiration * 1000,
             ]);
             $oauthConnection->properties['webhook_id'] = $webhookId;
             $oauthConnection->properties['webhook_expiration'] = $expiration;
             $oauthConnection->save();
-        } catch (\Exception $e) {
-            \Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
         }
     }
 
     /**
      * Sync cards from google.
+     *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function syncCards(int $userId, ?int $since = null): bool
     {

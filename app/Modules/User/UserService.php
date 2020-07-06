@@ -7,8 +7,10 @@ use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\User\Helpers\ResetPasswordHelper;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class UserService
@@ -50,12 +52,12 @@ class UserService
      * Create a user from a successful google SSO response
      * this will also do the initial syncCards request.
      *
-     * @param array $response
+     * @throws OauthMissingTokens
      */
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
-        $result = $this->oauthConnectionRepo->create($user, GoogleConnection::getKey(), $oauthCredentials);
+        $this->oauthConnectionRepo->create($user, GoogleConnection::getKey(), $oauthCredentials);
 
         SetupGoogleIntegration::dispatch($user);
 
@@ -72,8 +74,8 @@ class UserService
 
             return sprintf(
                 '%s (at) %s',
-                \Arr::get($email, '0'),
-                \Arr::get($email, '1')
+                Arr::get($email, '0'),
+                Arr::get($email, '1')
             );
         }
 
@@ -82,10 +84,8 @@ class UserService
 
     /**
      * Sync cards for all integrations.
-     *
-     * @return User
      */
-    public function syncAllIntegrations(User $user)
+    public function syncAllIntegrations(User $user): void
     {
         $connections = $this->userRepo->getAllOauthConnections($user);
         foreach ($connections as $connection) {

@@ -2,6 +2,8 @@
 
 namespace App\Modules\OauthConnection\Exceptions;
 
-class OauthUnauthorizedRequest extends \Exception
+use Exception;
+
+class OauthUnauthorizedRequest extends Exception
 {
 }

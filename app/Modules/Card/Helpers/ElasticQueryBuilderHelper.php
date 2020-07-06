@@ -70,14 +70,12 @@ class ElasticQueryBuilderHelper
 
     /**
      * The conditions for all the teams the user is on.
-     *
-     * @return array
      */
-    private function makeTeamCondition(User $user)
+    private function makeTeamCondition(User $user): array
     {
         $teams = $user->teams()->select('team_id')->get();
         if ($teams->isEmpty()) {
-            return;
+            return [];
         }
 
         $result = [

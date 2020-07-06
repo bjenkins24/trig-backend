@@ -17,14 +17,8 @@ class SaveCardData implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    /**
-     * @var string
-     */
     public string $integration;
 
-    /**
-     * @var Card
-     */
     public Card $card;
 
     /**

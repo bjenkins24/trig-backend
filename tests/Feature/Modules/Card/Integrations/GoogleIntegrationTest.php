@@ -16,11 +16,17 @@ use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
+use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
@@ -32,7 +38,7 @@ class GoogleIntegrationTest extends TestCase
 {
     use CreateOauthConnection;
 
-    const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
+    public const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
 
     private function getSetup(?User $user = null)
     {
@@ -146,8 +152,11 @@ class GoogleIntegrationTest extends TestCase
     /**
      * Test syncing all integrations.
      *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     *
      * @return void
-     * @group n
      */
     public function testSyncCardsContinue()
     {
@@ -163,14 +172,13 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('listFilesFromService')->andReturn(collect([new FileFake(), $file]))->once();
         });
 
-        \Queue::fake();
+        Queue::fake();
 
-        $result = app(GoogleIntegration::class)->syncCards($user->id);
+        app(GoogleIntegration::class)->syncCards($user->id);
 
-        \Queue::assertPushed(SyncCards::class, 1);
-        \Queue::assertPushed(SaveCardData::class, 2);
+        Queue::assertPushed(SyncCards::class, 1);
+        Queue::assertPushed(SaveCardData::class, 2);
 
-        $card = Card::where(['title', $file->name]);
         $cardType = CardType::where(['name' => $file->mimeType])->first();
 
         $this->assertDatabaseHas('cards', [
@@ -197,7 +205,7 @@ class GoogleIntegrationTest extends TestCase
         $file->id = 'super fake id';
         $file->modifiedTime = '2020-06-24 12:00:00';
         $nextPageToken = 'next_page_token';
-        \Queue::fake();
+        Queue::fake();
         CardIntegration::create([
             'card_id'              => 1,
             'oauth_integration_id' => 1,
@@ -212,10 +220,19 @@ class GoogleIntegrationTest extends TestCase
         });
 
         $result = app(GoogleIntegration::class)->syncCards($user->id);
-        \Queue::assertPushed(SaveCardData::class, 1);
+        Queue::assertPushed(SaveCardData::class, 1);
         $this->refreshDb();
     }
 
+    /**
+     * @param $file
+     *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     *
+     * @return bool
+     */
     private function syncCardsFail($file)
     {
         $user = User::find(1);
@@ -224,11 +241,15 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getFiles')->andReturn(collect([$file]))->once();
         });
 
-        return  app(GoogleIntegration::class)->syncCards($user->id);
+        return app(GoogleIntegration::class)->syncCards($user->id);
     }
 
     /**
      * If there are no files from google we should do nothing.
+     *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
      *
      * @return void
      */
@@ -243,6 +264,10 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * Test syncing all integrations.
+     *
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      *
      * @return void
      */
@@ -261,6 +286,9 @@ class GoogleIntegrationTest extends TestCase
     /**
      * Fail saving thumbnail.
      *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     *
      * @return void
      */
     public function testSaveThumbnailFail()
@@ -275,6 +303,9 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * Try to save a thumbnail with no thumbnail from google.
+     *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      *
      * @return void
      */
@@ -291,6 +322,9 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * Successfull save google thumbnail.
+     *
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
      *
      * @return void
      */
@@ -310,13 +344,13 @@ class GoogleIntegrationTest extends TestCase
                 'height'    => $imageHeight,
             ]))->once();
         });
-        \Storage::shouldReceive('put')->andReturn(true)->once();
-        \Storage::shouldReceive('url')->andReturn($imageName)->once();
+        Storage::shouldReceive('put')->andReturn(true)->once();
+        Storage::shouldReceive('url')->andReturn($imageName)->once();
         $result = app(GoogleIntegration::class)->saveThumbnail($user, $card, $file);
         $this->assertTrue($result);
         $this->assertDatabaseHas('cards', [
             'id'           => $card->id,
-            'image'        => \Config::get('app.url').$imageName,
+            'image'        => Config::get('app.url').$imageName,
             'image_width'  => $imageWidth,
             'image_height' => $imageHeight,
         ]);
@@ -390,7 +424,7 @@ class GoogleIntegrationTest extends TestCase
     public function testSaveCardData()
     {
         $card = Card::find(1);
-        \Queue::fake();
+        Queue::fake();
         $this->createOauthConnection($card->user()->first());
         $googleServiceMock = $this->mock(GoogleServiceDrive::class);
         $fileResource = $this->mock(GoogleServiceDriveFiles::class, function ($mock) {
@@ -423,9 +457,14 @@ class GoogleIntegrationTest extends TestCase
             'content'    => $content,
             'properties' => json_encode($cardData->toArray()),
         ]);
-        \Queue::assertPushed(CardDedupe::class, 1);
+        Queue::assertPushed(CardDedupe::class, 1);
     }
 
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
     public function testSaveCardDataGoogle()
     {
         $card = Card::find(1);
@@ -456,7 +495,7 @@ class GoogleIntegrationTest extends TestCase
     /**
      * @dataProvider googleToMimeProvider
      */
-    public function testGoogleToMime($mime, $expected)
+    public function testGoogleToMime(string $mime, string $expected)
     {
         $this->assertEquals($expected, app(GoogleIntegration::class)->googleToMime($mime));
     }
@@ -489,7 +528,7 @@ class GoogleIntegrationTest extends TestCase
 
         $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
 
-        $this->assertEquals($nextPageToken, null);
+        $this->assertEquals(null, $nextPageToken);
     }
 }
 

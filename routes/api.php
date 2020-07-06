@@ -1,6 +1,5 @@
 <?php
 
-use App\Modules\Card\Integrations\GoogleIntegration;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,11 +19,6 @@ Route::post('forgot-password', 'UserController@forgotPassword');
 Route::post('reset-password', 'UserController@resetPassword');
 Route::post('validate-reset-token', 'UserController@validateResetToken');
 Route::post('google-sso', 'UserController@googleSso');
-
-/*
- * Webhooks
- */
-Route::post(GoogleIntegration::WEBHOOK_URL, 'WebhookController@googleDrive');
 
 /*
  * Authenticated routes

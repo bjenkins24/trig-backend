@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
 trait HasCardIntegration
 {
     /**
      * Has one card integration.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function cardIntegration()
+    public function cardIntegration(): HasOne
     {
         return $this->hasOne('App\Models\CardIntegration');
     }

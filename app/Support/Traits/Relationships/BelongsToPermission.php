@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 trait BelongsToPermission
 {
     /**
      * Belongs to Permission.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function permission()
+    public function permission(): BelongsTo
     {
         return $this->belongsTo('App\Models\Permission');
     }

@@ -10,6 +10,8 @@ use App\Support\Traits\HandlesAuth;
 use GuzzleHttp\Promise\Promise;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Passwords\PasswordBroker;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 
 class ResetPasswordHelper
 {
@@ -57,10 +59,8 @@ class ResetPasswordHelper
      * has been reset for use in authenticating on the next step.
      *
      * @param array $args - password, password_confirmation, token
-     *
-     * @return GuzzleHttp\Promise\Promise A promise that the password will be reset
      */
-    public function passwordReset($args)
+    public function passwordReset(array $args): Promise
     {
         $promise = new Promise();
 
@@ -73,7 +73,7 @@ class ResetPasswordHelper
             $promise->resolve($user);
         });
 
-        if (\Password::PASSWORD_RESET !== $resetResult) {
+        if (Password::PASSWORD_RESET !== $resetResult) {
             $promise->reject(new \Error('reset_password_token_expired'));
         }
 
@@ -106,6 +106,6 @@ class ResetPasswordHelper
         $emailHash = $this->encryptEmail($user->email);
 
         // send the email
-        return \Mail::to($user)->send(new ForgotPasswordMail($token, $emailHash));
+        return Mail::to($user)->send(new ForgotPasswordMail($token, $emailHash));
     }
 }

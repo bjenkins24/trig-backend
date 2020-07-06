@@ -56,10 +56,8 @@ class Card extends BaseModel
 
     /**
      * The fields index by elastic search.
-     *
-     * @return void
      */
-    public function toSearchableArray()
+    public function toSearchableArray(): array
     {
         $cardRepo = app(CardRepository::class);
         $permissions = $cardRepo->denormalizePermissions($this)->toArray();

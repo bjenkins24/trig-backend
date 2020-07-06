@@ -2,14 +2,14 @@
 
 namespace App\Support\Traits\Relationships;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 trait HasCards
 {
     /**
      * Has many cards.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function cards()
+    public function cards(): HasMany
     {
         return $this->hasMany('App\Models\Card');
     }

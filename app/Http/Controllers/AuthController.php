@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\Auth\NoAccessTokenSet;
 use App\Http\Requests\Auth\Login;
-use App\Models\User;
 use App\Modules\User\UserRepository;
 use App\Support\Traits\HandlesAuth;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
@@ -22,12 +23,9 @@ class AuthController extends Controller
     /**
      * Log in user.
      *
-     * @param null  $root
-     * @param array $args
-     *
-     * @return User
+     * @throws NoAccessTokenSet
      */
-    public function login(Login $request)
+    public function login(Login $request): JsonResponse
     {
         try {
             $authToken = $this->authRequest($request->all());
@@ -43,7 +41,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if (empty(\Arr::get($authToken, 'access_token'))) {
+        if (empty(Arr::get($authToken, 'access_token'))) {
             throw new NoAccessTokenSet();
         }
 
