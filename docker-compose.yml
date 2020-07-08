@@ -3,7 +3,8 @@ version: '3'
 services:
     mysql:
         image: mysql:8.0.20
-        ports: 
+        container_name: mysql
+        ports:
             - "3306:3306"
         volumes:
             - db-data:/var/lib/mysql
@@ -14,45 +15,50 @@ services:
             MYSQL_ROOT_PASSWORD: root
     elasticsearch:
         image: elasticsearch:7.7.1
+        container_name: elasticsearch
         ports:
             - "9200:9200"
         volumes:
             - es-data:/usr/share/elasticsearch/data
         environment:
             - discovery.type=single-node
-    tika: 
+    tika:
+        container_name: apache-tika
         image: apache/tika:1.24.1-full
-        ports: 
+        ports:
             - "9998:9998"
     redis:
+        container_name: redis
         image: redis:6.0.5-alpine
-        ports: 
+        ports:
             - "6379:6379"
     web:
-        build: 
+        container_name: web
+        build:
             context: .docker/web
             dockerfile: Dockerfile
         ports:
             - "8090:80"
         volumes:
             - nfsmount:/var/www/html
-    php: 
-        build: 
+    php:
+        container_name: php
+        build:
             context: .docker/php
             dockerfile: Dockerfile
-        entrypoint: .docker/php/entrypoint.sh
         ports:
-            - "9000:9000"   
+            - "9000:9000"
         volumes:
             - nfsmount:/var/www/html
 
 volumes:
-    nfsmount: 
-        driver: local
-        driver_opts:
-            type: nfs
-            o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
-            device: ":${PWD}"
+    nfsmount:
+      driver: local
+      driver_opts:
+        type: nfs
+        o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
+        device: ":${PWD}"
     db-data:
+      driver: local
     es-data:
-        
+      driver: local
