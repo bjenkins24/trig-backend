@@ -23,7 +23,7 @@ Route::post('google-sso', 'UserController@googleSso');
 /*
  * Authenticated routes
  */
-    Route::middleware('auth:api')->get('/me', 'UserController@me');
+Route::middleware('auth:api')->get('/me', 'UserController@me');
 Route::middleware('auth:api')->get('/cards/{queryConstraints?}', 'CardController@get');
 Route::middleware('auth:api')->get('/testGoogle', 'UserController@testGoogle');
 
