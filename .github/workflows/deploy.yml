@@ -32,14 +32,4 @@ jobs:
           ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
           ECR_REPOSITORY: main-production-php
           IMAGE_TAG: "${{ github.sha }}"
-      - name: "Download task definition"
-        id: task-def
-        run: "aws ecs describe-task-definition --task-definition main-frontend-production --query taskDefinition > task-definition.json\n"
-      - name: "Deploy Amazon ECS task definition"
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          cluster: main-frontend-production
-          service: main-frontend-production
-          task-definition: "${{ steps.task-def.outputs.task-definition }}"
-          wait-for-service-stability: true
 
