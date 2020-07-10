@@ -18,7 +18,7 @@ jobs:
       - name: "Login to Amazon ECR"
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
+      - uses: actions/checkout@v2
       - run: "echo \"[default]\\naws_access_key_id=$ACCESS_KEY\\naws_secret_access_key=$SECRET_KEY\\nregion=us-west-1\" > aws_credentials"
         shell: bash
         env:
