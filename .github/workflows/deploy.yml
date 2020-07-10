@@ -18,21 +18,22 @@ jobs:
       - name: "Login to Amazon ECR"
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        env:
-          ACCESS_KEY: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          SECRET_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
       - run: "echo \"[default]\\naws_access_key_id=$ACCESS_KEY\\naws_secret_access_key=$SECRET_KEY\\nregion=us-west-1\" > aws_credentials"
         shell: bash
         env:
-          ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
-          ECR_REPOSITORY: main-production-php
-          IMAGE_TAG: "${{ github.sha }}"
+          ACCESS_KEY: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          SECRET_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
       - name: "Build, tag, and push image to Amazon ECR"
         id: build-image
         run: |
           DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --build-arg BUILD_ENVIRONMENT=production --secret id=aws,src=aws_credentials -f .docker/php/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        env:
+          ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
+          ECR_REPOSITORY: main-production-php
+          IMAGE_TAG: "${{ github.sha }}"
       - name: "Download task definition"
         id: task-def
         run: "aws ecs describe-task-definition --task-definition my-task-definition-family --query taskDefinition > task-definition.json\n"
