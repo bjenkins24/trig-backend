@@ -8,6 +8,7 @@ trig_test.db
 clover.xml
 .env
 .env.backup
+.env.production
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -17,3 +18,4 @@ _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php
 .php_cs.cache
+aws_credentials
