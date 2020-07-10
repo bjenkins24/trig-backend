@@ -19,7 +19,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
       - uses: actions/checkout@v2
-      - run: echo '[default]''\n'aws_access_key_id=$ACCESS_KEY'\n'aws_secret_access_key=$SECRET_KEY'\n'region=us-west-1 > aws_credentials
+      - run: echo '[default]'"\n"aws_access_key_id=$ACCESS_KEY"\n"aws_secret_access_key=$SECRET_KEY"\n"region=us-west-1 > aws_credentials
         shell: bash
         env:
           ACCESS_KEY: "${{ secrets.AWS_ACCESS_KEY_ID }}"
