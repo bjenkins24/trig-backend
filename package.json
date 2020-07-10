@@ -13,7 +13,9 @@
         "docker:remove:volumes": "docker volume rm $(docker volume ls -qf dangling=true)",
         "docker:remove:images": "docker image prune -a -f",
         "docker:clean": "npm run docker:remove:containers && npm run docker:remove:images && npm run docker:remove:volumes",
-        "start": "docker-compose up -d "
+        "start": "docker-compose up -d",
+        "get:prod:env": "aws s3 cp s3://trig-us-west-1/main/.env.production .env.production",
+        "put:prod:env": "aws s3 cp .env s3://trig-us-west-1/main/.env.production"
     },
     "husky": {
         "hooks": {

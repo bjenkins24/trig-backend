@@ -44,8 +44,7 @@ services:
     php:
         container_name: php
         build:
-            context: .docker/php
-            dockerfile: Dockerfile
+            dockerfile: .docker/php/Dockerfile
         ports:
             - "9000:9000"
         volumes:
