@@ -18,13 +18,10 @@ jobs:
       - name: "Login to Amazon ECR"
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - uses: actions/checkout@v2
-      - run: "echo '[default]\naws_access_key_id='${{ secrets.AWS_ACCESS_KEY_ID }}'\naws_secret_access_key='${{ secrets.AWS_SECRET_ACCESS_KEY }}'\nregion=us-west-1' > aws_credentials"
-        shell: bash
-        env:
-          ACCESS_KEY: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          SECRET_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-      - run: "cat aws_credentials"
+      - name: "Checkout master"
+        uses: actions/checkout@v2
+      - name: "Create aws credentials file for docker image"
+        run: "echo '[default]\naws_access_key_id='${{ secrets.AWS_ACCESS_KEY_ID }}'\naws_secret_access_key='${{ secrets.AWS_SECRET_ACCESS_KEY }}'\nregion=us-west-1' > aws_credentials"
       - name: "Build, tag, and push image to Amazon ECR"
         id: build-image
         run: |
@@ -37,7 +34,7 @@ jobs:
           IMAGE_TAG: "${{ github.sha }}"
       - name: "Download task definition"
         id: task-def
-        run: "aws ecs describe-task-definition --task-definition my-task-definition-family --query taskDefinition > task-definition.json\n"
+        run: "aws ecs describe-task-definition --task-definition main-frontend-production --query taskDefinition > task-definition.json\n"
       - name: "Deploy Amazon ECS task definition"
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
