@@ -25,6 +25,7 @@ jobs:
         env:
           FILE_NAME: "aws_credentials"
           FILE_DATA: "[default]\naws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}\naws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY}}\nregion=us-west-1"
+      - run: cat aws_credentials
       - name: "Build, tag, and push image to Amazon ECR"
         id: build-image
         run: |
