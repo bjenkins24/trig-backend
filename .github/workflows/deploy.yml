@@ -26,8 +26,8 @@ jobs:
         id: build-image
         run: |
           DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --build-arg BUILD_ENVIRONMENT=production --secret id=aws,src=aws_credentials -f .docker/php/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY
         env:
           ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
           ECR_REPOSITORY: main-production-php

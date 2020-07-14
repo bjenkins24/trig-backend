@@ -1,3 +1,9 @@
-vendor
+.git
+.idea
+.env
 node_modules
+vendor
 coverage
+storage/framework/cache/**
+storage/framework/sessions/**
+storage/framework/views/**

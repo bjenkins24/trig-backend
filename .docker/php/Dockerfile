@@ -17,14 +17,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends apt-utils awscl
 #    && rm -rf /tmp/pear \
 #    && docker-php-ext-enable redis
 #
-#COPY --chown=www-data:www-data . .
-
-RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
-    aws s3 cp s3://trig-us-west-1/main/.env.$BUILD_ENVIRONMENT .env;
-
+#
+#RUN chown -R www-data:www-data \
+#        ./storage \
+#        ./bootstrap/cache
+#
+#RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
+#    aws s3 cp s3://trig-us-west-1/main/.env.$BUILD_ENVIRONMENT .env;
+#
+#COPY composer.lock composer.json ./
 #RUN if [ "$BUILD_ENVIRONMENT" != "development" ]; then \
 #    composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts; \
 #    fi
+
+COPY . .
 
 COPY .docker/php/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
