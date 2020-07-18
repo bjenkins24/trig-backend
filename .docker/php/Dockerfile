@@ -7,7 +7,6 @@ ARG BUILD_ENVIRONMENT
 WORKDIR /var/www/html
 
 #RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils awscli
 #RUN curl -sS https://getcomposer.org/installer | \
 #    php -- --install-dir=/usr/bin/ --filename=composer
 #
@@ -17,20 +16,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends apt-utils awscl
 #    && rm -rf /tmp/pear \
 #    && docker-php-ext-enable redis
 #
-#
-#RUN chown -R www-data:www-data \
-#        ./storage \
-#        ./bootstrap/cache
-#
-#RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
-#    aws s3 cp s3://trig-us-west-1/main/.env.$BUILD_ENVIRONMENT .env;
+#RUN if [ "$BUILD_ENVIRONMENT" != "development" ]; then \
+#    --mount=type=secret,id=aws,target=/root/.aws/credentials \
+#        aws s3 cp s3://trig-us-west-1/main/.env.$BUILD_ENVIRONMENT .env; \
+#    fi
 #
 #COPY composer.lock composer.json ./
 #RUN if [ "$BUILD_ENVIRONMENT" != "development" ]; then \
 #    composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts; \
 #    fi
-
-COPY . .
-
+#
+#COPY . .
+#
+##RUN if [ "$BUILD_ENVIRONMENT" != "development" ]; then \
+##    chown -R www-data:www-data \
+##        ./storage \
+##        ./bootstrap/cache \
+##    fi
+#
+RUN mkdir public
+RUN echo '<?php echo "SUCCESS";' >> public/index.php
 COPY .docker/php/entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
