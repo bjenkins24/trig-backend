@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Card;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,6 +35,8 @@ class SaveCardData implements ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * @throws OauthIntegrationNotFound
      *
      * @return void
      */
