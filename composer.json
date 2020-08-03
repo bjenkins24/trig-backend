@@ -23,7 +23,6 @@
         "laravel/horizon": "^4.3",
         "laravel/passport": "^8.4",
         "laravel/scout": "^8.0",
-        "laravel/telescope": "^3.5",
         "laravel/tinker": "^2.0",
         "vaites/php-apache-tika": "^0.9.2",
         "ext-json": "*"

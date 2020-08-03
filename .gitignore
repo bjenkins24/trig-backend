@@ -4,6 +4,7 @@
 /storage/*.key
 /vendor
 /coverage
+/es-data
 trig_test.db
 clover.xml
 .env

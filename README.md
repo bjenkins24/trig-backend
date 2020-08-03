@@ -38,15 +38,15 @@ Must be installed to pull data from documents (for searching)
 * `sqlite3 trig_test.db` - then run `.database` - `.quit` to close. That will create the test sqlite database.
 
 ## PHP Extensions
-* `pecl install redis` 
+* `sudo pecl install redis` 
   * If you used homebrew to install php, it probably put something wrong in your php.ini file. 
 `vi /usr/local/etc/php/7.4/php.ini` - Change the first line `extension=redis.so` to something
-like `extension="/usr/local/Cellar/php/7.4.3/pecl/20190902/redis.so"` when redis installed it said
+like `extension="/usr/local/Cellar/php/7.4.8/pecl/20190902/redis.so"` when redis installed it said
 the full path. Use that. Make sure you restart your terminal too.
 
 * `pecl install xdebug`
   * You may need to mess with your php.ini file too `php --ini`. It should look something like this:
-`zend_extension="/usr/local/Cellar/php/7.4.3/pecl/20190902/xdebug.so"` with the full path
+`zend_extension="/usr/local/Cellar/php/7.4.8/pecl/20190902/xdebug.so"` with the full path
 
 ## Laravel Valet
 * `composer global require laravel/valet`
