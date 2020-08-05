@@ -39,19 +39,19 @@ class GoogleIntegration implements IntegrationInterface
     public const PAGE_SIZE = 30;
     public const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
-    const WEBHOOK_URL = '/webhooks/google-drive';
+    public const WEBHOOK_URL = '/webhooks/google-drive';
 
     /**
      * The keys in this array are google roles and the values are what they map
      * to in Trig.
      */
     public const CAPABILITY_MAP = [
+        'commenter'     => 'reader',
+        'fileOrganizer' => 'writer',
         'organizer'     => 'writer',
         'owner'         => 'writer',
-        'fileOrganizer' => 'writer',
-        'writer'        => 'writer',
-        'commenter'     => 'reader',
         'reader'        => 'reader',
+        'writer'        => 'writer',
     ];
 
     private $client;
@@ -150,8 +150,8 @@ class GoogleIntegration implements IntegrationInterface
         $googleTypes = [
             'audio'        => '',
             'document'     => 'text/plain',
-            'drive-sdk'    => '',
             'drawing'      => 'application/pdf',
+            'drive-sdk'    => '',
             'file'         => '',
             'folder'       => '',
             'form'         => '',
@@ -354,13 +354,13 @@ class GoogleIntegration implements IntegrationInterface
         $cardType = app(CardTypeRepository::class)->firstOrCreate($file->mimeType);
 
         $card = $cardRepo->updateOrInsert([
-            'user_id'                   => $user->id,
-            'card_type_id'              => $cardType->id,
-            'title'                     => $file->name,
             'actual_created_at'         => $file->createdTime,
             'actual_modified_at'        => $file->modifiedTime,
+            'card_type_id'              => $cardType->id,
             'description'               => $file->description,
+            'title'                     => $file->name,
             'url'                       => $file->webViewLink,
+            'user_id'                   => $user->id,
         ], $card);
 
         if (! $card) {
