@@ -39,14 +39,14 @@ class ScaffoldCommand extends Command
             return;
         }
 
-//        if ('testing' !== Config::get('app.env')) {
-//            $this->call('elastic:migrate:reset');
-//        }
+        if ('testing' !== Config::get('app.env')) {
+            $this->call('elastic:migrate:reset');
+        }
         $this->call('migrate:fresh');
         $this->call('passport:install');
-//        if ('testing' !== Config::get('app.env')) {
-//            $this->call('elastic:migrate');
-//        }
+        if ('testing' !== Config::get('app.env')) {
+            $this->call('elastic:migrate');
+        }
 
         $email = Config::get('constants.seed.email');
         $password = Config::get('constants.seed.password');

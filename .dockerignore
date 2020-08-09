@@ -7,3 +7,4 @@ coverage
 storage/framework/cache/**
 storage/framework/sessions/**
 storage/framework/views/**
+aws_credentials
