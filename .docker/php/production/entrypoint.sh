@@ -22,7 +22,7 @@ set -e # exit script if any command fails (non-zero value)
 #sleep 1
 #done;
 
-php artisan app:scaffold
+#php artisan app:scaffold
 # php artisan migrate --force
 # php artisan horizon
 # php artisan schedule:run
