@@ -32,7 +32,7 @@ Must be installed to pull data from documents (for searching)
 * Create a MYSQL dev and test DB
   * `mysql -u root`
   * `CREATE DATABASE trig;`
-* You may need a username/pass for sendGrid if emails don't work. `MAIL_USERNAME` and `MAIL_PASSWORD`. You can ask for it.
+* You'll need a mailtrap.io account. MAIL_USERNAME and MAIL_PASSWORD must be replaced with your _inbox_ mailtrap credentials, _not_ the credentials you use to log in. Go to your inbox and you'll find what you need.
 
 # Testing
 * `sqlite3 trig_test.db` - then run `.database` - `.quit` to close. That will create the test sqlite database.
@@ -45,7 +45,7 @@ like `extension="/usr/local/Cellar/php/7.4.8/pecl/20190902/redis.so"` when redis
 the full path. Use that. Make sure you restart your terminal too.
 
 * `pecl install xdebug`
-  * You may need to mess with your php.ini file too `php --ini`. It should look something like this:
+  * You may need to mess with your php.ini file too `php --ini`. It should look something like thise
 `zend_extension="/usr/local/Cellar/php/7.4.8/pecl/20190902/xdebug.so"` with the full path
 
 ## Laravel Valet
@@ -54,6 +54,7 @@ the full path. Use that. Make sure you restart your terminal too.
 * Navigate to the folder you cloned this repo in and run `valet park`
 
 ## Bootstrapping
+* I'm not sure why, but I think you have to run `php artisan queue:work` at least once before the redis queue will work locally
 * `npm run bootstrap` - Bootstrap everything below. Only run this on a new machine, not any of the 
 commands below. But for reference this is what it does:
 

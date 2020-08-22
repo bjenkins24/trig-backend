@@ -11,11 +11,11 @@ use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
-use App\Models\User;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -47,9 +47,9 @@ class UserController extends Controller
     /**
      * Register a new user account.
      *
-     * @return void
+     * @throws UserExists
      */
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
         if ($this->userRepo->findByEmail($request->get('email'))) {
             throw new UserExists();
@@ -66,9 +66,9 @@ class UserController extends Controller
     /**
      * Initiate the forgot password process.
      *
-     * @return bool
+     * @throws NoUserFound
      */
-    public function forgotPassword(ForgotPasswordRequest $request)
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         $user = $this->userRepo->findByEmail($request->get('email'));
 
@@ -86,7 +86,9 @@ class UserController extends Controller
     /**
      * Reset the password.
      *
-     * @return void
+     * @throws ResetPasswordTokenExpired
+     *
+     * @return JsonResponse
      */
     public function resetPassword(ResetPasswordRequest $request)
     {
@@ -106,10 +108,8 @@ class UserController extends Controller
 
     /**
      * Validate that a given reset token is valid.
-     *
-     * @return void
      */
-    public function validateResetToken(ValidateResetTokenRequest $request)
+    public function validateResetToken(ValidateResetTokenRequest $request): JsonResponse
     {
         $isValidToken = $this->userService->resetPassword->validateResetToken($request->all()) ?
             'valid' : 'invalid';
@@ -117,7 +117,7 @@ class UserController extends Controller
         return response()->json(['data' => $isValidToken]);
     }
 
-    public function googleSso(GoogleSsoRequest $request)
+    public function googleSso(GoogleSsoRequest $request): JsonResponse
     {
         $response = $this->oauthIntegrationService->makeConnectionIntegration('google')->getUser($request->get('code'));
         if (! $response) {

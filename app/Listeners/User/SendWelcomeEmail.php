@@ -6,9 +6,8 @@ use App\Events\User\AccountCreated;
 use App\Jobs\SendMail;
 use App\Mail\WelcomeMail;
 use App\Modules\User\UserService;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendWelcomeEmail implements ShouldQueue
+class SendWelcomeEmail
 {
     /**
      * Handle the event.
