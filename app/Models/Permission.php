@@ -5,6 +5,32 @@ namespace App\Models;
 use App\Support\Traits\Relationships\BelongsToCapability;
 use App\Support\Traits\Relationships\HasPermissionType;
 
+/**
+ * App\Models\Permission.
+ *
+ * @property int                                           $id
+ * @property string                                        $permissionable_type
+ * @property int                                           $permissionable_id
+ * @property int                                           $capability_id
+ * @property \Illuminate\Support\Carbon|null               $created_at
+ * @property \Illuminate\Support\Carbon|null               $updated_at
+ * @property \App\Models\Capability                        $capability
+ * @property \App\Models\PermissionType|null               $permissionType
+ * @property \Illuminate\Database\Eloquent\Model|\Eloquent $permissionable
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
+ * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Permission newModelQuery()
+ * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Permission newQuery()
+ * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Permission query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission whereCapabilityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission wherePermissionableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission wherePermissionableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Permission whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
+ * @mixin \Eloquent
+ */
 class Permission extends BaseModel
 {
     use BelongsToCapability;

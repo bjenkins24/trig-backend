@@ -12,6 +12,7 @@ use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Integrations\GoogleIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
@@ -130,7 +131,14 @@ class GoogleIntegrationTest extends TestCase
         $this->refreshDb();
     }
 
-    public function testNoSyncWhenUpToDate()
+    /**
+     * @group n
+     *
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     * @throws CardIntegrationCreationValidate
+     */
+    public function testNoSyncWhenUpToDate(): void
     {
         $this->refreshDb();
         $user = User::find(1);
@@ -142,7 +150,7 @@ class GoogleIntegrationTest extends TestCase
         $cardIntegration->foreign_id = $file->id;
         $cardIntegration->save();
 
-        $this->partialMock(GoogleIntegration::class, function ($mock) {
+        $this->partialMock(GoogleIntegration::class, static function ($mock) {
             $mock->shouldNotReceive('saveThumbnail');
         });
 
