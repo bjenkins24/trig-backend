@@ -11,66 +11,59 @@ use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use ElasticScoutDriverPlus\CustomSearch;
-use Eloquent;
-use GeneaLabs\LaravelModelCaching\CachedBuilder;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
 /**
  * App\Models\Card.
  *
- * @property int                                $id
- * @property int                                $user_id
- * @property int                                $card_type_id
- * @property string                             $title
- * @property string|null                        $description
- * @property string|null                        $content
- * @property string|null                        $image
- * @property int|null                           $image_height
- * @property int|null                           $image_width
- * @property string                             $url
- * @property Carbon                             $actual_created_at
- * @property Carbon                             $actual_modified_at
- * @property Collection|null                    $properties
- * @property Carbon|null                        $created_at
- * @property Carbon|null                        $updated_at
- * @property EloquentCollection|CardDuplicate[] $cardDuplicates
- * @property int|null                           $card_duplicates_count
- * @property CardFavorite|null                  $cardFavorite
- * @property CardIntegration|null               $cardIntegration
- * @property CardType                           $cardType
- * @property LinkShareSetting|null              $linkShareSetting
- * @property EloquentCollection|Permission[]    $permissions
- * @property int|null                           $permissions_count
- * @property CardDuplicate|null                 $primaryDuplicate
- * @property User                               $user
+ * @property int                                                                  $id
+ * @property int                                                                  $user_id
+ * @property int                                                                  $card_type_id
+ * @property string                                                               $title
+ * @property string|null                                                          $description
+ * @property string|null                                                          $content
+ * @property string|null                                                          $image
+ * @property int|null                                                             $image_height
+ * @property int|null                                                             $image_width
+ * @property string                                                               $url
+ * @property \Illuminate\Support\Carbon                                           $actual_created_at
+ * @property \Illuminate\Support\Carbon                                           $actual_modified_at
+ * @property \Illuminate\Support\Collection|null                                  $properties
+ * @property \Illuminate\Support\Carbon|null                                      $created_at
+ * @property \Illuminate\Support\Carbon|null                                      $updated_at
+ * @property \Illuminate\Database\Eloquent\Collection|\App\Models\CardDuplicate[] $cardDuplicates
+ * @property int|null                                                             $card_duplicates_count
+ * @property \App\Models\CardFavorite|null                                        $cardFavorite
+ * @property \App\Models\CardIntegration|null                                     $cardIntegration
+ * @property \App\Models\CardType                                                 $cardType
+ * @property \App\Models\LinkShareSetting|null                                    $linkShareSetting
+ * @property \Illuminate\Database\Eloquent\Collection|\App\Models\Permission[]    $permissions
+ * @property int|null                                                             $permissions_count
+ * @property \App\Models\CardDuplicate|null                                       $primaryDuplicate
+ * @property \App\Models\User                                                     $user
  *
- * @method static Builder|BaseModel disableCache()
- * @method static CachedBuilder|Card newModelQuery()
- * @method static CachedBuilder|Card newQuery()
- * @method static CachedBuilder|Card query()
- * @method static Builder|Card whereActualCreatedAt($value)
- * @method static Builder|Card whereActualModifiedAt($value)
- * @method static Builder|Card whereCardTypeId($value)
- * @method static Builder|Card whereContent($value)
- * @method static Builder|Card whereCreatedAt($value)
- * @method static Builder|Card whereDescription($value)
- * @method static Builder|Card whereId($value)
- * @method static Builder|Card whereImage($value)
- * @method static Builder|Card whereImageHeight($value)
- * @method static Builder|Card whereImageWidth($value)
- * @method static Builder|Card whereProperties($value)
- * @method static Builder|Card whereTitle($value)
- * @method static Builder|Card whereUpdatedAt($value)
- * @method static Builder|Card whereUrl($value)
- * @method static Builder|Card whereUserId($value)
- * @method static Builder|BaseModel withCacheCooldownSeconds($seconds = null)
- * @mixin Eloquent
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereActualCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereActualModifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereCardTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereImageHeight($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereImageWidth($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereProperties($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereUserId($value)
+ * @mixin \Eloquent
  */
-class Card extends BaseModel
+class Card extends Model
 {
     use BelongsToUser;
     use BelongsToCardType;

@@ -30,6 +30,7 @@ class OauthConnectionService
      *
      * @throws Exceptions\OauthMissingTokens
      * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
      */
     public function getAccessToken(User $user, string $integration): string
     {

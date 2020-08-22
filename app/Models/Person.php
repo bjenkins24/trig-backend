@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\PermissionTypeable;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\Person.
@@ -13,18 +14,16 @@ use App\Support\Traits\Relationships\PermissionTypeable;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \App\Models\PermissionType|null $permissionType
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Person newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Person newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Person query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Person whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class Person extends BaseModel
+class Person extends Model
 {
     use PermissionTypeable;
 

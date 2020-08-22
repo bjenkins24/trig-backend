@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasOauthConnections;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\OauthIntegration.
@@ -16,18 +17,16 @@ use App\Support\Traits\Relationships\HasOauthConnections;
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\OauthConnection[] $oauthConnections
  * @property int|null                                                               $oauth_connections_count
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthIntegration newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthIntegration newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthIntegration query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthIntegration whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class OauthIntegration extends BaseModel
+class OauthIntegration extends Model
 {
     use HasOauthConnections;
     use HasCardIntegration;

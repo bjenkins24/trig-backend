@@ -41,10 +41,8 @@ class SyncCards implements ShouldQueue
      * Execute the job.
      *
      * @throws OauthIntegrationNotFound
-     *
-     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         app(OauthIntegrationService::class)
             ->makeCardIntegration($this->integration)

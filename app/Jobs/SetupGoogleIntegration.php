@@ -34,10 +34,8 @@ class SetupGoogleIntegration implements ShouldQueue
      * Execute the job.
      *
      * @throws OauthIntegrationNotFound
-     *
-     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         app(OauthIntegrationService::class)->makeCardIntegration('google')->syncDomains($this->user);
         SyncCards::dispatch($this->user->id, 'google')->onQueue('sync-cards');

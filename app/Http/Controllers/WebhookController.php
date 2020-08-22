@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 class WebhookController extends Controller
 {
-    public function googleDrive()
+    public function googleDrive(): void
     {
     }
 }

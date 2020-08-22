@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCardCardDuplicate;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\CardDuplicate.
@@ -15,19 +16,17 @@ use App\Support\Traits\Relationships\BelongsToCardCardDuplicate;
  * @property \App\Models\Card                $card
  * @property \App\Models\Card                $primaryCard
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardDuplicate newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardDuplicate newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardDuplicate query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate whereDuplicateCardId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate wherePrimaryCardId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardDuplicate whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class CardDuplicate extends BaseModel
+class CardDuplicate extends Model
 {
     use BelongsToCardCardDuplicate;
 

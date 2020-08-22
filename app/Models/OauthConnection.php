@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToOauthIntegration;
 use App\Support\Traits\Relationships\BelongsToUser;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\OauthConnection.
@@ -20,10 +21,9 @@ use App\Support\Traits\Relationships\BelongsToUser;
  * @property \App\Models\OauthIntegration        $oauthIntegration
  * @property \App\Models\User                    $user
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthConnection newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthConnection newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\OauthConnection query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereAccessToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereExpires($value)
@@ -33,10 +33,9 @@ use App\Support\Traits\Relationships\BelongsToUser;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereRefreshToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\OauthConnection whereUserId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class OauthConnection extends BaseModel
+class OauthConnection extends Model
 {
     use BelongsToUser;
     use BelongsToOauthIntegration;

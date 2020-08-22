@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Support\Traits\Relationships\BelongsToCapability;
 use App\Support\Traits\Relationships\BelongsToLinkShareType;
 use App\Support\Traits\Relationships\PermissionTypeable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * App\Models\LinkShareSetting.
@@ -21,10 +23,9 @@ use App\Support\Traits\Relationships\PermissionTypeable;
  * @property \Illuminate\Database\Eloquent\Model|\Eloquent $linkShareable
  * @property \App\Models\PermissionType|null               $permissionType
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\LinkShareSetting newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\LinkShareSetting newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\LinkShareSetting query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereCapabilityId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereId($value)
@@ -32,10 +33,9 @@ use App\Support\Traits\Relationships\PermissionTypeable;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereShareableId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereShareableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LinkShareSetting whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class LinkShareSetting extends BaseModel
+class LinkShareSetting extends Model
 {
     use PermissionTypeable;
     use BelongsToCapability;
@@ -44,7 +44,7 @@ class LinkShareSetting extends BaseModel
     /**
      * Get the owning linkshareable model.
      */
-    public function linkShareable()
+    public function linkShareable(): MorphTo
     {
         return $this->morphTo();
     }

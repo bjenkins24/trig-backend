@@ -35,8 +35,6 @@ class OauthConnectionRepository
 
     /**
      * Get integration from connection.
-     *
-     * @return void
      */
     public function getIntegration(OauthConnection $connection): OauthIntegration
     {
@@ -91,13 +89,13 @@ class OauthConnectionRepository
         $connections = OauthConnection::select('user_id', 'oauth_integration_id')->get();
         $integrations = OauthIntegration::select('id', 'name')->get();
 
-        $integrations = $integrations->reduce(function ($carry, $integration) {
+        $integrations = $integrations->reduce(static function ($carry, $integration) {
             $carry[$integration->id] = $integration->name;
 
             return $carry;
         });
 
-        return collect($connections->map(function ($connection) use ($integrations) {
+        return collect($connections->map(static function ($connection) use ($integrations) {
             return ['user_id' => $connection->user_id, 'key' => $integrations[$connection->oauth_integration_id]];
         }));
     }

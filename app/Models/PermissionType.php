@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToPermission;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\PermissionType.
@@ -16,20 +17,18 @@ use App\Support\Traits\Relationships\BelongsToPermission;
  * @property \App\Models\Permission                        $permission
  * @property \Illuminate\Database\Eloquent\Model|\Eloquent $permissionTypeable
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\PermissionType newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\PermissionType newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\PermissionType query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType wherePermissionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType whereTypeableId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType whereTypeableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\PermissionType whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class PermissionType extends BaseModel
+class PermissionType extends Model
 {
     use BelongsToPermission;
 

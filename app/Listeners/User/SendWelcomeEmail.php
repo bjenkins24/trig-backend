@@ -11,10 +11,8 @@ class SendWelcomeEmail
 {
     /**
      * Handle the event.
-     *
-     * @return void
      */
-    public function handle(AccountCreated $event)
+    public function handle(AccountCreated $event): void
     {
         $userFullName = app(UserService::class)->getName($event->user);
         // Set the name prop, because Mail needs it

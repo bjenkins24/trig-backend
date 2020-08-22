@@ -42,7 +42,7 @@ class AuthController extends Controller
         }
 
         if (empty(Arr::get($authToken, 'access_token'))) {
-            throw new NoAccessTokenSet();
+            throw new NoAccessTokenSet('No access token set');
         }
 
         $user = $this->userRepo->findByEmail($request->get('email'));

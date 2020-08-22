@@ -13,10 +13,8 @@ class WelcomeMail extends Mailable
 
     /**
      * Build the message.
-     *
-     * @return $this
      */
-    public function build()
+    public function build(): self
     {
         return $this
             ->subject('Welcome to Trig!')

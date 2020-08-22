@@ -11,12 +11,16 @@ use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
+use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
+use Error;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -52,7 +56,7 @@ class UserController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         if ($this->userRepo->findByEmail($request->get('email'))) {
-            throw new UserExists();
+            throw new UserExists('The user already exists.');
         }
 
         $user = $this->userService->create($request->all());
@@ -73,7 +77,7 @@ class UserController extends Controller
         $user = $this->userRepo->findByEmail($request->get('email'));
 
         if (! $user) {
-            throw new NoUserFound();
+            throw new NoUserFound('No user was found');
         }
 
         $this->userService->resetPassword->sendForgotPasswordNotification($user);
@@ -87,17 +91,15 @@ class UserController extends Controller
      * Reset the password.
      *
      * @throws ResetPasswordTokenExpired
-     *
-     * @return JsonResponse
      */
-    public function resetPassword(ResetPasswordRequest $request)
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $args = $this->userService->resetPassword->getPasswordResetArgs($request->all());
 
         try {
             $user = $this->userService->resetPassword->passwordReset($args)->wait();
-        } catch (\Error $e) {
-            throw new ResetPasswordTokenExpired();
+        } catch (Error $e) {
+            throw new ResetPasswordTokenExpired('Reset password token has expired');
         }
 
         // Login the new user
@@ -117,11 +119,16 @@ class UserController extends Controller
         return response()->json(['data' => $isValidToken]);
     }
 
+    /**
+     * @throws FailedGoogleSso
+     * @throws OauthMissingTokens
+     * @throws OauthIntegrationNotFound
+     */
     public function googleSso(GoogleSsoRequest $request): JsonResponse
     {
         $response = $this->oauthIntegrationService->makeConnectionIntegration('google')->getUser($request->get('code'));
         if (! $response) {
-            throw new FailedGoogleSso();
+            throw new FailedGoogleSso('Could not SSO with Google');
         }
 
         $user = $this->userRepo->findByEmail($response['payload']->get('email'));
@@ -132,7 +139,7 @@ class UserController extends Controller
         } else {
             $authParams = [
                 'email'    => $response['payload']->get('email'),
-                'password' => \Str::random(24),
+                'password' => Str::random(24),
             ];
             $user = $this->userService->createFromGoogle($authParams, $response['oauthCredentials']);
 
@@ -144,7 +151,10 @@ class UserController extends Controller
         return response()->json(['data' => compact('authToken', 'user')], $status);
     }
 
-    public function testGoogle(Request $request)
+    /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testGoogle(Request $request): JsonResponse
     {
         $user = $request->user();
         $files = $this->oauthIntegrationService->makeCardIntegration('google')->getFiles($user, strtotime('-20 days'));

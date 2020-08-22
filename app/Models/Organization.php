@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToManyUsers;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\Organization.
@@ -14,18 +15,16 @@ use App\Support\Traits\Relationships\BelongsToManyUsers;
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $users
  * @property int|null                                                    $users_count
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Organization newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Organization newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Organization query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class Organization extends BaseModel
+class Organization extends Model
 {
     use BelongsToManyUsers;
 

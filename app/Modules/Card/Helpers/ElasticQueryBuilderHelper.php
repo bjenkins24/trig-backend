@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Helpers;
 
+use App\Models\Person;
 use App\Models\User;
 use App\Modules\Person\PersonRepository;
 use Illuminate\Support\Collection;
@@ -89,7 +90,7 @@ class ElasticQueryBuilderHelper
             ],
         ];
 
-        $conditions = $teams->map(function ($team) {
+        $conditions = $teams->map(static function ($team) {
             return [
                 'bool' => [
                     'filter' => [
@@ -148,7 +149,7 @@ class ElasticQueryBuilderHelper
                       'filter' => [
                         [
                           'match' => [
-                            'permissions.type' => 'App\Models\Person',
+                            'permissions.type' => Person::class,
                           ],
                         ],
                         [
@@ -180,7 +181,7 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    public function baseQuery(User $user, Collection $constraints)
+    public function baseQuery(User $user, Collection $constraints): array
     {
         return [
             'bool' => [

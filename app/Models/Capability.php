@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\HasLinkShareSettings;
 use App\Support\Traits\Relationships\HasPermissions;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\Capability.
@@ -15,16 +16,14 @@ use App\Support\Traits\Relationships\HasPermissions;
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\Permission[]       $permissions
  * @property int|null                                                                $permissions_count
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Capability newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Capability newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\Capability query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Capability newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Capability newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Capability query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Capability whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Capability whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class Capability extends BaseModel
+class Capability extends Model
 {
     use HasPermissions;
     use HasLinkShareSettings;

@@ -61,7 +61,7 @@ class GoogleIntegration implements IntegrationInterface
      * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
      */
-    public function setClient(User $user)
+    public function setClient(User $user): void
     {
         $this->client = app(OauthConnectionService::class)->getClient($user, GoogleConnection::getKey());
     }
@@ -116,6 +116,9 @@ class GoogleIntegration implements IntegrationInterface
     {
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
         $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
+        if (null === $oauthConnection) {
+            throw new \RuntimeException('The oauth connection was not found');
+        }
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
         $service = $this->getDriveService($user);

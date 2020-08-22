@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCard;
 use App\Support\Traits\Relationships\BelongsToUser;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\CardFavorite.
@@ -16,19 +17,17 @@ use App\Support\Traits\Relationships\BelongsToUser;
  * @property \App\Models\Card                $card
  * @property \App\Models\User                $user
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel disableCache()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardFavorite newModelQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardFavorite newQuery()
- * @method static \GeneaLabs\LaravelModelCaching\CachedBuilder|\App\Models\CardFavorite query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite whereCardId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\CardFavorite whereUserId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\BaseModel withCacheCooldownSeconds($seconds = null)
  * @mixin \Eloquent
  */
-class CardFavorite extends BaseModel
+class CardFavorite extends Model
 {
     use BelongsToCard;
     use BelongsToUser;

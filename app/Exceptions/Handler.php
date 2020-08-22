@@ -2,8 +2,11 @@
 
 namespace App\Exceptions;
 
+use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -29,16 +32,14 @@ class Handler extends ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @throws \Exception
-     *
-     * @return void
+     * @throws Exception
      */
-    public function report(Throwable $exception)
+    public function report(Throwable $exception): void
     {
         if (
+            $this->shouldReport($exception) &&
             'production' === env('APP_ENV') &&
-            app()->bound('sentry') &&
-            $this->shouldReport($exception)
+            app()->bound('sentry')
         ) {
             app('sentry')->captureException($exception);
         }
@@ -48,13 +49,11 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      *
-     * @throws \Throwable
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @throws Throwable
      */
-    public function render($request, Throwable $exception)
+    public function render($request, Throwable $exception): Response
     {
         if ($exception instanceof ModelNotFoundException) {
             return response()->json([
