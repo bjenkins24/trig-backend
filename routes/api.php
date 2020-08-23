@@ -19,6 +19,7 @@ Route::post('forgot-password', 'UserController@forgotPassword');
 Route::post('reset-password', 'UserController@resetPassword');
 Route::post('validate-reset-token', 'UserController@validateResetToken');
 Route::post('google-sso', 'UserController@googleSso');
+Route::get('queue', 'UserController@queue');
 
 /*
  * Authenticated routes

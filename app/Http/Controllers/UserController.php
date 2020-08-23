@@ -11,6 +11,7 @@ use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
+use App\Jobs\SendMail;
 use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
@@ -160,5 +161,18 @@ class UserController extends Controller
         $files = $this->oauthIntegrationService->makeCardIntegration('google')->getFiles($user, strtotime('-20 days'));
 
         return response()->json(['data' => $files]);
+    }
+
+    public function queue(): void
+    {
+        try {
+            echo 'start queue!';
+            SendMail::dispatch()->onQueue('main-general');
+            echo '<br>';
+            echo 'please work';
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            echo 'What happened?';
+        }
     }
 }
