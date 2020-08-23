@@ -11,6 +11,7 @@
         "php": "^7.4",
         "ext-json": "*",
         "andreskrey/readability.php": "^2.1",
+        "aws/aws-sdk-php": "^3.150",
         "babenkoivan/elastic-migrations": "^1.0",
         "babenkoivan/elastic-scout-driver": "^1.0",
         "babenkoivan/elastic-scout-driver-plus": "^1.0",
