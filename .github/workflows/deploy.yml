@@ -25,13 +25,12 @@ jobs:
       - name: "Build, tag, and push image to Amazon ECR"
         id: build-image
         run: |
-          DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --build-arg NEW_RELIC_LICENSE_KEY=$NEW_RELIC_LICENSE_KEY --build-arg NEW_RELIC_AGENT_VERSION=$NEW_RELIC_AGENT_VERSION --secret id=aws,src=aws_credentials -f .docker/php/production/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --build-arg NEW_RELIC_AGENT_VERSION=$NEW_RELIC_AGENT_VERSION --secret id=aws,src=aws_credentials -f .docker/php/production/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY
           aws --region us-west-1 ecs update-service --cluster main-frontend-production --service main-frontend-production --force-new-deployment
         env:
           ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
-          NEW_RELIC_LICENSE_KEY: "${{ secrets.NEW_RELIC_LICENSE_KEY }}"
           NEW_RELIC_AGENT_VERSION: 9.13.0.270
           ECR_REPOSITORY: main-production-php
           IMAGE_TAG: "${{ github.sha }}"

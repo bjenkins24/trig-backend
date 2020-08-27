@@ -17,7 +17,7 @@
         "docker:remove:volumes": "docker volume rm $(docker volume ls -qf dangling=true)",
         "docker:remove:images": "docker image prune -a -f",
         "docker:clean": "npm run docker:remove:containers && npm run docker:remove:images && npm run docker:remove:volumes",
-        "docker:build:prod": "cp-cli ~/.aws/credentials ./aws_credentials && DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --secret id=aws,src=aws_credentials --build-arg NEW_RELIC_LICENSE_KEY=1234 --build-arg NEW_RELIC_AGENT_VERSION=9.13.0.270 -f .docker/php/production/Dockerfile -t main-frontend-production-php . && docker build --no-cache -f .docker/web/production/Dockerfile . -t main-frontend-production-nginx",
+        "docker:build:prod": "cp-cli ~/.aws/credentials ./aws_credentials && DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain --secret id=aws,src=aws_credentials --build-arg NEW_RELIC_AGENT_VERSION=9.13.0.270 -f .docker/php/production/Dockerfile -t main-frontend-production-php . && docker build --no-cache -f .docker/web/production/Dockerfile . -t main-frontend-production-nginx",
         "docker:fresh:prod": "npm run docker:stop:prod && npm run docker:build:prod && npm run start:prod",
         "get:prod:env": "aws s3 cp s3://trig-us-west-1/main/.env.production .env.production",
         "put:prod:env": "aws s3 cp .env.production s3://trig-us-west-1/main/.env.production"
