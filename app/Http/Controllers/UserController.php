@@ -167,7 +167,7 @@ class UserController extends Controller
     {
         try {
             echo 'start queue!';
-//            SendMail::dispatch()->onQueue('main-general');
+            SendMail::dispatch()->onQueue('main-general');
             echo '<br>';
             echo 'please work';
         } catch (\Exception $e) {
