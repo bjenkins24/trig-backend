@@ -28,7 +28,4 @@ Route::middleware('auth:api')->get('/me', 'UserController@me');
 Route::middleware('auth:api')->get('/cards/{queryConstraints?}', 'CardController@get');
 Route::middleware('auth:api')->get('/testGoogle', 'UserController@testGoogle');
 
-Route::fallback(function () {
-    return response()->json([
-        'message' => 'Page Not Found. If the error persists, contact support@trytrig.com', ], 404);
-});
+Route::fallback('WebController@fallback');

@@ -24,6 +24,6 @@ set -e # exit script if any command fails (non-zero value)
 
 php artisan migrate --force
 php artisan elastic:migrate
-php artisan config:cache
+php artisan optimize
 
 php-fpm -F -R
