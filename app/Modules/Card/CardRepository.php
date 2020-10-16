@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
+use App\Modules\OauthConnection\Exceptions\OauthKeyInvalid;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -233,9 +234,16 @@ class CardRepository
         });
     }
 
-    public function getByForeignId(string $foreignId): ?Card
+    /**
+     * @throws OauthKeyInvalid
+     */
+    public function getByForeignId(string $foreignId, string $integrationKey): ?Card
     {
-        $cardIntegration = CardIntegration::where(['foreign_id' => $foreignId])->first();
+        $oauthIntegration = $this->oauthIntegration->findByName($integrationKey);
+        if (! $oauthIntegration) {
+            throw new OauthKeyInvalid("The integration key $integrationKey does not exist");
+        }
+        $cardIntegration = CardIntegration::where(['foreign_id' => $foreignId, 'id' => $oauthIntegration->id])->first();
         if (! $cardIntegration) {
             return null;
         }
@@ -252,18 +260,6 @@ class CardRepository
         }
 
         return Card::create($fields);
-    }
-
-    /**
-     * Check if the card has been modified after our entry.
-     */
-    public function needsUpdate(?Card $card, ?int $lastModified): bool
-    {
-        if (! $card || ! $lastModified) {
-            return true;
-        }
-
-        return $lastModified > strtotime($card->actual_modified_at);
     }
 
     public function removeAllPermissions(Card $card): void

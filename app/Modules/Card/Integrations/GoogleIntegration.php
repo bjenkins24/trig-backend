@@ -469,6 +469,10 @@ class GoogleIntegration implements IntegrationInterface
         }
     }
 
+    public function getCardData() {
+
+    }
+
     /**
      * Sync cards from google.
      *
