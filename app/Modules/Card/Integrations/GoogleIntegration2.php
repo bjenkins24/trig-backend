@@ -2,8 +2,10 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Models\Card;
 use App\Models\OauthConnection;
 use App\Models\User;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Interfaces\IntegrationInterface2;
 use App\Modules\OauthConnection\Connections\GoogleConnection;
 use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
@@ -16,14 +18,12 @@ use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class GoogleIntegration2 implements IntegrationInterface2
 {
-    public const IMAGE_PATH = 'public/card-thumbnails';
     public const PAGE_SIZE = 30;
     public const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
-
-    public const WEBHOOK_URL = '/webhooks/google-drive';
 
     /**
      * The keys in this array are google roles and the values are what they map
@@ -39,6 +39,12 @@ class GoogleIntegration2 implements IntegrationInterface2
     ];
 
     private $client;
+    public string $integrationKey;
+
+    public function __construct()
+    {
+        $this->integrationKey = 'google';
+    }
 
     /**
      * @throws OauthMissingTokens
@@ -47,7 +53,7 @@ class GoogleIntegration2 implements IntegrationInterface2
      */
     public function setClient(User $user): void
     {
-        $this->client = app(OauthConnectionService::class)->getClient($user, GoogleConnection::getKey());
+        $this->client = app(OauthConnectionService::class)->getClient($user, $this->integrationKey);
     }
 
     /**
@@ -91,16 +97,16 @@ class GoogleIntegration2 implements IntegrationInterface2
      * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
-    public function getFiles(User $user, ?int $since = null)
+    public function getFiles(User $user, ?int $since)
     {
         $oauthConnectionRepo = app(OauthConnectionRepository::class);
-        $oauthConnection = $oauthConnectionRepo->findUserConnection($user, 'google');
+        $oauthConnection = $oauthConnectionRepo->findUserConnection($user, $this->integrationKey);
         if (null === $oauthConnection) {
-            throw new \RuntimeException('The oauth connection was not found');
+            throw new RuntimeException('The oauth connection was not found');
         }
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
-        $service = $this->getDriveService($user);
+        $service = $this->getDriveService();
 
         if ($since) {
             $params = [
@@ -230,5 +236,60 @@ class GoogleIntegration2 implements IntegrationInterface2
 
             return $carry;
         }, []));
+    }
+
+    /**
+     * Google apps can be exported to normal file mime types. We need to know what to convert
+     * which is what this function does.
+     */
+    public function googleToMime(string $mimeType): string
+    {
+        $googleTypes = [
+            'audio'        => '',
+            'document'     => 'text/plain',
+            'drawing'      => 'application/pdf',
+            'drive-sdk'    => '',
+            'file'         => '',
+            'folder'       => '',
+            'form'         => '',
+            'fusiontable'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'map'          => 'application/pdf',
+            'photo'        => 'image/jpeg',
+            'presentation' => 'text/plain',
+            'script'       => 'application/vnd.google-apps.script+json',
+            'shortcut'     => '',
+            'site'         => 'application/pdf',
+            'spreadsheet'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'unknown'      => '',
+            'video'        => '',
+        ];
+        $type = Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
+
+        return $googleTypes[$type];
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
+     */
+    public function getCardContent(Card $card, int $id, string $mimeType): string
+    {
+        $cardRepo = app(CardRepository::class);
+
+        $service = $this->getDriveService($cardRepo->getUser($card));
+
+        // G Suite files need to be exported
+        if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
+            $mimeType = $this->googleToMime($mimeType);
+            if (! $mimeType) {
+                return '';
+            }
+            $content = $service->files->export($id, $mimeType);
+        } else {
+            $content = $service->files->get($id, ['alt' => 'media']);
+        }
+
+        return $content->getBody();
     }
 }

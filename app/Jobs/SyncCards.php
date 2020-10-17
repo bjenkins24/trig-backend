@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
+use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
@@ -44,8 +46,8 @@ class SyncCards implements ShouldQueue
      */
     public function handle(): void
     {
-        app(OauthIntegrationService::class)
-            ->makeCardIntegration($this->integration)
-            ->syncCards($this->userId, $this->since);
+        app()->makeWith(SyncCardsIntegration::class, [
+            'integration' => app(OauthIntegrationService::class)->makeCardIntegration($this->integration),
+        ])->syncCards(User::find($this->userId), $this->since);
     }
 }

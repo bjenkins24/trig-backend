@@ -207,7 +207,7 @@ class GoogleIntegration implements IntegrationInterface
         // Save the card data retrieved from the extraction
         $card->content = $data->get('content');
         $data->forget('content');
-        $data = $data->reject(function ($value) {
+        $data = $data->reject(static function ($value) {
             return ! $value;
         });
         $card->properties = $data->toArray();
@@ -381,97 +381,7 @@ class GoogleIntegration implements IntegrationInterface
         }
     }
 
-    /**
-     * If a user belongs to G Suite, then they will belong to one or more domains.
-     * The domain the user belongs to will be used to decide permissions for which cards
-     * a user can view.
-     *
-     * For example, if a user shares a card in G Drive and makes it discoverable to all users
-     * on the domain yourmusiclessons.com, we should allow users in Trig to all discover that as well
-     *
-     * One G Suite account CAN have multiple domains: https://support.google.com/a/answer/7502379
-     * Each time a connection is made we will also check their accessible domains. If there is a domain
-     * that we don't recognize, we'll add it to the organizations google domains. By default _all_
-     * domains will be accessible from within Trig.
-     *
-     * A Trig admin will be able to select or deselect which domains their Trig account should be
-     * accessible for, in the settings for Google from within Trig.
-     *
-     * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     */
-    public function getDomains(User $user): array
-    {
-        if (! $this->client) {
-            $this->setClient($user);
-        }
-        $service = new GoogleServiceDirectory($this->client);
 
-        try {
-            // my_customer get's the domains for the current customer which is what we want
-            // weird API, but that's 100% Google
-            return $service->domains->listDomains('my_customer')->domains;
-        } catch (Exception $e) {
-            $error = json_decode($e->getMessage());
-            if (! $error || 404 !== $error->error->code) {
-                \Log::notice('Unable to retrieve domains for user. Error: '.json_encode($error));
-            }
-        }
-
-        return [];
-    }
-
-    /**
-     * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     */
-    public function syncDomains(User $user): bool
-    {
-        $domains = $this->getDomains($user);
-        if (! $domains) {
-            return false;
-        }
-        $properties = ['google_domains' => []];
-        foreach ($domains as $domain) {
-            $properties['google_domains'][] = [$domain->domainName => true];
-        }
-        $user->properties = $properties;
-        $user->save();
-
-        return true;
-    }
-
-    public function watchFiles(User $user): void
-    {
-        $webhookId = Str::uuid();
-
-        $oauthConnection = app(UserRepository::class)->getOauthConnection($user, 'google');
-        // If we are already watching for changes then no need to hit endpoint again
-        if ($oauthConnection->properties->webhook_id) {
-            return;
-        }
-
-        try {
-            $expiration = Carbon::now()->addSeconds(604800)->timestamp;
-            Http::post('https://www.googleapis.com/drive/v3/changes/watch', [
-                'id'              => $webhookId,
-                'address'         => Config::get('app.url').self::WEBHOOKS_URL,
-                'type'            => 'web_hook',
-                'expiration'      => $expiration * 1000,
-            ]);
-            $oauthConnection->properties['webhook_id'] = $webhookId;
-            $oauthConnection->properties['webhook_expiration'] = $expiration;
-            $oauthConnection->save();
-        } catch (Exception $e) {
-            Log::error('Unable to watch google drive for changes for user '.$user->id.': '.$e->getMessage());
-        }
-    }
-
-    public function getCardData() {
-
-    }
 
     /**
      * Sync cards from google.

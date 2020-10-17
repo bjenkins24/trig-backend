@@ -2,12 +2,13 @@
 
 namespace App\Modules\Card\Integrations;
 
+use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Models\Card;
-use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Interfaces\IntegrationInterface2;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Exceptions\OauthKeyInvalid;
@@ -24,26 +25,22 @@ class SyncCards
 {
     public const IMAGE_PATH = 'public/card-thumbnails';
 
-    private OauthIntegration $integration;
     private string $integrationKey;
     private CardRepository $cardRepository;
     private CardTypeRepository $cardTypeRepository;
-    private Collection $cardData;
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
 
     public function __construct(
-        OauthIntegration $integration,
+        IntegrationInterface2 $integration,
         CardRepository $cardRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository
     ) {
-        $this->integration = $integration;
-        $this->integrationKey = $integration->getKey();
+        $this->integrationKey = $integration->integrationKey;
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
-        $this->cardData = $this->integration->getCardData();
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
     }
@@ -143,7 +140,7 @@ class SyncCards
                 return null;
             }
             if ($existingCard->actual_modified_at >= $data->get('actual_modified_at')) {
-               return null;
+                return null;
             }
         }
 
@@ -175,24 +172,47 @@ class SyncCards
         }
     }
 
+    public function saveCardData(Card $card): void
+    {
+        $cardIntegration = $this->cardRepository->getCardIntegration($card);
+        if (! $cardIntegration) {
+            return;
+        }
+        $id = $cardIntegration->foreign_id;
+        $mimeType = $this->cardRepository->getCardType($card)->name;
+
+        $content = $this->integration->getCardContent($card, $id, $mimeType);
+        $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content);
+
+        // Save the card data retrieved from the extraction
+        $card->content = $data->get('content');
+        $data->forget('content');
+        $data = $data->reject(static function ($value) {
+            return ! $value;
+        });
+        $card->properties = $data->toArray();
+        $card->save();
+
+        if ($card->content) {
+            CardDedupe::dispatch($card)->onQueue('card-dedupe');
+        }
+    }
+
     /**
      * @throws CardIntegrationCreationValidate
      * @throws OauthKeyInvalid
      */
-    public function syncCards(int $userId, ?int $since = null): bool
+    public function syncCards(User $user, ?int $since): void
     {
-        if (0 === $this->cardData->count) {
-            return false;
+        $cardData = $this->integration->getAllCardData($user, $since);
+        if (0 === $cardData->count) {
+            return;
         }
 
-        $this->cardData->each(function ($card) {
+        $cardData->each(function ($card) {
             $this->upsertCard($card->get('data'));
         });
-
-        return true;
     }
-
-    new SyncCards($cardData);
 
 //    // Abstracted don't need it everywhere
 //    public function getCards() {
