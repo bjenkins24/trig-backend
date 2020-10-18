@@ -23,6 +23,47 @@ use Illuminate\Support\Facades\Storage;
 
 class SyncCards
 {
+//    $card = [
+//        'data' => [
+//            'user_id' => 2,
+//            'delete' => true,
+//            'card_type' => amplitude,
+//            'url' => '',
+//            'foreign_id' => '',
+//            'title' => '',
+//            'description' => '',
+//            'actual_created_at' => '',
+//            'actual_updated_at' => '',
+//            'thumbnail_uri' => '',
+//            'properties' => '',
+//        ],
+//        'permissions' => [
+//            'users'    => [
+//                [
+//                    'email'      => 'brian@asd.com',
+//                    'capability' => 'writer',
+//                ],
+//                [
+//                    'id'         => 1,
+//                    'capability' => 'reader',
+//                ],
+//            ],
+//            'link_share' => [
+//                [
+//                    'type' => 'public',
+//                    'cabability' => 'reader'
+//                ],
+//                [
+//                    'type' => 'anyone_organization',
+//                    'cabability' => 'reader'
+//                ],
+//                [
+//                    'type' => 'anyone',
+//                    'cabability' => 'reader'
+//                ]
+//            ]
+//        ]
+//    ];
     public const IMAGE_PATH = 'public/card-thumbnails';
 
     private string $integrationKey;
@@ -213,79 +254,4 @@ class SyncCards
             $this->upsertCard($card->get('data'));
         });
     }
-
-//    // Abstracted don't need it everywhere
-//    public function getCards() {
-//        $data = $this->getData();
-//        $cards = $data->each(static function($datum) {
-//             $this->dataToCard($datum);
-//        });
-//        return $cards;
-//    }
-//
-//
-//    // EVERY CLASS
-//    public function getAllData(): Data {
-//        $allData = curl getData;
-//        return collect($allData);
-//    }
-//
-//    // Every class
-//    public function dataToCard(Data $data) {
-//        $card = Card->joe = $data['joe'];
-//        return $card;
-//    }
-//
-//    $card = [
-//        'data' => [
-//            'user_id' => 2,
-//            'delete' => true,
-//            'card_type' => amplitude,
-//            'url' => '',
-//            'foreign_id' => '',
-//            'title' => '',
-//            'description' => '',
-//            'content' => '',
-//            'actual_created_at' => '',
-//            'actual_updated_at' => '',
-//            'thumbnail_uri' => '',
-//            'properties' => '',
-//        ],
-//        'permissions' => [
-//            'users'    => [
-//                [
-//                    'email'      => 'brian@asd.com',
-//                    'capability' => 'writer',
-//                ],
-//                [
-//                    'id'         => 1,
-//                    'capability' => 'reader',
-//                ],
-//            ],
-//            'link_share' => [
-//                [
-//                    'type' => 'public',
-//                    'cabability' => 'reader'
-//                ],
-//                [
-//                    'type' => 'anyone_organization',
-//                    'cabability' => 'reader'
-//                ],
-//                [
-//                    'type' => 'anyone',
-//                    'cabability' => 'reader'
-//                ]
-//            ]
-//        ]
-//    ];
-//
-//    // Every class
-//    public function permissions?(Data $data) {
-//
-//    }
-//
-//    // Every class
-//    public function dataToThumbnail?() {
-//
-//    }
 }

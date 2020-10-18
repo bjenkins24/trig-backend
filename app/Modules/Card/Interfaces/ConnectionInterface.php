@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\OauthConnection\Interfaces;
+namespace App\Modules\Card\Interfaces;
 
 use Illuminate\Support\Collection;
 
-interface OauthConnectionInterface
+interface ConnectionInterface
 {
     public function retrieveAccessTokenWithCode(string $oauthToken): Collection;
 
