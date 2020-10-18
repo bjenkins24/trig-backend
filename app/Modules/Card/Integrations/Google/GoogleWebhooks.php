@@ -26,7 +26,7 @@ class GoogleWebhooks
     {
         $webhookId = Str::uuid();
 
-        $oauthConnection = $this->userRepository->getOauthConnection($user, Google::INTEGRATION_KEY);
+        $oauthConnection = $this->userRepository->getOauthConnection($user, GoogleIntegration::getIntegrationKey());
         // If we are already watching for changes then no need to hit endpoint again
         if ($oauthConnection->properties->webhook_id) {
             return;

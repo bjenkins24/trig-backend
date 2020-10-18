@@ -8,7 +8,7 @@ use App\Models\Card;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Interfaces\IntegrationInterface2;
+use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\Exceptions\OauthKeyInvalid;
@@ -23,47 +23,6 @@ use Illuminate\Support\Facades\Storage;
 
 class SyncCards
 {
-//    $card = [
-//        'data' => [
-//            'user_id' => 2,
-//            'delete' => true,
-//            'card_type' => amplitude,
-//            'url' => '',
-//            'foreign_id' => '',
-//            'title' => '',
-//            'description' => '',
-//            'actual_created_at' => '',
-//            'actual_updated_at' => '',
-//            'thumbnail_uri' => '',
-//            'properties' => '',
-//        ],
-//        'permissions' => [
-//            'users'    => [
-//                [
-//                    'email'      => 'brian@asd.com',
-//                    'capability' => 'writer',
-//                ],
-//                [
-//                    'id'         => 1,
-//                    'capability' => 'reader',
-//                ],
-//            ],
-//            'link_share' => [
-//                [
-//                    'type' => 'public',
-//                    'cabability' => 'reader'
-//                ],
-//                [
-//                    'type' => 'anyone_organization',
-//                    'cabability' => 'reader'
-//                ],
-//                [
-//                    'type' => 'anyone',
-//                    'cabability' => 'reader'
-//                ]
-//            ]
-//        ]
-//    ];
     public const IMAGE_PATH = 'public/card-thumbnails';
 
     private string $integrationKey;
@@ -73,13 +32,13 @@ class SyncCards
     private PermissionRepository $permissionRepository;
 
     public function __construct(
-        IntegrationInterface2 $integration,
+        IntegrationInterface $integration,
         CardRepository $cardRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository
     ) {
-        $this->integrationKey = $integration->integrationKey;
+        $this->integrationKey = $integration::getIntegrationKey();
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
@@ -168,8 +127,9 @@ class SyncCards
     }
 
     /**
-     * @throws OauthKeyInvalid
      * @throws CardIntegrationCreationValidate
+     * @throws OauthKeyInvalid
+     * @throws Exception
      */
     public function upsertCard(Collection $data): ?Card
     {

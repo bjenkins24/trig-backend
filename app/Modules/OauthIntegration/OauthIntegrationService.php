@@ -45,7 +45,11 @@ class OauthIntegrationService
     {
         $className = Str::studly($integration);
         $classType = Str::ucfirst($type);
-        $fullClassPath = "{$path}\\{$className}{$classType}";
+        if ('integration' === $type) {
+            $fullClassPath = "{$path}\\{$className}\\{$className}{$classType}";
+        } else {
+            $fullClassPath = "{$path}\\{$className}{$classType}";
+        }
         try {
             return app($fullClassPath);
         } catch (Exception $e) {

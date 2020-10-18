@@ -82,7 +82,7 @@ class GoogleConnection implements OauthConnectionInterface
      */
     public function getDriveService(User $user): GoogleServiceDrive
     {
-        $client = $this->oauthConnectionService->getClient($user, Google::INTEGRATION_KEY);
+        $client = $this->oauthConnectionService->getClient($user, GoogleIntegration::getIntegrationKey());
 
         return new GoogleServiceDrive($client);
     }
@@ -94,7 +94,7 @@ class GoogleConnection implements OauthConnectionInterface
      */
     public function getDirectoryService(User $user): GoogleServiceDirectory
     {
-        $client = $this->oauthConnectionService->getClient($user, Google::INTEGRATION_KEY);
+        $client = $this->oauthConnectionService->getClient($user, GoogleIntegration::getIntegrationKey());
 
         return new GoogleServiceDirectory($client);
     }

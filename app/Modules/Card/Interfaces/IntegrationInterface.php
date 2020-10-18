@@ -3,10 +3,14 @@
 namespace App\Modules\Card\Interfaces;
 
 use App\Models\Card;
+use App\Models\User;
+use Illuminate\Support\Collection;
 
 interface IntegrationInterface
 {
-    public function syncCards(int $userId, ?int $since = null);
+    public static function getIntegrationKey(): string;
 
-    public function saveCardData(Card $card): void;
+    public function getAllCardData(User $user, ?int $since): Collection;
+
+    public function getCardContent(Card $card, int $id, string $mimeType);
 }

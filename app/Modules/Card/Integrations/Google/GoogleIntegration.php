@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Modules\Card\Integrations;
+namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\Card;
 use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
-use App\Modules\Card\Interfaces\IntegrationInterface2;
-use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthConnection\OauthConnectionRepository;
@@ -20,7 +19,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-class GoogleIntegration2 implements IntegrationInterface2
+class GoogleIntegration implements IntegrationInterface
 {
     public const PAGE_SIZE = 30;
     public const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
@@ -38,36 +37,29 @@ class GoogleIntegration2 implements IntegrationInterface2
         'writer'        => 'writer',
     ];
 
-    private $client;
-    public string $integrationKey;
+    private GoogleConnection $googleConnection;
+    private CardRepository $cardRepository;
+    private OauthConnectionRepository $oauthConnectionRepository;
+    private OauthConnectionService $oauthConnectionService;
+    private UserRepository $userRepository;
 
-    public function __construct()
-    {
-        $this->integrationKey = 'google';
+    public function __construct(
+        GoogleConnection $googleConnection,
+        CardRepository $cardRepository,
+        OauthConnectionRepository $oauthConnectionRepository,
+        OauthConnectionService $oauthConnectionService,
+        UserRepository $userRepository
+    ) {
+        $this->googleConnection = $googleConnection;
+        $this->cardRepository = $cardRepository;
+        $this->oauthConnectionRepository = $oauthConnectionRepository;
+        $this->oauthConnectionService = $oauthConnectionService;
+        $this->userRepository = $userRepository;
     }
 
-    /**
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     * @throws OauthIntegrationNotFound
-     */
-    public function setClient(User $user): void
+    public static function getIntegrationKey(): string
     {
-        $this->client = app(OauthConnectionService::class)->getClient($user, $this->integrationKey);
-    }
-
-    /**
-     * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     */
-    public function getDriveService(User $user): GoogleServiceDrive
-    {
-        if (! $this->client) {
-            $this->setClient($user);
-        }
-
-        return new GoogleServiceDrive($this->client);
+        return 'google';
     }
 
     /**
@@ -99,14 +91,13 @@ class GoogleIntegration2 implements IntegrationInterface2
      */
     public function getFiles(User $user, ?int $since)
     {
-        $oauthConnectionRepo = app(OauthConnectionRepository::class);
-        $oauthConnection = $oauthConnectionRepo->findUserConnection($user, $this->integrationKey);
+        $oauthConnection = $this->oauthConnectionRepository->findUserConnection($user, self::getIntegrationKey());
         if (null === $oauthConnection) {
             throw new RuntimeException('The oauth connection was not found');
         }
         $pageToken = $this->getCurrentNextPageToken($oauthConnection);
 
-        $service = $this->getDriveService();
+        $service = $this->googleConnection->getDriveService($user);
 
         if ($since) {
             $params = [
@@ -123,7 +114,7 @@ class GoogleIntegration2 implements IntegrationInterface2
 
         if (! $since) {
             $nextPageToken = $this->getNewNextPageToken($service, $params);
-            $oauthConnectionRepo->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
+            $this->oauthConnectionRepository->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
         }
 
         return collect($service->files->listFiles($params));
@@ -138,7 +129,7 @@ class GoogleIntegration2 implements IntegrationInterface2
      */
     public function getThumbnailLink(User $user, $file): string
     {
-        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, GoogleConnection::getKey());
+        $accessToken = $this->oauthConnectionService->getAccessToken($user, GoogleConnection::getKey());
         $delimiter = '?';
         if (Str::contains($file->thumbnailLink, $delimiter)) {
             $delimiter = '&';
@@ -150,11 +141,11 @@ class GoogleIntegration2 implements IntegrationInterface2
     /**
      * @param $file
      */
-    public function getPermissions($file): array
+    public function getPermissions(User $user, $file): array
     {
         $googlePermissions = collect($file->permissions);
 
-        return $googlePermissions->reduce(static function ($carry, $permission) {
+        return $googlePermissions->reduce(function ($carry, $permission) use ($user) {
             $capability = self::CAPABILITY_MAP[$permission->role];
             // Public on the internet - we can make this discoverable in Trig
             if ('anyone' === $permission->type) {
@@ -173,7 +164,7 @@ class GoogleIntegration2 implements IntegrationInterface2
                 // This is public in company - if the domain on the file doesn't exist within
                 // Trig then we shouldn't do anything with this permission type - it's giving
                 // permission to a domain that Trig isn't aware of
-                if (! app(UserRepository::class)->isGoogleDomainActive($user, $permission->domain)) {
+                if (! $this->userRepository->isGoogleDomainActive($user, $permission->domain)) {
                     return $carry;
                 }
                 $carry['link_share'] = ['type' => 'anyone_organization', 'capability' => $capability];
@@ -214,7 +205,7 @@ class GoogleIntegration2 implements IntegrationInterface2
             'thumbnail_uri'      => $this->getThumbnailLink($user, $file),
         ];
 
-        $permissions = $this->getPermissions($file);
+        $permissions = $this->getPermissions($user, $file);
 
         return [
             'data'        => $cardData,
@@ -275,12 +266,10 @@ class GoogleIntegration2 implements IntegrationInterface2
      */
     public function getCardContent(Card $card, int $id, string $mimeType)
     {
-        $cardRepo = app(CardRepository::class);
-
-        $service = $this->getDriveService($cardRepo->getUser($card));
+        $service = $this->googleConnection->getDriveService($this->cardRepository->getUser($card));
 
         // G Suite files need to be exported
-        if (\Str::contains($mimeType, 'application/vnd.google-apps')) {
+        if (Str::contains($mimeType, 'application/vnd.google-apps')) {
             $mimeType = $this->googleToMime($mimeType);
             if (! $mimeType) {
                 return '';
