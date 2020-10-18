@@ -29,7 +29,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
-use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
@@ -53,65 +52,6 @@ class GoogleIntegrationTest extends TestCase
         $file = new FileFake();
 
         return [$user, $card, $file];
-    }
-
-    public function syncDomains($domains = true)
-    {
-        if ($domains) {
-            $domain = new DomainFake();
-            $domain->isPrimary = false;
-            $domain->domainName = self::DOMAIN_NAMES[1];
-            $fakeDomains = [new DomainFake(), $domain];
-        } else {
-            $fakeDomains = [];
-        }
-
-        $user = User::find(1);
-        $this->createOauthConnection($user);
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($fakeDomains) {
-            $mock->shouldReceive('getDomains')->andReturn($fakeDomains)->once();
-        });
-
-        app(GoogleIntegration::class)->syncDomains($user);
-
-        return $user;
-    }
-
-    /**
-     * Test syncing domains.
-     *
-     * @return void
-     */
-    public function testSyncDomains()
-    {
-        $this->syncDomains();
-        $domains = [];
-        foreach (self::DOMAIN_NAMES as $domain) {
-            $domains[] = [$domain => true];
-        }
-        $this->assertDatabaseHas('users', [
-            'id'         => '1',
-            'properties' => json_encode(['google_domains' => $domains]),
-        ]);
-        $this->refreshDb();
-    }
-
-    /**
-     * Test syncing domains.
-     *
-     * @return void
-     */
-    public function testSyncDomainsNoDomains()
-    {
-        $this->syncDomains(false);
-        $domains = [];
-        foreach (self::DOMAIN_NAMES as $domain) {
-            $domains[] = [$domain => true];
-        }
-        $this->assertDatabaseMissing('users', [
-            'id'         => '1',
-            'properties' => json_encode(['google_domains' => $domains]),
-        ]);
     }
 
     public function testDeleteTrashedCard()

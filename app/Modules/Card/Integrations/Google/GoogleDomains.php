@@ -3,8 +3,8 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -36,9 +36,9 @@ class GoogleDomains
      * accessible for, in the settings for Google from within Trig.
      *
      * @throws JsonException
+     * @throws OauthIntegrationNotFound
      * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
-     * @throws OauthIntegrationNotFound
      */
     public function getDomains(User $user): array
     {
@@ -74,8 +74,8 @@ class GoogleDomains
         foreach ($domains as $domain) {
             $properties['google_domains'][] = [$domain->domainName => true];
         }
-        $this->user->properties = $properties;
-        $this->user->save();
+        $user->properties = $properties;
+        $user->save();
 
         return true;
     }
