@@ -3,9 +3,10 @@
 namespace Tests\Feature\Modules\OauthConnection;
 
 use App\Models\User;
-use App\Modules\OauthConnection\Connections\GoogleConnection;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
@@ -16,24 +17,24 @@ class OauthConnectionServiceTest extends TestCase
     /**
      * Get access token.
      *
-     * @return void
+     * @throws OauthIntegrationNotFound|OauthUnauthorizedRequest
      */
-    public function testGetAccessToken()
+    public function testGetAccessToken(): void
     {
         $this->refreshDb();
         $user = User::find(1);
         $this->createOauthConnection($user);
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
-        $this->assertEquals($accessToken, self::$ACCESS_TOKEN);
+        self::assertEquals($accessToken, self::$ACCESS_TOKEN);
         $this->refreshDb();
     }
 
     /**
      * If we haven't been oauthed for this service it should throw an exception.
      *
-     * @return void
+     * @throws OauthIntegrationNotFound
      */
-    public function testGetAccessTokenNotAuthenticated()
+    public function testGetAccessTokenNotAuthenticated(): void
     {
         $this->expectException(OauthUnauthorizedRequest::class);
         $user = User::find(1);
@@ -43,14 +44,14 @@ class OauthConnectionServiceTest extends TestCase
     /**
      * Get access token from refresh token.
      *
-     * @return void
+     * @throws OauthIntegrationNotFound|OauthUnauthorizedRequest
      */
-    public function testGetAccessTokenFromRefresh()
+    public function testGetAccessTokenFromRefresh(): void
     {
         $accessToken = '123';
         $refreshToken = '456';
         $userId = 1;
-        $this->partialMock(GoogleConnection::class, function ($mock) use ($accessToken, $refreshToken) {
+        $this->partialMock(GoogleConnection::class, static function ($mock) use ($accessToken, $refreshToken) {
             $mock->shouldReceive('retrieveAccessTokenWithRefreshToken')
                 ->andReturn(collect([
                     'access_token'  => $accessToken,
@@ -71,6 +72,6 @@ class OauthConnectionServiceTest extends TestCase
             'refresh_token' => $refreshToken,
         ]);
 
-        $this->assertEquals($newAccessToken, $accessToken);
+        self::assertEquals($newAccessToken, $accessToken);
     }
 }

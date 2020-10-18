@@ -3,9 +3,9 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
-use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Interfaces\ConnectionInterface;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Google_Client as GoogleClient;
@@ -14,7 +14,7 @@ use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 
-class GoogleConnection implements OauthConnectionInterface
+class GoogleConnection implements ConnectionInterface
 {
     /**
      * Google client class.

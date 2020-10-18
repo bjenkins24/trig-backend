@@ -132,8 +132,6 @@ class GoogleIntegrationTest extends TestCase
     }
 
     /**
-     * @group n
-     *
      * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      * @throws CardIntegrationCreationValidate

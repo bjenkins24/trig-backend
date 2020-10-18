@@ -5,7 +5,7 @@ namespace Tests\Feature\Modules\OauthConnection;
 use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use Tests\TestCase;
 
@@ -13,16 +13,14 @@ class OauthConnectionRepositoryTest extends TestCase
 {
     /**
      * Get access token.
-     *
-     * @return void
      */
-    public function testMissingTokens()
+    public function testMissingTokens(): void
     {
         $this->expectException(OauthMissingTokens::class);
         $accessToken = app(OauthConnectionRepository::class)->create(User::find(1), 'google', collect([]));
     }
 
-    public function testGetAllActiveConnections()
+    public function testGetAllActiveConnections(): void
     {
         $this->refreshDb();
 
@@ -46,7 +44,7 @@ class OauthConnectionRepositoryTest extends TestCase
 
         $activeConnections = app(OauthConnectionRepository::class)->getAllActiveConnections();
 
-        $this->assertEquals(collect([
+        self::assertEquals(collect([
             ['user_id' => 1, 'key' => 'google'],
             ['user_id' => 1, 'key' => 'confluence'],
         ]), $activeConnections);

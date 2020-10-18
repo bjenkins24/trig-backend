@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\OauthConnection\Exceptions;
+namespace App\Modules\Card\Exceptions;
 
 use Exception;
 
