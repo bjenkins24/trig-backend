@@ -3,7 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\User;
-use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
+use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
@@ -40,14 +41,14 @@ class SyncCards implements ShouldQueue
     }
 
     /**
-     * Execute the job.
-     *
+     * @throws CardIntegrationCreationValidate
      * @throws OauthIntegrationNotFound
+     * @throws OauthKeyInvalid
      */
     public function handle(): void
     {
-        app()->makeWith(SyncCardsIntegration::class, [
-            'integration' => app(OauthIntegrationService::class)->makeCardIntegration($this->integration),
-        ])->syncCards(User::find($this->userId), $this->since);
+        $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
+
+        $syncCardsIntegration->syncCards(User::find($this->userId), $this->since);
     }
 }

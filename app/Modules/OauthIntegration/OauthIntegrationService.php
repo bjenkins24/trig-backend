@@ -2,6 +2,7 @@
 
 namespace App\Modules\OauthIntegration;
 
+use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\Card\Interfaces\ConnectionInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -51,5 +52,16 @@ class OauthIntegrationService
         } catch (Exception $e) {
             throw new OauthIntegrationNotFound("The integration key \"$integration\" is not valid. Please check the name and try again.");
         }
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function makeSyncCards(string $integration): SyncCardsIntegration
+    {
+        $syncCardsIntegration = app(SyncCardsIntegration::class);
+        $syncCardsIntegration->setIntegration($this->makeCardIntegration($integration));
+
+        return $syncCardsIntegration;
     }
 }

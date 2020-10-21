@@ -3,21 +3,17 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\Card;
-use App\Models\OauthConnection;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\IntegrationInterface;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\User\UserRepository;
 use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class GoogleIntegration implements IntegrationInterface
 {
@@ -72,30 +68,12 @@ class GoogleIntegration implements IntegrationInterface
     }
 
     /**
-     * Get the next page token in the database if it exists.
-     */
-    public function getCurrentNextPageToken(OauthConnection $oauthConnection): ?string
-    {
-        $pageToken = null;
-        if ($oauthConnection->properties) {
-            $pageToken = $oauthConnection->properties->get(self::NEXT_PAGE_TOKEN_KEY);
-        }
-
-        return $pageToken;
-    }
-
-    /**
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
-    public function getFiles(User $user, ?int $since)
+    public function getFiles(User $user, ?int $since = null)
     {
-        $oauthConnection = $this->oauthConnectionRepository->findUserConnection($user, self::getIntegrationKey());
-        if (null === $oauthConnection) {
-            throw new RuntimeException('The oauth connection was not found');
-        }
-        $pageToken = $this->getCurrentNextPageToken($oauthConnection);
+        $pageToken = $this->oauthConnectionRepository->getNextPageToken($user, self::getIntegrationKey());
 
         $service = $this->googleConnection->getDriveService($user);
 
@@ -114,7 +92,7 @@ class GoogleIntegration implements IntegrationInterface
 
         if (! $since) {
             $nextPageToken = $this->getNewNextPageToken($service, $params);
-            $this->oauthConnectionRepository->saveGoogleNextPageToken($oauthConnection, $nextPageToken);
+            $this->oauthConnectionRepository->saveNextPageToken($user, self::getIntegrationKey(), $nextPageToken);
         }
 
         return collect($service->files->listFiles($params));
@@ -124,12 +102,11 @@ class GoogleIntegration implements IntegrationInterface
      * @param $file
      *
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function getThumbnailLink(User $user, $file): string
     {
-        $accessToken = $this->oauthConnectionService->getAccessToken($user, GoogleConnection::getKey());
+        $accessToken = $this->oauthConnectionService->getAccessToken($user, self::getIntegrationKey());
         $delimiter = '?';
         if (Str::contains($file->thumbnailLink, $delimiter)) {
             $delimiter = '&';
@@ -183,7 +160,6 @@ class GoogleIntegration implements IntegrationInterface
      * @param $file
      *
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function getCardData(User $user, $file): array
@@ -215,18 +191,17 @@ class GoogleIntegration implements IntegrationInterface
 
     /**
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
-    public function getAllCardData(User $user, ?int $since): Collection
+    public function getAllCardData(User $user, ?int $since): array
     {
         $files = $this->getFiles($user, $since);
 
-        return collect($files->reduce(function ($carry, $file) use ($user) {
+        return $files->reduce(function ($carry, $file) use ($user) {
             $carry[] = $this->getCardData($user, $file);
 
             return $carry;
-        }, []));
+        }, []);
     }
 
     /**
@@ -261,7 +236,6 @@ class GoogleIntegration implements IntegrationInterface
 
     /**
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function getCardContent(Card $card, int $id, string $mimeType)

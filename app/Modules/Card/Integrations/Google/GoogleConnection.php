@@ -3,7 +3,6 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\ConnectionInterface;
 use App\Modules\OauthConnection\OauthConnectionService;
@@ -76,7 +75,6 @@ class GoogleConnection implements ConnectionInterface
     }
 
     /**
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
      */
@@ -88,7 +86,6 @@ class GoogleConnection implements ConnectionInterface
     }
 
     /**
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
      */

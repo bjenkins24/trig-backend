@@ -4,15 +4,18 @@ namespace App\Modules\Card\Integrations;
 
 use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
+use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
-use App\Modules\OauthConnection\Exceptions\OauthKeyInvalid;
+use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\Permission\PermissionRepository;
+use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
 use App\Utils\FileHelper;
 use Exception;
@@ -26,23 +29,35 @@ class SyncCards
     public const IMAGE_PATH = 'public/card-thumbnails';
 
     private string $integrationKey;
+    private string $nextPageKey;
+    private IntegrationInterface $integration;
+    private OauthConnectionRepository $oauthConnectionRepository;
+    private UserRepository $userRepository;
     private CardRepository $cardRepository;
     private CardTypeRepository $cardTypeRepository;
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
 
     public function __construct(
-        IntegrationInterface $integration,
+        OauthConnectionRepository $oauthConnectionRepository,
+        UserRepository $userRepository,
         CardRepository $cardRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository
     ) {
-        $this->integrationKey = $integration::getIntegrationKey();
+        $this->oauthConnectionRepository = $oauthConnectionRepository;
+        $this->userRepository = $userRepository;
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
+    }
+
+    public function setIntegration(IntegrationInterface $integration): void
+    {
+        $this->integration = $integration;
+        $this->integrationKey = $integration::getIntegrationKey();
     }
 
     public function getThumbnail(Collection $data): Collection
@@ -200,12 +215,27 @@ class SyncCards
     }
 
     /**
+     * If syncing is paginated then there will be a key in "service_next_page" token for the oauth connection
+     * and we should continue.
+     */
+    private function syncNextPage(User $user): bool
+    {
+        $nextPageToken = $this->oauthConnectionRepository->getNextPageToken($user, $this->integrationKey);
+        if (! $nextPageToken) {
+            return false;
+        }
+        SyncCardsJob::dispatch($user->id, $this->integrationKey)->onQueue('sync-cards');
+
+        return true;
+    }
+
+    /**
      * @throws CardIntegrationCreationValidate
      * @throws OauthKeyInvalid
      */
-    public function syncCards(User $user, ?int $since): void
+    public function syncCards(User $user, ?int $since = null): void
     {
-        $cardData = $this->integration->getAllCardData($user, $since);
+        $cardData = collect($this->integration->getAllCardData($user, $since))->recursive();
         if (0 === $cardData->count) {
             return;
         }
@@ -213,5 +243,7 @@ class SyncCards
         $cardData->each(function ($card) {
             $this->upsertCard($card->get('data'));
         });
+
+        $this->syncNextPage($user);
     }
 }

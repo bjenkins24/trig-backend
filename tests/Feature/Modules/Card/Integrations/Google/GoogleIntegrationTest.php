@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\Card\Integrations;
+namespace Tests\Feature\Modules\Card\Integrations\Google;
 
 use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
@@ -12,13 +12,12 @@ use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
-use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Integrations\GoogleIntegration;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
@@ -38,6 +37,8 @@ class GoogleIntegrationTest extends TestCase
 {
     use CreateOauthConnection;
 
+    public const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
+
     private function getSetup(?User $user = null)
     {
         if (! $user) {
@@ -53,27 +54,21 @@ class GoogleIntegrationTest extends TestCase
     }
 
     /**
-     * @throws OauthMissingTokens
+     * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
-     * @throws CardIntegrationCreationValidate
      */
-    public function testNoSyncWhenUpToDate(): void
+    public function testDeleteTrashedCard(): void
     {
-        $this->refreshDb();
         $user = User::find(1);
         $file = new FileFake();
         $file->name = 'My cool title';
-        $file->id = 'up_to_date_fake_id';
-        $file->modifiedTime = '1980-01-01 10:35:00';
-        $cardIntegration = CardIntegration::find(1);
-        $cardIntegration->foreign_id = $file->id;
-        $cardIntegration->save();
+        $foreign_id = Card::find(1)->cardIntegration()->first()->foreign_id;
+        $file->id = $foreign_id;
+        $file->trashed = true;
 
-        $this->partialMock(GoogleIntegration::class, static function ($mock) {
-            $mock->shouldNotReceive('saveThumbnail');
-        });
+        $data = app(GoogleIntegration::class)->getCardData($user, $file);
 
-        app(GoogleIntegration::class)->upsertCard($user, $file);
+        self::assertTrue($data['data']['delete']);
     }
 
     /**
@@ -333,7 +328,7 @@ class GoogleIntegrationTest extends TestCase
         $nextPageToken = '12345';
         $user = User::find(1);
         $this->createOauthConnection($user);
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
+        $this->partialMock(GoogleIntegration::class, static function ($mock) use ($nextPageToken) {
             $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->twice();
             $mock->shouldReceive('listFilesFromService')->andReturn(collect([]))->twice();
         });
@@ -342,7 +337,7 @@ class GoogleIntegrationTest extends TestCase
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'    => $user->id,
-            'properties' => json_encode([GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken]),
+            'properties' => $this->castToJson([GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken]),
         ]);
 
         app(GoogleIntegration::class)->getFiles($user);

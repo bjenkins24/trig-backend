@@ -8,18 +8,19 @@ use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
-use App\Models\OauthConnection;
-use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Integrations\GoogleIntegration;
+use App\Modules\Card\Exceptions\OauthKeyInvalid;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Integrations\Google\GoogleIntegration;
+use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\LinkShareType\LinkShareTypeRepository;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
 use Google_Service_Drive as GoogleServiceDrive;
@@ -34,11 +35,11 @@ use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 use Tests\Utils\ExtractDataHelperTest;
 
-class GoogleIntegrationTest extends TestCase
+class SyncCardsTest extends TestCase
 {
     use CreateOauthConnection;
 
-    private function getSetup(?User $user = null)
+    private function getSetup(?User $user = null): array
     {
         if (! $user) {
             $user = User::find(1);
@@ -47,33 +48,54 @@ class GoogleIntegrationTest extends TestCase
         $card = factory(Card::class)->create([
             'user_id' => $user->id,
         ]);
-        $file = new FileFake();
+        $data = collect([
+            'data' => collect([
+                'user_id'            => $user->id,
+                'delete'             => false,
+                'card_type'          => 'application/vnd.google-apps.document',
+                'url'                => 'https://docs.google.com/document/d/1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k/edit?usp=drivesdk',
+                'foreign_id'         => '1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k',
+                'title'              => 'Interview Template v0.1',
+                'description'        => 'My cool description',
+                'actual_created_at'  => '2018-12-22 12:30:00',
+                'actual_modified_at' => '2018-12-22 12:30:00',
+                'thumbnail_uri'      => 'https://docs.google.com/a/trytrig.com/feeds/vt?gd=true&id=1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k&v=14&s=AMedNnoAAAAAXpUOTCtmc4zTbEZ6g0EPywj-ypToA8-U&sz=s220',
+            ]),
+            'permissions' => collect([]),
+        ]);
 
-        return [$user, $card, $file];
+        return [$data, $user, $card];
     }
 
     /**
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     */
+    private function getSyncCards(string $service = 'google'): SyncCardsIntegration
+    {
+        return app(OauthIntegrationService::class)->makeSyncCards($service);
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
      * @throws CardIntegrationCreationValidate
+     * @throws OauthKeyInvalid
      */
     public function testNoSyncWhenUpToDate(): void
     {
         $this->refreshDb();
-        $user = User::find(1);
-        $file = new FileFake();
-        $file->name = 'My cool title';
-        $file->id = 'up_to_date_fake_id';
-        $file->modifiedTime = '1980-01-01 10:35:00';
+        [$data] = $this->getSetup();
+        $data = $data->get('data');
+        $data->put('title', 'My cool title');
+        $data->put('actual_modified_at', '1980-01-01 10:35:00');
         $cardIntegration = CardIntegration::find(1);
-        $cardIntegration->foreign_id = $file->id;
+        $cardIntegration->foreign_id = $data->get('foreign_id');
         $cardIntegration->save();
 
-        $this->partialMock(GoogleIntegration::class, static function ($mock) {
-            $mock->shouldNotReceive('saveThumbnail');
-        });
+        $this->getSyncCards()->upsertCard($data);
 
-        app(GoogleIntegration::class)->upsertCard($user, $file);
+        $this->assertDatabaseMissing('cards', [
+            'title' => $data->get('name'),
+        ]);
     }
 
     /**
@@ -85,7 +107,7 @@ class GoogleIntegrationTest extends TestCase
      *
      * @return void
      */
-    public function testSyncCardsContinue()
+    public function testSyncCardsSuccess()
     {
         $user = $this->syncDomains();
         $file = new FileFake();
@@ -187,27 +209,6 @@ class GoogleIntegrationTest extends TestCase
         });
         $result = app(GoogleIntegration::class)->syncCards(1);
         $this->assertFalse($result);
-    }
-
-    /**
-     * Test syncing all integrations.
-     *
-     * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     *
-     * @return void
-     */
-    public function testSyncCardsTrashed()
-    {
-        $file = new FileFake();
-        $file->name = 'This card is super trash';
-        $file->trashed = true;
-
-        $this->syncCardsFail($file);
-        $this->assertDatabaseMissing('cards', [
-            'title' => $file->name,
-        ]);
     }
 
     /**
@@ -328,26 +329,6 @@ class GoogleIntegrationTest extends TestCase
         ]);
     }
 
-    public function testGetFiles()
-    {
-        $nextPageToken = '12345';
-        $user = User::find(1);
-        $this->createOauthConnection($user);
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($nextPageToken) {
-            $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->twice();
-            $mock->shouldReceive('listFilesFromService')->andReturn(collect([]))->twice();
-        });
-
-        app(GoogleIntegration::class)->getFiles($user);
-
-        $this->assertDatabaseHas('oauth_connections', [
-            'user_id'    => $user->id,
-            'properties' => json_encode([GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken]),
-        ]);
-
-        app(GoogleIntegration::class)->getFiles($user);
-    }
-
     public function testSaveCardData()
     {
         $card = Card::find(1);
@@ -417,52 +398,5 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleIntegration::class)->saveCardData($card);
 
         $this->refreshDb();
-    }
-
-    /**
-     * @dataProvider googleToMimeProvider
-     */
-    public function testGoogleToMime(string $mime, string $expected)
-    {
-        $this->assertEquals($expected, app(GoogleIntegration::class)->googleToMime($mime));
-    }
-
-    public function googleToMimeProvider()
-    {
-        return [
-            ['application/vnd.google-apps.audio', ''],
-            ['application/vnd.google-apps.document', 'text/plain'],
-            ['application/vnd.google-apps.spreadsheet', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-        ];
-    }
-
-    public function testGetCurrentNextPageToken()
-    {
-        $token = '123';
-
-        OauthIntegration::create(['name' => 'google']);
-        $oauthConnection = OauthConnection::create([
-            'user_id'              => 1,
-            'oauth_integration_id' => 1,
-            'properties'           => [GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $token],
-        ]);
-        $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
-
-        $this->assertEquals($token, $nextPageToken);
-
-        $oauthConnection->properties = [];
-        $oauthConnection->save();
-
-        $nextPageToken = app(GoogleIntegration::class)->getCurrentNextPageToken($oauthConnection);
-
-        $this->assertEquals(null, $nextPageToken);
-    }
-}
-
-class FakeContent
-{
-    public function getBody()
-    {
-        return null;
     }
 }

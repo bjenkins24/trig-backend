@@ -6,10 +6,10 @@ use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
 use App\Models\User;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
-use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class OauthConnectionRepository
 {
@@ -77,11 +77,34 @@ class OauthConnectionRepository
         return $oauthConnection->expires->isBefore(Carbon::now());
     }
 
-    public function saveGoogleNextPageToken(OauthConnection $oauthConnection, ?string $nextPageToken): bool
+    public function getNextPageToken(User $user, string $integrationKey)
     {
-        $oauthConnection->properties = [GoogleIntegration::NEXT_PAGE_TOKEN_KEY => $nextPageToken];
+        $oauthConnection = $this->findUserConnection($user, $integrationKey);
+        if (null === $oauthConnection) {
+            throw new RuntimeException('The oauth connection was not found');
+        }
+        $pageToken = null;
+        if ($oauthConnection->properties) {
+            $pageToken = $oauthConnection->properties->get($this->getNextPageKey($integrationKey));
+        }
+
+        return $pageToken;
+    }
+
+    public function saveNextPageToken(User $user, string $integrationKey, string $nextPageToken): bool
+    {
+        $oauthConnection = $this->findUserConnection($user, $integrationKey);
+        if (null === $oauthConnection) {
+            throw new RuntimeException('The oauth connection to '.$integrationKey.' has not been made for the user with id '.$user->id);
+        }
+        $oauthConnection->properties = [...$oauthConnection->properties, $this->getNextPageKey($integrationKey) => $nextPageToken];
 
         return $oauthConnection->save();
+    }
+
+    private function getNextPageKey(string $integrationKey): string
+    {
+        return $integrationKey.'_next_page';
     }
 
     public function getAllActiveConnections(): Collection
