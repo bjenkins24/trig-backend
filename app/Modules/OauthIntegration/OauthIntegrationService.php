@@ -4,6 +4,7 @@ namespace App\Modules\OauthIntegration;
 
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\Card\Interfaces\ConnectionInterface;
+use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Exception;
@@ -36,11 +37,23 @@ class OauthIntegrationService
     }
 
     /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function makeCardContentIntegration(string $integration): ContentInterface
+    {
+        return $this->makeIntegration(
+            'App\\Modules\\Card\\Integrations',
+            $integration,
+            'content'
+        );
+    }
+
+    /**
      *  Make an integration class using the fully qualified path.
      *
      * @throws OauthIntegrationNotFound
      *
-     * @return IntegrationInterface|ConnectionInterface
+     * @return IntegrationInterface|ConnectionInterface|ContentInterface
      */
     public function makeIntegration(string $path, string $integration, string $type)
     {
@@ -60,7 +73,10 @@ class OauthIntegrationService
     public function makeSyncCards(string $integration): SyncCardsIntegration
     {
         $syncCardsIntegration = app(SyncCardsIntegration::class);
-        $syncCardsIntegration->setIntegration($this->makeCardIntegration($integration));
+        $syncCardsIntegration->setIntegration(
+            $this->makeCardIntegration($integration),
+            $this->makeCardContentIntegration($integration)
+        );
 
         return $syncCardsIntegration;
     }

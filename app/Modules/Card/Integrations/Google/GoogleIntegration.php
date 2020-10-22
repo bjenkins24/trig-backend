@@ -2,7 +2,6 @@
 
 namespace App\Modules\Card\Integrations\Google;
 
-use App\Models\Card;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
@@ -11,14 +10,12 @@ use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\User\UserRepository;
-use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class GoogleIntegration implements IntegrationInterface
 {
     public const PAGE_SIZE = 30;
-    public const NEXT_PAGE_TOKEN_KEY = 'google_drive_next_page_token';
 
     /**
      * The keys in this array are google roles and the values are what they map
@@ -59,15 +56,6 @@ class GoogleIntegration implements IntegrationInterface
     }
 
     /**
-     * Get the next page token from google if it exists - this will return null
-     * if there's no next page.
-     */
-    public function getNewNextPageToken(GoogleServiceDrive $service, array $params): ?string
-    {
-        return $service->files->listFiles($params)->getNextPageToken();
-    }
-
-    /**
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
@@ -91,7 +79,7 @@ class GoogleIntegration implements IntegrationInterface
         ], $params);
 
         if (! $since) {
-            $nextPageToken = $this->getNewNextPageToken($service, $params);
+            $nextPageToken = $service->files->listFiles($params)->getNextPageToken();
             $this->oauthConnectionRepository->saveNextPageToken($user, self::getIntegrationKey(), $nextPageToken);
         }
 
@@ -202,57 +190,5 @@ class GoogleIntegration implements IntegrationInterface
 
             return $carry;
         }, []);
-    }
-
-    /**
-     * Google apps can be exported to normal file mime types. We need to know what to convert
-     * which is what this function does.
-     */
-    public function googleToMime(string $mimeType): string
-    {
-        $googleTypes = [
-            'audio'        => '',
-            'document'     => 'text/plain',
-            'drawing'      => 'application/pdf',
-            'drive-sdk'    => '',
-            'file'         => '',
-            'folder'       => '',
-            'form'         => '',
-            'fusiontable'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'map'          => 'application/pdf',
-            'photo'        => 'image/jpeg',
-            'presentation' => 'text/plain',
-            'script'       => 'application/vnd.google-apps.script+json',
-            'shortcut'     => '',
-            'site'         => 'application/pdf',
-            'spreadsheet'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'unknown'      => '',
-            'video'        => '',
-        ];
-        $type = Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
-
-        return $googleTypes[$type];
-    }
-
-    /**
-     * @throws OauthIntegrationNotFound
-     * @throws OauthUnauthorizedRequest
-     */
-    public function getCardContent(Card $card, int $id, string $mimeType)
-    {
-        $service = $this->googleConnection->getDriveService($this->cardRepository->getUser($card));
-
-        // G Suite files need to be exported
-        if (Str::contains($mimeType, 'application/vnd.google-apps')) {
-            $mimeType = $this->googleToMime($mimeType);
-            if (! $mimeType) {
-                return '';
-            }
-            $content = $service->files->export($id, $mimeType);
-        } else {
-            $content = $service->files->get($id, ['alt' => 'media']);
-        }
-
-        return $content->getBody();
     }
 }

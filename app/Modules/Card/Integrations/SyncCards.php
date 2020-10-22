@@ -10,12 +10,12 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
+use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\Permission\PermissionRepository;
-use App\Modules\User\UserRepository;
 use App\Utils\ExtractDataHelper;
 use App\Utils\FileHelper;
 use Exception;
@@ -29,10 +29,9 @@ class SyncCards
     public const IMAGE_PATH = 'public/card-thumbnails';
 
     private string $integrationKey;
-    private string $nextPageKey;
+    private ContentInterface $contentIntegration;
     private IntegrationInterface $integration;
     private OauthConnectionRepository $oauthConnectionRepository;
-    private UserRepository $userRepository;
     private CardRepository $cardRepository;
     private CardTypeRepository $cardTypeRepository;
     private LinkShareSettingRepository $linkShareSettingRepository;
@@ -40,23 +39,22 @@ class SyncCards
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
-        UserRepository $userRepository,
         CardRepository $cardRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
-        $this->userRepository = $userRepository;
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
     }
 
-    public function setIntegration(IntegrationInterface $integration): void
+    public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
     {
         $this->integration = $integration;
+        $this->contentIntegration = $contentIntegration;
         $this->integrationKey = $integration::getIntegrationKey();
     }
 
@@ -197,7 +195,7 @@ class SyncCards
         $id = $cardIntegration->foreign_id;
         $mimeType = $this->cardRepository->getCardType($card)->name;
 
-        $content = $this->integration->getCardContent($card, $id, $mimeType);
+        $content = $this->contentIntegration->getCardContent($card, $id, $mimeType);
         $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content);
 
         // Save the card data retrieved from the extraction
