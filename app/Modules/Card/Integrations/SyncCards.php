@@ -9,7 +9,6 @@ use App\Models\Card;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
@@ -58,7 +57,7 @@ class SyncCards
         $this->integrationKey = $integration::getIntegrationKey();
     }
 
-    public function getThumbnail(Collection $data): Collection
+    private function getThumbnail(Collection $data): Collection
     {
         try {
             $thumbnail = file_get_contents($data->get('thumbnail_uri'));
@@ -84,7 +83,7 @@ class SyncCards
         ]);
     }
 
-    public function saveThumbnail(Collection $data, Card $card): bool
+    private function saveThumbnail(Collection $data, Card $card): bool
     {
         if (! $data->get('thumbnail_uri')) {
             return false;
@@ -106,7 +105,7 @@ class SyncCards
         return true;
     }
 
-    public function savePermissions(Collection $data, Card $card): void
+    private function savePermissions(Collection $data, Card $card): void
     {
         // Remove permissions first so the sync isn't creating duplicates if we're just updating
         $this->cardRepository->removeAllPermissions($card);
@@ -141,10 +140,9 @@ class SyncCards
 
     /**
      * @throws CardIntegrationCreationValidate
-     * @throws OauthKeyInvalid
      * @throws Exception
      */
-    public function upsertCard(Collection $data): ?Card
+    private function upsertCard(Collection $data): ?Card
     {
         $existingCard = $this->cardRepository->getByForeignId($data->get('foreign_id'), $this->integrationKey);
         if ($existingCard) {
@@ -229,7 +227,6 @@ class SyncCards
 
     /**
      * @throws CardIntegrationCreationValidate
-     * @throws OauthKeyInvalid
      */
     public function syncCards(User $user, ?int $since = null): void
     {

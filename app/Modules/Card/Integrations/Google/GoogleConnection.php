@@ -78,7 +78,7 @@ class GoogleConnection implements ConnectionInterface
      * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
      */
-    public function getDriveService(User $user): GoogleServiceDrive
+    public function getDriveService(User $user)
     {
         $client = $this->oauthConnectionService->getClient($user, GoogleIntegration::getIntegrationKey());
 

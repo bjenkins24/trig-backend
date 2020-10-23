@@ -97,7 +97,7 @@ class OauthConnectionRepository
         if (null === $oauthConnection) {
             throw new RuntimeException('The oauth connection to '.$integrationKey.' has not been made for the user with id '.$user->id);
         }
-        $oauthConnection->properties = [...$oauthConnection->properties, $this->getNextPageKey($integrationKey) => $nextPageToken];
+        $oauthConnection->properties = [$this->getNextPageKey($integrationKey) => $nextPageToken];
 
         return $oauthConnection->save();
     }

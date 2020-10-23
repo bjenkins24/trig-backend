@@ -3,13 +3,13 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\User\UserRepository;
+use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -31,20 +31,17 @@ class GoogleIntegration implements IntegrationInterface
     ];
 
     private GoogleConnection $googleConnection;
-    private CardRepository $cardRepository;
     private OauthConnectionRepository $oauthConnectionRepository;
     private OauthConnectionService $oauthConnectionService;
     private UserRepository $userRepository;
 
     public function __construct(
         GoogleConnection $googleConnection,
-        CardRepository $cardRepository,
         OauthConnectionRepository $oauthConnectionRepository,
         OauthConnectionService $oauthConnectionService,
         UserRepository $userRepository
     ) {
         $this->googleConnection = $googleConnection;
-        $this->cardRepository = $cardRepository;
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->oauthConnectionService = $oauthConnectionService;
         $this->userRepository = $userRepository;
@@ -106,7 +103,7 @@ class GoogleIntegration implements IntegrationInterface
     /**
      * @param $file
      */
-    public function getPermissions(User $user, $file): array
+    private function getPermissions(User $user, $file): array
     {
         $googlePermissions = collect($file->permissions);
 
@@ -132,7 +129,7 @@ class GoogleIntegration implements IntegrationInterface
                 if (! $this->userRepository->isGoogleDomainActive($user, $permission->domain)) {
                     return $carry;
                 }
-                $carry['link_share'] = ['type' => 'anyone_organization', 'capability' => $capability];
+                $carry['link_share'][] = ['type' => 'anyone_organization', 'capability' => $capability];
 
                 return $carry;
             }

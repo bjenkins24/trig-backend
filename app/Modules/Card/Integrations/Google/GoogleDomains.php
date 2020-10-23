@@ -37,7 +37,6 @@ class GoogleDomains
      *
      * @throws JsonException
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function getDomains(User $user): array
@@ -61,7 +60,6 @@ class GoogleDomains
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function syncDomains(User $user): bool
