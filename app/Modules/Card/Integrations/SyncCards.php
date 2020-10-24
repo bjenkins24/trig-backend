@@ -142,8 +142,9 @@ class SyncCards
      * @throws CardIntegrationCreationValidate
      * @throws Exception
      */
-    private function upsertCard(Collection $data): ?Card
+    public function upsertCard(Collection $cardData): ?Card
     {
+        $data = $cardData->get('data');
         $existingCard = $this->cardRepository->getByForeignId($data->get('foreign_id'), $this->integrationKey);
         if ($existingCard) {
             if ($data->get('delete')) {
@@ -177,7 +178,7 @@ class SyncCards
         }
 
         $this->saveThumbnail($data, $card);
-        $this->savePermissions($data, $card);
+        $this->savePermissions($cardData->get('permissions'), $card);
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
             SaveCardData::dispatch($card, $this->integrationKey)->onQueue('card-data');
@@ -228,17 +229,19 @@ class SyncCards
     /**
      * @throws CardIntegrationCreationValidate
      */
-    public function syncCards(User $user, ?int $since = null): void
+    public function syncCards(User $user, ?int $since = null): bool
     {
         $cardData = collect($this->integration->getAllCardData($user, $since))->recursive();
-        if (0 === $cardData->count) {
-            return;
+        if (0 === $cardData->count()) {
+            return false;
         }
 
         $cardData->each(function ($card) {
-            $this->upsertCard($card->get('data'));
+            $this->upsertCard($card);
         });
 
         $this->syncNextPage($user);
+
+        return true;
     }
 }

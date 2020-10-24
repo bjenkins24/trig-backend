@@ -4,16 +4,14 @@ namespace Tests\Feature\Modules\Card\Integrations;
 
 use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
-use App\Jobs\SyncCards;
 use App\Models\Card;
 use App\Models\CardIntegration;
-use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\CardType\CardTypeRepository;
@@ -30,7 +28,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
-use Tests\Feature\Modules\Card\Integrations\Fakes\FileFake;
+use Tests\Feature\Modules\Card\Integrations\Google\Fakes\FileFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 use Tests\Utils\ExtractDataHelperTest;
@@ -75,20 +73,31 @@ class SyncCardsTest extends TestCase
         return app(OauthIntegrationService::class)->makeSyncCards($service);
     }
 
+    private function getBase(array $data): SyncCardsIntegration
+    {
+        $syncCards = app(SyncCardsIntegration::class);
+        $this->mock(GoogleIntegration::class, static function ($mock) use ($data) {
+            $mock->shouldReceive('getAllCardData')->andReturn($data);
+            $mock->shouldReceive('getIntegrationKey')->andReturn('google');
+        });
+        $syncCards->setIntegration(app(GoogleIntegration::class), app(GoogleContent::class));
+
+        return $syncCards;
+    }
+
     /**
      * @throws OauthIntegrationNotFound
      * @throws CardIntegrationCreationValidate
-     * @throws OauthKeyInvalid
      */
     public function testNoSyncWhenUpToDate(): void
     {
         $this->refreshDb();
         [$data] = $this->getSetup();
-        $data = $data->get('data');
-        $data->put('title', 'My cool title');
-        $data->put('actual_modified_at', '1980-01-01 10:35:00');
+        $cardData = $data->get('data');
+        $cardData->put('title', 'My cool title');
+        $cardData->put('actual_modified_at', '1980-01-01 10:35:00');
         $cardIntegration = CardIntegration::find(1);
-        $cardIntegration->foreign_id = $data->get('foreign_id');
+        $cardIntegration->foreign_id = $cardData->get('foreign_id');
         $cardIntegration->save();
 
         $this->getSyncCards()->upsertCard($data);
@@ -99,50 +108,14 @@ class SyncCardsTest extends TestCase
     }
 
     /**
-     * Test syncing all integrations.
-     *
-     * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
-     *
-     * @return void
+     * @throws CardIntegrationCreationValidate
+     * @group n
      */
-    public function testSyncCardsSuccess()
+    public function testSyncCardsEmpty(): void
     {
-        $user = $this->syncDomains();
-        $file = new FileFake();
-        $file->name = 'My cool title';
-        $file->id = 'super fake id';
-        $nextPageToken = 'next_page_token';
-        $this->partialMock(GoogleIntegration::class, function ($mock) use ($file, $nextPageToken) {
-            $mock->shouldReceive('saveThumbnail')->twice();
-            $mock->shouldReceive('savePermissions')->twice();
-            $mock->shouldReceive('getNewNextPageToken')->andReturn($nextPageToken)->once();
-            $mock->shouldReceive('listFilesFromService')->andReturn(collect([new FileFake(), $file]))->once();
-        });
-
-        Queue::fake();
-
-        app(GoogleIntegration::class)->syncCards($user->id);
-
-        Queue::assertPushed(SyncCards::class, 1);
-        Queue::assertPushed(SaveCardData::class, 2);
-
-        $cardType = CardType::where(['name' => $file->mimeType])->first();
-
-        $this->assertDatabaseHas('cards', [
-            'card_type_id'       => $cardType->id,
-            'title'              => $file->name,
-            'description'        => $file->description,
-            'url'                => $file->webViewLink,
-            'actual_created_at'  => Carbon::create($file->createdTime)->toDateTimeString(),
-            'actual_modified_at' => Carbon::create($file->modifiedTime)->toDateTimeString(),
-        ]);
-
-        $this->assertDatabaseHas('card_integrations', [
-            'foreign_id' => $file->id,
-        ]);
-        $this->refreshDb();
+        $syncCards = $this->getBase([]);
+        $result = $syncCards->syncCards(User::find(1), time());
+        self::assertFalse($result);
     }
 
     public function testSyncCardsExistingCard()
