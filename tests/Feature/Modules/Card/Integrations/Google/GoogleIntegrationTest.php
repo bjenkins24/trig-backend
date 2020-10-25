@@ -100,7 +100,7 @@ class GoogleIntegrationTest extends TestCase
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
-    public function testSyncProperties(): void
+    public function testGetCardData(): void
     {
         [$user] = $this->getSetup();
         $file = new FileFake();
@@ -120,6 +120,21 @@ class GoogleIntegrationTest extends TestCase
             'thumbnail_uri'      => $thumbnailLink,
         ], $cardData['data']);
         self::assertNotEmpty($cardData['permissions']);
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
+     */
+    public function testGetAllCardData(): void
+    {
+        $this->mock(GoogleConnection::class, static function ($mock) {
+            $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
+        });
+
+        $googleIntegration = app(GoogleIntegration::class);
+        $cardData = $googleIntegration->getAllCardData(User::find(1), time());
+        self::assertCount(2, $cardData);
     }
 
     /**

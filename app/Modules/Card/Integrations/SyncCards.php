@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Storage;
 
 class SyncCards
 {
-    public const IMAGE_PATH = 'public/card-thumbnails';
+    public const IMAGE_FOLDER = 'card-thumbnails';
 
     private string $integrationKey;
     private ContentInterface $contentIntegration;
@@ -35,19 +35,22 @@ class SyncCards
     private CardTypeRepository $cardTypeRepository;
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
+    private FileHelper $fileHelper;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
         CardRepository $cardRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
-        PermissionRepository $permissionRepository
+        PermissionRepository $permissionRepository,
+        FileHelper $fileHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
+        $this->fileHelper = $fileHelper;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -60,14 +63,14 @@ class SyncCards
     private function getThumbnail(Collection $data): Collection
     {
         try {
-            $thumbnail = file_get_contents($data->get('thumbnail_uri'));
+            $thumbnail = $this->fileHelper->fileGetContents($data->get('thumbnail_uri'));
         } catch (Exception $e) {
             Log::notice('Couldn\'t get a thumbnail: '.$data->get('thumbnail_uri').' - '.$e->getMessage());
 
             return collect([]);
         }
 
-        $fileInfo = collect(getimagesizefromstring($thumbnail));
+        $fileInfo = collect($this->fileHelper->getImageSizeFromString($thumbnail));
 
         if (! $fileInfo->has('mime')) {
             Log::notice('Couldn\'t get a thumbnail. It had no mime type: '.$data->get('thumbnail_uri'));
@@ -77,7 +80,7 @@ class SyncCards
 
         return collect([
             'thumbnail' => $thumbnail,
-            'extension' => FileHelper::mimeToExtension($fileInfo->get('mime')),
+            'extension' => $this->fileHelper->mimeToExtension($fileInfo->get('mime')),
             'width'     => $fileInfo->get(0),
             'height'    => $fileInfo->get(1),
         ]);
@@ -88,7 +91,7 @@ class SyncCards
         if (! $data->get('thumbnail_uri')) {
             return false;
         }
-        $imagePath = self::IMAGE_PATH.'/'.$card->id;
+        $imagePath = 'public/'.self::IMAGE_FOLDER.'/'.$card->id;
         $thumbnail = $this->getThumbnail($data);
         if ($thumbnail->isEmpty()) {
             return false;
@@ -105,11 +108,14 @@ class SyncCards
         return true;
     }
 
-    private function savePermissions(Collection $data, Card $card): void
+    private function savePermissions(Collection $data, Card $card): bool
     {
         // Remove permissions first so the sync isn't creating duplicates if we're just updating
         $this->cardRepository->removeAllPermissions($card);
 
+        if (0 === $data->get('users')->count() && 0 === $data->get('link_share')->count()) {
+            return false;
+        }
         $data->get('permissions')->each(function ($permission) use ($card) {
             $permission->get('users')->each(function ($user) use ($card) {
                 if ($user->get('id')) {
@@ -136,13 +142,15 @@ class SyncCards
                 }
             });
         });
+
+        return true;
     }
 
     /**
      * @throws CardIntegrationCreationValidate
      * @throws Exception
      */
-    public function upsertCard(Collection $cardData): ?Card
+    public function upsertCard(Collection $cardData): void
     {
         $data = $cardData->get('data');
         $existingCard = $this->cardRepository->getByForeignId($data->get('foreign_id'), $this->integrationKey);
@@ -150,10 +158,10 @@ class SyncCards
             if ($data->get('delete')) {
                 $existingCard->delete();
 
-                return null;
+                return;
             }
             if ($existingCard->actual_modified_at >= $data->get('actual_modified_at')) {
-                return null;
+                return;
             }
         }
 
@@ -170,7 +178,7 @@ class SyncCards
         ], $existingCard);
 
         if (! $card) {
-            return null;
+            return;
         }
 
         if (! $existingCard) {

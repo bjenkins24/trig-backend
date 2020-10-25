@@ -6,6 +6,7 @@ use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Models\Card;
 use App\Models\CardIntegration;
+use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -21,9 +22,11 @@ use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
+use App\Utils\FileHelper;
 use Google_Service_Drive as GoogleServiceDrive;
 use Google_Service_Drive_Resource_Files as GoogleServiceDriveFiles;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +39,16 @@ use Tests\Utils\ExtractDataHelperTest;
 class SyncCardsTest extends TestCase
 {
     use CreateOauthConnection;
+
+    private function getMockThumbnail(): Collection
+    {
+        return collect([
+            'thumbnail' => 'coolthumbnail',
+            'extension' => 'jpg',
+            'width'     => 200,
+            'height'    => 500,
+        ]);
+    }
 
     private function getSetup(?User $user = null): array
     {
@@ -75,11 +88,19 @@ class SyncCardsTest extends TestCase
 
     private function getBase(array $data): SyncCardsIntegration
     {
-        $syncCards = app(SyncCardsIntegration::class);
         $this->mock(GoogleIntegration::class, static function ($mock) use ($data) {
             $mock->shouldReceive('getAllCardData')->andReturn($data);
             $mock->shouldReceive('getIntegrationKey')->andReturn('google');
         });
+        $this->partialMock(FileHelper::class, function ($mock) {
+            $mock->shouldReceive('fileGetContents');
+            $mock->shouldReceive('getImageSizeFromString')->andReturn([
+                0      => $this->getMockThumbnail()->get('width'),
+                1      => $this->getMockThumbnail()->get('height'),
+                'mime' => 'image/jpg',
+            ]);
+        });
+        $syncCards = app(SyncCardsIntegration::class);
         $syncCards->setIntegration(app(GoogleIntegration::class), app(GoogleContent::class));
 
         return $syncCards;
@@ -109,13 +130,73 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws CardIntegrationCreationValidate
-     * @group n
      */
     public function testSyncCardsEmpty(): void
     {
         $syncCards = $this->getBase([]);
         $result = $syncCards->syncCards(User::find(1), time());
         self::assertFalse($result);
+    }
+
+    /**
+     * @throws CardIntegrationCreationValidate
+     * @group n
+     */
+    public function testSyncCards(): void
+    {
+        $this->refreshDb();
+        $user = User::find(1);
+        $this->createOauthConnection($user);
+        $data = [
+            [
+                'data' => [
+                    'user_id'            => 1,
+                    'delete'             => false,
+                    'card_type'          => 'random_card_type',
+                    'url'                => 'mycoolurl',
+                    'foreign_id'         => 'mycoolid',
+                    'title'              => 'my cool title',
+                    'description'        => 'My cool description',
+                    'actual_created_at'  => '2020-12-22 12:30:00',
+                    'actual_modified_at' => '2020-11-22 12:30:00',
+                    'thumbnail_uri'      => 'https://asdasd.com',
+                ],
+                'permissions' => [
+                    'users'      => [],
+                    'link_share' => [],
+                ],
+            ],
+        ];
+        $syncCards = $this->getBase($data);
+
+        $card = $data[0]['data'];
+        $syncCards->syncCards($user, time());
+
+        $cardType = CardType::where('name', '=', $card['card_type'])->first();
+        $newCard = Card::where('title', '=', $card['title'])->first();
+
+        $this->assertDatabaseHas('card_types', [
+            'name' => $card['card_type'],
+        ]);
+
+        $this->assertDatabaseHas('card_integrations', [
+            'card_id'    => $newCard->id,
+            'foreign_id' => $card['foreign_id'],
+        ]);
+
+        $this->assertDatabaseHas('cards', [
+            'id'                 => $newCard->id,
+            'user_id'            => $card['user_id'],
+            'card_type_id'       => $cardType->id,
+            'title'              => $card['title'],
+            'description'        => $card['description'],
+            'url'                => $card['url'],
+            'actual_created_at'  => $card['actual_created_at'],
+            'actual_modified_at' => $card['actual_modified_at'],
+            'image'              => Config::get('app.url').Storage::url(SyncCardsIntegration::IMAGE_FOLDER.'/'.$newCard->id).'.jpg',
+            'image_width'        => $this->getMockThumbnail()->get('width'),
+            'image_height'       => $this->getMockThumbnail()->get('height'),
+        ]);
     }
 
     public function testSyncCardsExistingCard()

@@ -12,10 +12,14 @@ use Illuminate\Support\Collection;
 class ExtractDataHelper
 {
     private TikaWebClientInterface $client;
+    private FileHelper $fileHelper;
 
-    public function __construct(TikaWebClientInterface $client)
-    {
+    public function __construct(
+        TikaWebClientInterface $client,
+        FileHelper $fileHelper
+    ) {
         $this->client = $client;
+        $this->fileHelper = $fileHelper;
     }
 
     public function getData(string $file): array
@@ -65,13 +69,11 @@ class ExtractDataHelper
     }
 
     /**
-     * Get file data from a stream.
-     *
-     * @param [type] $content
+     * @param $content
      */
     public function getFileData(string $mimeType, $content): Collection
     {
-        $extension = FileHelper::mimeToExtension($mimeType);
+        $extension = $this->fileHelper->mimeToExtension($mimeType);
         if (! $extension) {
             \Log::notice('The mimetype '.$mimeType.' could not be mapped to an extension.');
 
