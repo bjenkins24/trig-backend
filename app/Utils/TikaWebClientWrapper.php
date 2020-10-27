@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Utils\TikaWebClient;
+namespace App\Utils;
 
 use Exception;
 use Illuminate\Support\Facades\Config;
@@ -9,7 +9,7 @@ use Vaites\ApacheTika\Metadata\DocumentMetadata;
 use Vaites\ApacheTika\Metadata\ImageMetadata;
 use Vaites\ApacheTika\Metadata\Metadata;
 
-class TikaWebClientWrapper implements TikaWebClientInterface
+class TikaWebClientWrapper
 {
     private TikaClient $client;
 

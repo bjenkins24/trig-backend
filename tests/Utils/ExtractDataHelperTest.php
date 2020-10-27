@@ -3,32 +3,87 @@
 namespace Tests\Utils;
 
 use App\Utils\ExtractDataHelper;
-use App\Utils\TikaWebClient\TikaWebClientInterface;
+use App\Utils\TikaWebClientWrapper;
 use Exception;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
+    private function mockGetData(): array
+    {
+        $correctResult = [
+            'title'                        => 'My fake title',
+            'keyword'                      => 'my cool keyword',
+            'author'                       => 'Brian Jenkins',
+            'last_author'                  => 'Joe Rodriguez',
+            'encoding'                     => 'utf_8',
+            'comment'                      => 'Hello friends',
+            'language'                     => 'en_US',
+            'subject'                      => 'subject stuff',
+            'revisions'                    => 'cool revisions',
+            'created'                      => '2020-10-14',
+            'modified'                     => '2020-10-16',
+            'print_date'                   => '2020-10-27',
+            'save_date'                    => '2020-10-28',
+            'line_count'                   => 25,
+            'page_count'                   => 27,
+            'paragraph_count'              => 25,
+            'word_count'                   => 200,
+            'character_count'              => 400,
+            'character_count_with_spaces'  => 600,
+            'width'                        => 200,
+            'height'                       => 400,
+            'copyright'                    => 'My cool copyright',
+            'content'                      => 'Hello this is my content',
+        ];
+
+        $this->mock(TikaWebClientWrapper::class, static function ($mock) use ($correctResult) {
+            $mock->shouldReceive('getMetaData')->once()->andReturn([
+                'meta' => [
+                    'dc:title'                         => $correctResult['title'],
+                    'meta:keyword'                     => $correctResult['keyword'],
+                    'meta:author'                      => $correctResult['author'],
+                    'meta:last-author'                 => $correctResult['last_author'],
+                    'encoding'                         => $correctResult['encoding'],
+                    'comment'                          => $correctResult['comment'],
+                    'language'                         => $correctResult['language'],
+                    'cp:subject'                       => $correctResult['subject'],
+                    'cp:revision'                      => $correctResult['revisions'],
+                    'meta:creation-date'               => $correctResult['created'],
+                    'Last-Modified'                    => $correctResult['modified'],
+                    'meta:print-date'                  => $correctResult['print_date'],
+                    'meta:save-date'                   => $correctResult['save_date'],
+                    'meta:line-count'                  => $correctResult['line_count'],
+                    'meta:page-count'                  => $correctResult['page_count'],
+                    'meta:paragraph-count'             => $correctResult['paragraph_count'],
+                    'meta:word-count'                  => $correctResult['word_count'],
+                    'meta:character-count'             => $correctResult['character_count'],
+                    'meta:character-count-with-spaces' => $correctResult['character_count_with_spaces'],
+                    'width'                            => $correctResult['width'],
+                    'height'                           => $correctResult['height'],
+                    'Copyright'                        => $correctResult['copyright'],
+                ],
+                'width'     => $correctResult['width'],
+                'height'    => $correctResult['height'],
+                'Copyright' => $correctResult['copyright'],
+            ]);
+            $mock->shouldReceive('getText')->once()->andReturn($correctResult['content']);
+        });
+
+        return $correctResult;
+    }
+
     public function testGetFileData(): void
     {
-        \Storage::fake();
-
-        $myData = [
-            'my first data'  => 'my value',
-            'my second data' => 'my cool value',
-        ];
-        $this->partialMock(ExtractDataHelper::class, static function ($mock) use ($myData) {
-            $mock->shouldReceive('getData')->andReturn($myData)->once();
-        });
+        Storage::fake();
+        $correctResult = $this->mockGetData();
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        self::assertEquals($result->toArray(), $myData);
+        self::assertEquals($correctResult, $result->toArray());
     }
 
     public function testGetFileDataNoExtension(): void
     {
-        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
-            $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
-        });
         $result = app(ExtractDataHelper::class)->getFileData('fake-mime', 'my name is brian');
         self::assertEquals([], $result->toArray());
     }
@@ -38,9 +93,6 @@ class ExtractDataHelperTest extends TestCase
      */
     public function testGetFileDataExcludedExtension(string $mimeType): void
     {
-        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
-            $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
-        });
         $result = app(ExtractDataHelper::class)->getFileData($mimeType, 'my name is brian');
         self::assertEquals([], $result->toArray());
     }
@@ -56,13 +108,13 @@ class ExtractDataHelperTest extends TestCase
 
     public function testFailedGetFileData(): void
     {
-        \Storage::fake();
+        Storage::fake();
 
-        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
-            $mock->shouldReceive('getData')->andThrow(new Exception('Yes!'))->once();
+        $this->mock(TikaWebClientWrapper::class, static function ($mock) {
+            $mock->shouldReceive('getMetaData')->andThrow(new Exception('Yes!'))->once();
         });
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        self::assertEquals($result->toArray(), []);
+        self::assertEquals([], $result->toArray());
     }
 
     public function getMockDataResult($content)
@@ -95,23 +147,6 @@ class ExtractDataHelperTest extends TestCase
             'copyright'                   => $data->Copyright,
             'content'                     => $content,
         ]);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testGetData(): void
-    {
-        $content = 'my cool content';
-        $data = new FakeMetaData();
-        $mock = \Mockery::mock(TikaWebClientInterface::class);
-        $mock->shouldReceive('getText')->andReturn($content)->once()->mock();
-        $mock->shouldReceive('getMetadata')->andReturn($data)->once()->mock();
-        $extractDataHelper = new ExtractDataHelper($mock);
-        $result = $extractDataHelper->getData('my file');
-        $meta = $data->meta;
-
-        self::assertEquals($this->getMockDataResult($content)->toArray(), $result);
     }
 }
 
