@@ -196,11 +196,11 @@ class SyncCards
         }
     }
 
-    public function saveCardData(Card $card): void
+    public function saveCardData(Card $card): bool
     {
         $cardIntegration = $this->cardRepository->getCardIntegration($card);
         if (! $cardIntegration) {
-            return;
+            return false;
         }
         $id = $cardIntegration->foreign_id;
         $mimeType = $this->cardRepository->getCardType($card)->name;
@@ -220,6 +220,8 @@ class SyncCards
         if ($card->content) {
             CardDedupe::dispatch($card)->onQueue('card-dedupe');
         }
+
+        return true;
     }
 
     /**

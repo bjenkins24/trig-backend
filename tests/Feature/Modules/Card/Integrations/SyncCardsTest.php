@@ -8,6 +8,7 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -237,5 +238,20 @@ class SyncCardsTest extends TestCase
             'properties' => $this->castToJson($cardData->toArray()),
         ]);
         Queue::assertPushed(CardDedupe::class, 1);
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testNoIntegrationSaveCardData(): void
+    {
+        $this->refreshDb();
+        $this->mock(CardRepository::class, static function ($mock) {
+            $mock->shouldReceive('getCardIntegration')->once()->andReturn(null);
+        });
+        [$syncCards, $data, $user] = $this->getSetup();
+        $card = Card::find(1);
+        $result = $syncCards->saveCardData($card);
+        self::assertFalse($result);
     }
 }
