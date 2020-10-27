@@ -9,8 +9,8 @@ use App\Models\CardType;
 use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
-use App\Modules\OauthConnection\Exceptions\OauthKeyInvalid;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -243,7 +243,10 @@ class CardRepository
         if (! $oauthIntegration) {
             throw new OauthKeyInvalid("The integration key $integrationKey does not exist");
         }
-        $cardIntegration = CardIntegration::where(['foreign_id' => $foreignId, 'id' => $oauthIntegration->id])->first();
+        $cardIntegration = CardIntegration::where([
+            'foreign_id'           => $foreignId,
+            'oauth_integration_id' => $oauthIntegration->id,
+        ])->first();
         if (! $cardIntegration) {
             return null;
         }

@@ -36,6 +36,7 @@ class SyncCards
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
     private FileHelper $fileHelper;
+    private ExtractDataHelper $extractDataHelper;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
@@ -43,7 +44,8 @@ class SyncCards
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
-        FileHelper $fileHelper
+        FileHelper $fileHelper,
+        ExtractDataHelper $extractDataHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->cardRepository = $cardRepository;
@@ -51,6 +53,7 @@ class SyncCards
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
         $this->fileHelper = $fileHelper;
+        $this->extractDataHelper = $extractDataHelper;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -116,20 +119,19 @@ class SyncCards
         if (0 === $data->get('users')->count() && 0 === $data->get('link_share')->count()) {
             return false;
         }
-        $data->get('permissions')->each(function ($permission) use ($card) {
-            $permission->get('users')->each(function ($user) use ($card) {
-                if ($user->get('id')) {
-                    // Create user permission
-                    return;
-                }
-                if ($user->get('email')) {
-                    $this->permissionRepository->createEmail($card, $user->get('capability'), $user->get('email'));
+        $data->get('users')->each(function ($user) use ($card) {
+            if ($user->get('id')) {
+                // Create user permission
+                return;
+            }
+            if ($user->get('email')) {
+                $this->permissionRepository->createEmail($card, $user->get('capability'), $user->get('email'));
 
-                    return;
-                }
-            });
-            $permission->get('link_share')->each(function ($linkShare) use ($card) {
-                switch ($linkShare->get('type')) {
+                return;
+            }
+        });
+        $data->get('link_share')->each(function ($linkShare) use ($card) {
+            switch ($linkShare->get('type')) {
                     case 'public':
                         $this->linkShareSettingRepository->createPublicIfNew($card, $linkShare->get('capability'));
                         break;
@@ -140,7 +142,6 @@ class SyncCards
                         $this->linkShareSettingRepository->createAnyoneOrganizationIfNew($card, $linkShare->get('capability'));
                         break;
                 }
-            });
         });
 
         return true;
@@ -150,7 +151,7 @@ class SyncCards
      * @throws CardIntegrationCreationValidate
      * @throws Exception
      */
-    public function upsertCard(Collection $cardData): void
+    private function upsertCard(Collection $cardData): void
     {
         $data = $cardData->get('data');
         $existingCard = $this->cardRepository->getByForeignId($data->get('foreign_id'), $this->integrationKey);
@@ -163,6 +164,10 @@ class SyncCards
             if ($existingCard->actual_modified_at >= $data->get('actual_modified_at')) {
                 return;
             }
+        }
+        // The card hasn't been created, but we will want to delete it, that means lets not create it to begin with
+        if ($data->get('delete')) {
+            return;
         }
 
         $cardType = $this->cardTypeRepository->firstOrCreate($data->get('card_type'));
@@ -188,7 +193,7 @@ class SyncCards
         $this->saveThumbnail($data, $card);
         $this->savePermissions($cardData->get('permissions'), $card);
 
-        if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
+        if (! $this->extractDataHelper::isExcluded($data->get('card_type'))) {
             SaveCardData::dispatch($card, $this->integrationKey)->onQueue('card-data');
         }
     }
@@ -202,8 +207,8 @@ class SyncCards
         $id = $cardIntegration->foreign_id;
         $mimeType = $this->cardRepository->getCardType($card)->name;
 
-        $content = $this->contentIntegration->getCardContent($card, $id, $mimeType);
-        $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content);
+        $content = $this->contentIntegration->getCardContent($card, (string) $id, $mimeType);
+        $data = $this->extractDataHelper->getFileData($mimeType, $content);
 
         // Save the card data retrieved from the extraction
         $card->content = $data->get('content');

@@ -53,7 +53,7 @@ class GoogleContent implements ContentInterface
      *
      * @return string
      */
-    public function getCardContent(Card $card, int $id, string $mimeType)
+    public function getCardContent(Card $card, string $id, string $mimeType)
     {
         $service = $this->googleConnection->getDriveService($this->cardRepository->getUser($card));
 

@@ -3,10 +3,13 @@
 namespace Tests\Feature\Modules\Card\Integrations\Google;
 
 use App\Modules\Card\Integrations\Google\GoogleContent;
+use Tests\Support\Traits\SyncCardsTrait;
 use Tests\TestCase;
 
 class GoogleContentTest extends TestCase
 {
+    use SyncCardsTrait;
+
     /**
      * @dataProvider googleToMimeProvider
      */

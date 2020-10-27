@@ -6,5 +6,5 @@ use App\Models\Card;
 
 interface ContentInterface
 {
-    public function getCardContent(Card $card, int $id, string $mimeType);
+    public function getCardContent(Card $card, string $id, string $mimeType);
 }
