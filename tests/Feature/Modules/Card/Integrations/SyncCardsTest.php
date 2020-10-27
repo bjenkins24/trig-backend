@@ -116,7 +116,7 @@ class SyncCardsTest extends TestCase
         self::assertNotNull($card);
 
         $data[0]['data']['delete'] = true;
-        [$syncCards, $data, $user] = $this->getSetup(null, $data);
+        [$syncCards, $data, $user] = $this->getSetup(null, $data, 'google', false);
         $syncCards->syncCards($user, time());
 
         // It was deleted!

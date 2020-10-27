@@ -27,9 +27,11 @@ trait SyncCardsTrait
     /**
      * @throws OauthIntegrationNotFound
      */
-    private function getSetup(?User $user = null, ?array $data = null, ?string $service = 'google'): array
+    private function getSetup(?User $user = null, ?array $data = null, ?string $service = 'google', ?bool $refreshDb = true): array
     {
-        $this->refreshDb();
+        if ($refreshDb) {
+            $this->refreshDb();
+        }
         if (! $user) {
             $user = User::find(1);
             $this->createOauthConnection($user);
