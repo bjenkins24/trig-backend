@@ -4,14 +4,19 @@ namespace Tests\Feature\Jobs;
 
 use App\Jobs\SaveCardData;
 use App\Models\Card;
-use App\Modules\Card\Integrations\GoogleIntegration;
+use App\Modules\Card\Integrations\SyncCards;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Tests\TestCase;
 
 class SaveCardDataTest extends TestCase
 {
-    public function testSaveCardData()
+    /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testSaveCardData(): void
     {
-        $this->partialMock(GoogleIntegration::class, function ($mock) {
+        $this->refreshDb();
+        $this->partialMock(SyncCards::class, static function ($mock) {
             $mock->shouldReceive('saveCardData')->once();
         });
 

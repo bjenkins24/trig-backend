@@ -18,26 +18,26 @@ class SendMail implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-//    public User $user;
-//    public Mailable $mail;
-//
-//    /**
-//     * Create a new job instance.
-//     *
-//     * @param $mail
-//     */
-//    public function __construct(User $user, Mailable $mail)
-//    {
-//        $this->user = $user;
-//        $this->mail = $mail;
-//    }
+    public User $user;
+    public Mailable $mail;
+
+    /**
+     * Create a new job instance.
+     *
+     * @param $mail
+     */
+    public function __construct(User $user, Mailable $mail)
+    {
+        $this->user = $user;
+        $this->mail = $mail;
+    }
 
     /**
      * Execute the job.
      */
     public function handle(): void
     {
-//      Mail::to($this->user)->send($this->mail);
-        echo 'hello friends';
+        dd($this->user);
+        Mail::to($this->user)->send($this->mail);
     }
 }

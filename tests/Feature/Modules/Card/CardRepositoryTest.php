@@ -9,6 +9,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
@@ -259,31 +260,18 @@ class CardRepositoryTest extends TestCase
         self::assertEquals('2_3_4', $result);
     }
 
+    /**
+     * @throws OauthKeyInvalid
+     */
     public function testGetByForeignId(): void
     {
         $cardId = 1;
         $foreignId = Card::find($cardId)->cardIntegration()->first()->foreign_id;
-        $card = app(CardRepository::class)->getByForeignId($foreignId);
+        $card = app(CardRepository::class)->getByForeignId($foreignId, 'google');
         self::assertEquals($card->id, $cardId);
 
-        $card = app(CardRepository::class)->getByForeignId('no way is this real');
+        $card = app(CardRepository::class)->getByForeignId('no way is this real', 'google');
         self::assertNull($card);
-    }
-
-    public function testNeedsUpdate(): void
-    {
-        $card = Card::find(1);
-        $card->actual_modified_at = Carbon::now()->subMonth();
-        $cardRepo = app(CardRepository::class);
-        $needsUpdate = $cardRepo->needsUpdate($card, time());
-        self::assertTrue($needsUpdate);
-
-        $needsUpdate = $cardRepo->needsUpdate($card, strtotime('1980-04-26 14:00:00'));
-        self::assertFalse($needsUpdate);
-
-        // If there's no card it def needs an update
-        $needsUpdate = $cardRepo->needsUpdate(null, time());
-        $this->assertTrue($needsUpdate);
     }
 
     public function testUpdateOrInsert(): void

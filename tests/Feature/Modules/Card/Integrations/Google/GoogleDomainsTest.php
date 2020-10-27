@@ -10,7 +10,7 @@ use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use JsonException;
-use Tests\Feature\Modules\Card\Integrations\Fakes\DomainFake;
+use Tests\Feature\Modules\Card\Integrations\Google\Fakes\DomainFake;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
@@ -23,9 +23,8 @@ class GoogleDomainsTest extends TestCase
      * @param bool $domains
      *
      * @throws JsonException
-     * @throws OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
      *
      * @return User|User[]|Collection|Model|null
      */
@@ -54,7 +53,6 @@ class GoogleDomainsTest extends TestCase
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testSyncDomains(): void

@@ -6,6 +6,7 @@ use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
 use App\Utils\TikaWebClient\TikaWebClientInterface;
+use Exception;
 use Html2Text\Html2Text;
 use Illuminate\Support\Collection;
 
@@ -22,6 +23,9 @@ class ExtractDataHelper
         $this->fileHelper = $fileHelper;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getData(string $file): array
     {
         $data = collect(json_decode(json_encode($this->client->getMetadata($file)), true));
@@ -63,7 +67,7 @@ class ExtractDataHelper
     {
         $excludedTypes = collect(['zip', 'audio', 'video', 'sql']);
 
-        return $excludedTypes->contains(function ($value) use ($mimeType) {
+        return $excludedTypes->contains(static function ($value) use ($mimeType) {
             return \Str::contains($mimeType, $value);
         });
     }
@@ -80,7 +84,7 @@ class ExtractDataHelper
             return collect([]);
         }
 
-        if ($this->isExcluded($mimeType)) {
+        if (self::isExcluded($mimeType)) {
             return collect([]);
         }
 
@@ -89,7 +93,7 @@ class ExtractDataHelper
         \Storage::put($filename, $content);
         try {
             $data = $this->getData(base_path().'/storage/app/'.$filename);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
             \Storage::delete($filename);
 
@@ -101,7 +105,7 @@ class ExtractDataHelper
         return collect($data);
     }
 
-    public function getWebsite(string $url)
+    public function getWebsite(string $url): string
     {
         $readability = new Readability(new ReadabilityConfiguration());
         $html = file_get_contents($url);

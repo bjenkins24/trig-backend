@@ -33,9 +33,9 @@ class SyncCardsTest extends TestCase
     public function testNoSyncWhenUpToDate(): void
     {
         $initialData = $this->getMockData();
-        $title = 'My cool title';
+        $title = 'My super cool title';
         $initialData[0]['data']['title'] = $title;
-        $initialData[0]['data']['actual_modified_at'] = '1980-01-01 10:35:00';
+        $initialData[0]['data']['actual_modified_at'] = '1701-01-01 10:35:00';
         [$syncCards, $data, $user] = $this->getSetup(null, $initialData);
 
         $cardIntegration = CardIntegration::find(1);
@@ -218,7 +218,6 @@ class SyncCardsTest extends TestCase
 
         $this->mock(ExtractDataHelper::class, static function ($mock) use ($cardData) {
             $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
-            $mock->shouldReceive('isExcluded')->andReturn(false)->once();
         });
 
         [$syncCards, $data, $user] = $this->getSetup();

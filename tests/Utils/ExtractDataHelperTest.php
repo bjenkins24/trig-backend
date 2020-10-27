@@ -4,11 +4,12 @@ namespace Tests\Utils;
 
 use App\Utils\ExtractDataHelper;
 use App\Utils\TikaWebClient\TikaWebClientInterface;
+use Exception;
 use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
-    public function testGetFileData()
+    public function testGetFileData(): void
     {
         \Storage::fake();
 
@@ -16,35 +17,35 @@ class ExtractDataHelperTest extends TestCase
             'my first data'  => 'my value',
             'my second data' => 'my cool value',
         ];
-        $this->partialMock(ExtractDataHelper::class, function ($mock) use ($myData) {
+        $this->partialMock(ExtractDataHelper::class, static function ($mock) use ($myData) {
             $mock->shouldReceive('getData')->andReturn($myData)->once();
         });
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        $this->assertEquals($result->toArray(), $myData);
+        self::assertEquals($result->toArray(), $myData);
     }
 
-    public function testGetFileDataNoExtension()
+    public function testGetFileDataNoExtension(): void
     {
-        $this->partialMock(ExtractDataHelper::class, function ($mock) {
+        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
             $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
         });
         $result = app(ExtractDataHelper::class)->getFileData('fake-mime', 'my name is brian');
-        $this->assertEquals($result->toArray(), []);
+        self::assertEquals([], $result->toArray());
     }
 
     /**
      * @dataProvider excludedExtensionProvider
      */
-    public function testGetFileDataExcludedExtension($mimeType)
+    public function testGetFileDataExcludedExtension(string $mimeType): void
     {
-        $this->partialMock(ExtractDataHelper::class, function ($mock) {
+        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
             $mock->shouldReceive('getData')->andReturn(['cool stuff', 'goes here']);
         });
         $result = app(ExtractDataHelper::class)->getFileData($mimeType, 'my name is brian');
-        $this->assertEquals($result->toArray(), []);
+        self::assertEquals([], $result->toArray());
     }
 
-    public function excludedExtensionProvider()
+    public function excludedExtensionProvider(): array
     {
         return [
             ['video/quicktime'],
@@ -53,15 +54,15 @@ class ExtractDataHelperTest extends TestCase
         ];
     }
 
-    public function testFailedGetFileData()
+    public function testFailedGetFileData(): void
     {
         \Storage::fake();
 
-        $this->partialMock(ExtractDataHelper::class, function ($mock) {
-            $mock->shouldReceive('getData')->andThrow(new \Exception('Yes!'))->once();
+        $this->partialMock(ExtractDataHelper::class, static function ($mock) {
+            $mock->shouldReceive('getData')->andThrow(new Exception('Yes!'))->once();
         });
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
-        $this->assertEquals($result->toArray(), []);
+        self::assertEquals($result->toArray(), []);
     }
 
     public function getMockDataResult($content)
@@ -96,7 +97,10 @@ class ExtractDataHelperTest extends TestCase
         ]);
     }
 
-    public function testGetData()
+    /**
+     * @throws Exception
+     */
+    public function testGetData(): void
     {
         $content = 'my cool content';
         $data = new FakeMetaData();
@@ -107,7 +111,7 @@ class ExtractDataHelperTest extends TestCase
         $result = $extractDataHelper->getData('my file');
         $meta = $data->meta;
 
-        $this->assertEquals($this->getMockDataResult($content)->toArray(), $result);
+        self::assertEquals($this->getMockDataResult($content)->toArray(), $result);
     }
 }
 

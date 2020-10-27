@@ -36,7 +36,6 @@ class SyncCards
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
     private FileHelper $fileHelper;
-    private ExtractDataHelper $extractDataHelper;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
@@ -44,8 +43,7 @@ class SyncCards
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
-        FileHelper $fileHelper,
-        ExtractDataHelper $extractDataHelper
+        FileHelper $fileHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->cardRepository = $cardRepository;
@@ -53,7 +51,6 @@ class SyncCards
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
         $this->fileHelper = $fileHelper;
-        $this->extractDataHelper = $extractDataHelper;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -161,6 +158,7 @@ class SyncCards
 
                 return;
             }
+
             if ($existingCard->actual_modified_at >= $data->get('actual_modified_at')) {
                 return;
             }
@@ -193,7 +191,7 @@ class SyncCards
         $this->saveThumbnail($data, $card);
         $this->savePermissions($cardData->get('permissions'), $card);
 
-        if (! $this->extractDataHelper::isExcluded($data->get('card_type'))) {
+        if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
             SaveCardData::dispatch($card, $this->integrationKey)->onQueue('card-data');
         }
     }
@@ -208,7 +206,7 @@ class SyncCards
         $mimeType = $this->cardRepository->getCardType($card)->name;
 
         $content = $this->contentIntegration->getCardContent($card, (string) $id, $mimeType);
-        $data = $this->extractDataHelper->getFileData($mimeType, $content);
+        $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content);
 
         // Save the card data retrieved from the extraction
         $card->content = $data->get('content');
