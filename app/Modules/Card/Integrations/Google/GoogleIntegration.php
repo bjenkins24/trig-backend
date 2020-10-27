@@ -111,14 +111,10 @@ class GoogleIntegration implements IntegrationInterface
             // Public on the internet - we can make this discoverable in Trig
             if ('anyone' === $permission->type) {
                 $carry['link_share'][] = ['type' => 'public', 'capability' => $capability];
-
-                return $carry;
             }
 
             if ('user' === $permission->type) {
                 $carry['users'][] = ['email' => $permission->emailAddress, 'capability' => $capability];
-
-                return $carry;
             }
 
             if ('domain' === $permission->type) {
@@ -129,8 +125,6 @@ class GoogleIntegration implements IntegrationInterface
                     return $carry;
                 }
                 $carry['link_share'][] = ['type' => 'anyone_organization', 'capability' => $capability];
-
-                return $carry;
             }
 
             return $carry;
