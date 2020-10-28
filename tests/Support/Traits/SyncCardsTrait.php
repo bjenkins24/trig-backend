@@ -9,6 +9,7 @@ use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Utils\FileHelper;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Queue;
 
 trait SyncCardsTrait
 {
@@ -29,6 +30,7 @@ trait SyncCardsTrait
      */
     private function getSetup(?User $user = null, ?array $data = null, ?string $service = 'google', ?bool $refreshDb = true): array
     {
+        Queue::fake();
         if ($refreshDb) {
             $this->refreshDb();
         }
