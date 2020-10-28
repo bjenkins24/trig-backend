@@ -213,14 +213,14 @@ class GoogleIntegrationTest extends TestCase
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'    => $user->id,
-            'properties' => $this->castToJson(['google_next_page' => $nextPageToken]),
+            'properties' => json_encode(['google_next_page' => $nextPageToken], JSON_THROW_ON_ERROR),
         ]);
 
         app(GoogleIntegration::class)->getFiles($user, time());
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'    => $user->id,
-            'properties' => $this->castToJson(['google_next_page' => $nextPageToken]),
+            'properties' => json_encode(['google_next_page' => $nextPageToken], JSON_THROW_ON_ERROR),
         ]);
     }
 

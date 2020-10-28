@@ -3,7 +3,6 @@
 namespace Tests\Feature\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -64,7 +63,7 @@ class GoogleDomainsTest extends TestCase
         }
         $this->assertDatabaseHas('users', [
             'id'         => 1,
-            'properties' => $this->castToJson(['google_domains' => $domains]),
+            'properties' => json_encode(['google_domains' => $domains], JSON_THROW_ON_ERROR),
         ]);
         $this->refreshDb();
     }
@@ -72,7 +71,6 @@ class GoogleDomainsTest extends TestCase
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
-     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testSyncDomainsNoDomains(): void

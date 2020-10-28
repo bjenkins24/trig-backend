@@ -235,7 +235,7 @@ class SyncCardsTest extends TestCase
 
         $this->assertDatabaseHas('cards', [
             'content'    => $content,
-            'properties' => $this->castToJson($cardData->toArray()),
+            'properties' => json_encode($cardData->toArray(), JSON_THROW_ON_ERROR),
         ]);
         Queue::assertPushed(CardDedupe::class, 1);
     }

@@ -84,8 +84,7 @@ class ExtractDataHelperTest extends TestCase
 
     public function testGetFileDataNoExtension(): void
     {
-        Storage::fake();
-        $this->mockGetData();
+        $this->mock(TikaWebClientWrapper::class);
         $result = app(ExtractDataHelper::class)->getFileData('fake-mime', 'my name is brian');
         self::assertEquals([], $result->toArray());
     }
@@ -95,8 +94,7 @@ class ExtractDataHelperTest extends TestCase
      */
     public function testGetFileDataExcludedExtension(string $mimeType): void
     {
-        Storage::fake();
-        $this->mockGetData();
+        $this->mock(TikaWebClientWrapper::class);
         $result = app(ExtractDataHelper::class)->getFileData($mimeType, 'my name is brian');
         self::assertEquals([], $result->toArray());
     }
@@ -112,8 +110,7 @@ class ExtractDataHelperTest extends TestCase
 
     public function testFailedGetFileData(): void
     {
-        Storage::fake();
-        $this->mockGetData();
+        $this->mock(TikaWebClientWrapper::class);
         $this->mock(TikaWebClientWrapper::class, static function ($mock) {
             $mock->shouldReceive('getMetaData')->andThrow(new Exception('Yes!'))->once();
         });
