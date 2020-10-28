@@ -4,7 +4,7 @@ namespace App\Modules\OauthConnection;
 
 use App\Models\OauthConnection;
 use App\Models\User;
-use App\Modules\OauthConnection\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Support\Collection;

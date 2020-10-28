@@ -39,6 +39,8 @@ class SaveCardData implements ShouldQueue
      */
     public function handle(): void
     {
-        app(OauthIntegrationService::class)->makeCardIntegration($this->integration)->saveCardData($this->card);
+        $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
+
+        $syncCardsIntegration->saveCardData($this->card);
     }
 }

@@ -4,7 +4,17 @@ namespace App\Utils;
 
 class FileHelper
 {
-    public static function mimeToExtension($mime)
+    public function fileGetContents(string $filename): string
+    {
+        return file_get_contents($filename);
+    }
+
+    public function getImageSizeFromString(string $fileInfo): array
+    {
+        return getimagesizefromstring($fileInfo);
+    }
+
+    public function mimeToExtension($mime)
     {
         $mime_map = [
             'video/3gpp2'                                                               => '3g2',
@@ -81,6 +91,7 @@ class FileHelper
             'image/jpx'                                                                 => 'jp2',
             'image/jpm'                                                                 => 'jp2',
             'image/jpeg'                                                                => 'jpeg',
+            'image/jpg'                                                                 => 'jpg',
             'image/pjpeg'                                                               => 'jpeg',
             'application/x-javascript'                                                  => 'js',
             'application/json'                                                          => 'json',

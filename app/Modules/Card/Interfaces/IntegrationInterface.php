@@ -2,11 +2,12 @@
 
 namespace App\Modules\Card\Interfaces;
 
-use App\Models\Card;
+use App\Models\User;
 
 interface IntegrationInterface
 {
-    public function syncCards(int $userId, ?int $since = null);
+    public static function getIntegrationKey(): string;
 
-    public function saveCardData(Card $card): void;
+    public function getAllCardData(User $user, ?int $since): array;
+
 }

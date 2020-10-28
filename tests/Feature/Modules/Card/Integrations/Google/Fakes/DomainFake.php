@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\Card\Integrations\Fakes;
+namespace Tests\Feature\Modules\Card\Integrations\Google\Fakes;
 
 class FakeDirectoryDomain
 {

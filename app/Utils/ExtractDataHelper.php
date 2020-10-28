@@ -5,22 +5,39 @@ namespace App\Utils;
 use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
-use App\Utils\TikaWebClient\TikaWebClientInterface;
+use Exception;
 use Html2Text\Html2Text;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use JsonException;
 
 class ExtractDataHelper
 {
-    private TikaWebClientInterface $client;
+    private TikaWebClientWrapper $client;
+    private FileHelper $fileHelper;
 
-    public function __construct(TikaWebClientInterface $client)
-    {
+    public function __construct(
+        TikaWebClientWrapper $client,
+        FileHelper $fileHelper
+    ) {
         $this->client = $client;
+        $this->fileHelper = $fileHelper;
     }
 
+    /**
+     * @throws JsonException
+     * @throws Exception
+     */
     public function getData(string $file): array
     {
-        $data = collect(json_decode(json_encode($this->client->getMetadata($file)), true));
+        $data = collect(json_decode(
+            json_encode(
+                $this->client->getMetaData($file), JSON_THROW_ON_ERROR
+            ),
+            true, 512, JSON_THROW_ON_ERROR)
+        );
         $meta = collect($data->get('meta'));
         $content = $this->client->getText($file);
 
@@ -59,47 +76,45 @@ class ExtractDataHelper
     {
         $excludedTypes = collect(['zip', 'audio', 'video', 'sql']);
 
-        return $excludedTypes->contains(function ($value) use ($mimeType) {
-            return \Str::contains($mimeType, $value);
+        return $excludedTypes->contains(static function ($value) use ($mimeType) {
+            return Str::contains($mimeType, $value);
         });
     }
 
     /**
-     * Get file data from a stream.
-     *
-     * @param [type] $content
+     * @param $content
      */
     public function getFileData(string $mimeType, $content): Collection
     {
-        $extension = FileHelper::mimeToExtension($mimeType);
+        $extension = $this->fileHelper->mimeToExtension($mimeType);
         if (! $extension) {
-            \Log::notice('The mimetype '.$mimeType.' could not be mapped to an extension.');
+            Log::notice('The mimetype '.$mimeType.' could not be mapped to an extension.');
 
             return collect([]);
         }
 
-        if ($this->isExcluded($mimeType)) {
+        if (self::isExcluded($mimeType)) {
             return collect([]);
         }
 
-        $filename = \Str::random(16).'.'.$extension;
+        $filename = Str::random(16).'.'.$extension;
 
-        \Storage::put($filename, $content);
+        Storage::put($filename, $content);
         try {
             $data = $this->getData(base_path().'/storage/app/'.$filename);
-        } catch (\Exception $e) {
-            \Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
-            \Storage::delete($filename);
+        } catch (Exception $e) {
+            Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
+            Storage::delete($filename);
 
             return collect([]);
         }
 
-        \Storage::delete($filename);
+        Storage::delete($filename);
 
         return collect($data);
     }
 
-    public function getWebsite(string $url)
+    public function getWebsite(string $url): string
     {
         $readability = new Readability(new ReadabilityConfiguration());
         $html = file_get_contents($url);
@@ -110,6 +125,8 @@ class ExtractDataHelper
             return (new Html2Text($readability))->getText();
         } catch (ReadabilityParseException $e) {
             echo sprintf('Error processing text: %s', $e->getMessage());
+
+            return '';
         }
     }
 }

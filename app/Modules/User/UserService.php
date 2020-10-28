@@ -6,8 +6,8 @@ use App\Events\User\AccountCreated;
 use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
 use App\Models\User;
-use App\Modules\OauthConnection\Connections\GoogleConnection;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Support\Arr;
@@ -18,6 +18,7 @@ class UserService
     private UserRepository $userRepo;
     private OauthConnectionRepository $oauthConnectionRepo;
     public ResetPasswordHelper $resetPassword;
+    private GoogleIntegration $googleIntegration;
 
     /**
      * Create instance of user service.
@@ -25,8 +26,10 @@ class UserService
     public function __construct(
         UserRepository $userRepo,
         OauthConnectionRepository $oauthConnectionRepo,
-        ResetPasswordHelper $resetPassword
+        ResetPasswordHelper $resetPassword,
+        GoogleIntegration $googleIntegration
     ) {
+        $this->googleIntegration = $googleIntegration;
         $this->userRepo = $userRepo;
         $this->resetPassword = $resetPassword;
         $this->oauthConnectionRepo = $oauthConnectionRepo;
@@ -57,7 +60,7 @@ class UserService
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
-        $this->oauthConnectionRepo->create($user, GoogleConnection::getKey(), $oauthCredentials);
+        $this->oauthConnectionRepo->create($user, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
 
         SetupGoogleIntegration::dispatch($user);
 

@@ -12,7 +12,7 @@ use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
 use App\Jobs\SendMail;
-use App\Modules\OauthConnection\Exceptions\OauthMissingTokens;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
@@ -122,8 +122,8 @@ class UserController extends Controller
 
     /**
      * @throws FailedGoogleSso
-     * @throws OauthMissingTokens
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function googleSso(GoogleSsoRequest $request): JsonResponse
     {

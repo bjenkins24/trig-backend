@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Modules\OauthConnection\Interfaces;
+namespace App\Modules\Card\Interfaces;
 
 use Illuminate\Support\Collection;
 
-interface OauthConnectionInterface
+interface ConnectionInterface
 {
-    public static function getKey(): string;
-
     public function retrieveAccessTokenWithCode(string $oauthToken): Collection;
 
     public function retrieveAccessTokenWithRefreshToken(string $refreshToken): Collection;

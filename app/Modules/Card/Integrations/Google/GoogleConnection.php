@@ -1,13 +1,19 @@
 <?php
 
-namespace App\Modules\OauthConnection\Connections;
+namespace App\Modules\Card\Integrations\Google;
 
-use App\Modules\OauthConnection\Interfaces\OauthConnectionInterface;
+use App\Models\User;
+use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
+use App\Modules\Card\Interfaces\ConnectionInterface;
+use App\Modules\OauthConnection\OauthConnectionService;
+use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Google_Client as GoogleClient;
+use Google_Service_Directory as GoogleServiceDirectory;
+use Google_Service_Drive as GoogleServiceDrive;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 
-class GoogleConnection implements OauthConnectionInterface
+class GoogleConnection implements ConnectionInterface
 {
     /**
      * Google client class.
@@ -15,12 +21,14 @@ class GoogleConnection implements OauthConnectionInterface
      * @var GoogleClient client
      */
     private GoogleClient $client;
+    private OauthConnectionService $oauthConnectionService;
 
     /**
      * Initiate basic client steps.
      */
-    public function __construct(GoogleClient $googleClient)
+    public function __construct(GoogleClient $googleClient, OauthConnectionService $oauthConnectionService)
     {
+        $this->oauthConnectionService = $oauthConnectionService;
         $googleClient->setApplicationName('Trig');
         $googleClient->setClientId(Config::get('services.google.client_id'));
         $googleClient->setClientSecret(Config::get('services.google.client_secret'));
@@ -29,11 +37,6 @@ class GoogleConnection implements OauthConnectionInterface
         $googleClient->setDeveloperKey(Config::get('services.google.drive_api_key'));
         $googleClient->setRedirectUri('http://localhost:8080');
         $this->client = $googleClient;
-    }
-
-    public static function getKey(): string
-    {
-        return 'google';
     }
 
     public function retrieveAccessTokenWithCode(string $authToken): Collection
@@ -69,5 +72,27 @@ class GoogleConnection implements OauthConnectionInterface
             'payload'          => collect($payload),
             'oauthCredentials' => $oauthCredentials,
         ];
+    }
+
+    /**
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     */
+    public function getDriveService(User $user)
+    {
+        $client = $this->oauthConnectionService->getClient($user, GoogleIntegration::getIntegrationKey());
+
+        return new GoogleServiceDrive($client);
+    }
+
+    /**
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     */
+    public function getDirectoryService(User $user): GoogleServiceDirectory
+    {
+        $client = $this->oauthConnectionService->getClient($user, GoogleIntegration::getIntegrationKey());
+
+        return new GoogleServiceDirectory($client);
     }
 }

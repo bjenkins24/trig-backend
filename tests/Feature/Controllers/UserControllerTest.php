@@ -2,16 +2,17 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Jobs\SendMail;
 use App\Jobs\SetupGoogleIntegration;
 use App\Mail\ForgotPasswordMail;
-use App\Mail\WelcomeMail;
 use App\Models\User;
-use App\Modules\OauthConnection\Connections\GoogleConnection;
+use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -31,24 +32,20 @@ class UserControllerTest extends TestCase
         return $resetPasswordHelper->encryptEmail($email);
     }
 
-    private function assertLoggedIn($response, $email)
+    private function assertLoggedIn($response, $email): void
     {
-        $this->assertTrue(Arr::has($response->json(), 'data.authToken.access_token'));
-        $this->assertTrue(
-            Arr::get($response->json(), 'data.user.email') === $email
-        );
+        self::assertTrue(Arr::has($response->json(), 'data.authToken.access_token'));
+        self::assertSame(Arr::get($response->json(), 'data.user.email'), $email);
     }
 
     /**
      * Test validation on register endpoint.
-     *
-     * @return void
      */
-    public function testRegistrationValidation()
+    public function testRegistrationValidation(): void
     {
         $response = $this->json('POST', 'register');
         $response->assertStatus(422);
-        $this->assertTrue(
+        self::assertTrue(
             Arr::has(
                 Arr::get($response->json(), 'errors'),
                 ['email', 'password', 'terms']
@@ -58,12 +55,11 @@ class UserControllerTest extends TestCase
 
     /**
      * See if you can register a new user.
-     *
-     * @return void
      */
-    public function testRegistrationSucceed()
+    public function testRegistrationSucceed(): void
     {
-        Mail::fake();
+        $this->refreshDb();
+        \Queue::fake();
         $email = 'sam_sung@example.com';
         $params = [
             'email'    => $email,
@@ -75,19 +71,15 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(201)->assertJsonMissing($userExistsJson);
         $this->assertLoggedIn($response, $email);
-        Mail::assertSent(WelcomeMail::class, function ($mail) use ($email) {
-            return $mail->hasTo($email);
-        });
-        $this->refreshDb();
+        Queue::assertPushed(SendMail::class, 1);
     }
 
     /**
      * See if the user exists or not.
-     *
-     * @return void
      */
-    public function testRegistrationUserExists()
+    public function testRegistrationUserExists(): void
     {
+        $this->refreshDb();
         $params = [
             'email'    => Config::get('constants.seed.email'),
             'password' => Config::get('constants.seed.password'),
@@ -100,10 +92,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test the me endpoint.
-     *
-     * @return void
      */
-    public function testMe()
+    public function testMe(): void
     {
         $response = $this->client('GET', 'me');
         $response->assertStatus(200)->assertJsonFragment([
@@ -117,12 +107,12 @@ class UserControllerTest extends TestCase
     /**
      * Test fails on validation forgot password.
      */
-    public function testForgotPasswordValidate()
+    public function testForgotPasswordValidate(): void
     {
         $params = [];
         $response = $this->json('POST', 'forgot-password', $params);
         $response->assertStatus(422);
-        $this->assertTrue(
+        self::assertTrue(
             Arr::has(
                 Arr::get($response->json(), 'errors'),
                 ['email']
@@ -132,7 +122,7 @@ class UserControllerTest extends TestCase
         $params = ['email' => 'notanemail'];
         $response = $this->json('POST', 'forgot-password', $params);
         $response->assertStatus(422);
-        $this->assertTrue(
+        self::assertTrue(
             Arr::has(
                 Arr::get($response->json(), 'errors'),
                 ['email']
@@ -142,10 +132,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test forgot password send email with hash.
-     *
-     * @return void
      */
-    public function testForgotPasswordUserDoesNotExist()
+    public function testForgotPasswordUserDoesNotExist(): void
     {
         $params = [
             'email' => 'user@doesntexist.com',
@@ -158,10 +146,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test forgot password send email with hash.
-     *
-     * @return void
      */
-    public function testForgotPasswordSendsMail()
+    public function testForgotPasswordSendsMail(): void
     {
         Mail::fake();
         $params = [
@@ -188,12 +174,12 @@ class UserControllerTest extends TestCase
     /**
      * Test fails on validation forgot password.
      */
-    public function testResetPasswordValidate()
+    public function testResetPasswordValidate(): void
     {
         $params = [];
         $response = $this->json('POST', 'reset-password', $params);
         $response->assertStatus(422);
-        $this->assertTrue(
+        self::assertTrue(
             Arr::has(
                 Arr::get($response->json(), 'errors'),
                 ['password', 'password_confirmation', 'token', 'email_hash']
@@ -203,10 +189,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test Reset password token expired.
-     *
-     * @return void
      */
-    public function testResetPasswordTokenExpired()
+    public function testResetPasswordTokenExpired(): void
     {
         $password = 'myCoolNewPassword';
         $params = [
@@ -222,10 +206,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test Reset password token expired.
-     *
-     * @return void
      */
-    public function testResetPasswordSuccess()
+    public function testResetPasswordSuccess(): void
     {
         $password = 'myCoolNewPassword';
         $params = [
@@ -241,12 +223,12 @@ class UserControllerTest extends TestCase
     /**
      * Test fails on validation forgot password.
      */
-    public function testValidateResetTokenValidation()
+    public function testValidateResetTokenValidation(): void
     {
         $params = [];
         $response = $this->json('POST', 'reset-password', $params);
         $response->assertStatus(422);
-        $this->assertTrue(
+        self::assertTrue(
             Arr::has(
                 Arr::get($response->json(), 'errors'),
                 ['token', 'email_hash']
@@ -256,10 +238,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test Reset password token expired.
-     *
-     * @return void
      */
-    public function testValidateResetTokenInvalid()
+    public function testValidateResetTokenInvalid(): void
     {
         $password = 'myCoolNewPassword';
         $params = [
@@ -283,10 +263,8 @@ class UserControllerTest extends TestCase
 
     /**
      * Test Reset password token expired.
-     *
-     * @return void
      */
-    public function testValidateResetTokenValid()
+    public function testValidateResetTokenValid(): void
     {
         $password = 'myCoolNewPassword';
         $params = [
@@ -301,14 +279,13 @@ class UserControllerTest extends TestCase
 
     /**
      * Test login and register sso google.
-     *
-     * @return void
      */
-    public function testGoogleSso()
+    public function testGoogleSso(): void
     {
+        $this->refreshDb();
         \Queue::fake();
         $email = 'sam_sung@example.com';
-        $this->partialMock(GoogleConnection::class, function ($mock) use ($email) {
+        $this->partialMock(GoogleConnection::class, static function ($mock) use ($email) {
             $mock->shouldReceive('getUser')->andReturn([
                 'payload'          => collect(['email' => $email]),
                 'oauthCredentials' => collect([
@@ -334,14 +311,12 @@ class UserControllerTest extends TestCase
 
     /**
      * Test google sso failed.
-     *
-     * @return void
      */
-    public function testGoogleSsoFail()
+    public function testGoogleSsoFail(): void
     {
         \Queue::fake();
         $email = 'sam_sung@example.com';
-        $this->partialMock(GoogleConnection::class, function ($mock) {
+        $this->partialMock(GoogleConnection::class, static function ($mock) {
             $mock->shouldReceive('getUser')->andReturn([])->once();
         });
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\Card\Integrations\Fakes;
+namespace Tests\Feature\Modules\Card\Integrations\Google\Fakes;
 
 class FileFake
 {
@@ -80,6 +80,11 @@ class FileFake
             $permissions[] = new FakePermissions($params);
         }
         $this->permissions = $permissions;
+    }
+
+    public function getNextPageToken(): string
+    {
+        return 'is_next_page';
     }
 }
 
