@@ -14,6 +14,9 @@ class FakeGoogleServiceDrive
 
 class FakeGoogleServiceDriveFiles
 {
+    public const EXPORTED = 'EXPORTED';
+    public const GET = 'GET';
+
     public function listFiles(array $params)
     {
         if (false !== strpos($params['fields'], 'nextPageToken')) {
@@ -21,5 +24,15 @@ class FakeGoogleServiceDriveFiles
         }
 
         return [new FileFake(), new FileFake()];
+    }
+
+    public function export($id, $mimeType): FakeContent
+    {
+        return new FakeContent(self::EXPORTED);
+    }
+
+    public function get($id, $params): FakeContent
+    {
+        return new FakeContent(self::GET);
     }
 }

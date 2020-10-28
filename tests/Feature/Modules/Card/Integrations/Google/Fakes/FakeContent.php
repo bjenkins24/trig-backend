@@ -4,8 +4,15 @@ namespace Tests\Feature\Modules\Card\Integrations\Google\Fakes;
 
 class FakeContent
 {
-    public function getBody()
+    public string $type;
+
+    public function __construct(string $type)
     {
-        return null;
+        $this->type = $type;
+    }
+
+    public function getBody(): string
+    {
+        return $this->type;
     }
 }

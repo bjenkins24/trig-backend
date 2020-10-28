@@ -3,6 +3,7 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\Card;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -11,10 +12,14 @@ use Illuminate\Support\Str;
 class GoogleContent implements ContentInterface
 {
     private GoogleConnection $googleConnection;
+    private CardRepository $cardRepository;
 
-    public function __construct(GoogleConnection $googleConnection)
-    {
+    public function __construct(
+        GoogleConnection $googleConnection,
+        CardRepository $cardRepository
+    ) {
         $this->googleConnection = $googleConnection;
+        $this->cardRepository = $cardRepository;
     }
 
     /**
@@ -43,6 +48,10 @@ class GoogleContent implements ContentInterface
             'video'        => '',
         ];
         $type = Str::replaceFirst('application/vnd.google-apps.', '', $mimeType);
+
+        if (! isset($googleTypes[$type])) {
+            return '';
+        }
 
         return $googleTypes[$type];
     }
