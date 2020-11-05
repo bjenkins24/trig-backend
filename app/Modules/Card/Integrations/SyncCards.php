@@ -199,18 +199,32 @@ class SyncCards
     public function saveCardData(Card $card): bool
     {
         $cardIntegration = $this->cardRepository->getCardIntegration($card);
-        if (! $cardIntegration) {
-            return false;
+        $id = null;
+        $mimeType = null;
+        if ($cardIntegration) {
+            $id = $cardIntegration->foreign_id;
+            $mimeType = $this->cardRepository->getCardType($card)->name;
         }
-        $id = $cardIntegration->foreign_id;
-        $mimeType = $this->cardRepository->getCardType($card)->name;
 
-        $content = $this->contentIntegration->getCardContent($card, (string) $id, $mimeType);
-        $data = app(ExtractDataHelper::class)->getFileData($mimeType, $content);
+        $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
 
-        // Save the card data retrieved from the extraction
-        $card->content = $data->get('content');
-        $data->forget('content');
+        if ($data->get('image')) {
+            $this->saveThumbnail(collect(['thumbnail_uri' => $data->get('image')]), $card);
+            $data->forget('image');
+        }
+
+        // If we return any of these fields, we want to save them in full fledged columns not in properties
+        $saveableFields = collect([
+            'content',
+            'title',
+            'description',
+        ]);
+
+        $saveableFields->each(static function ($field) use ($card, $data) {
+            $card->{$field} = $data->get($field);
+            $data->forget($field);
+        });
+
         $data = $data->reject(static function ($value) {
             return ! $value;
         });

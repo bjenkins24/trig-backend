@@ -7,19 +7,24 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use App\Utils\ExtractDataHelper;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class GoogleContent implements ContentInterface
 {
     private GoogleConnection $googleConnection;
     private CardRepository $cardRepository;
+    private ExtractDataHelper $extractDataHelper;
 
     public function __construct(
         GoogleConnection $googleConnection,
-        CardRepository $cardRepository
+        CardRepository $cardRepository,
+        ExtractDataHelper $extractDataHelper
     ) {
         $this->googleConnection = $googleConnection;
         $this->cardRepository = $cardRepository;
+        $this->extractDataHelper = $extractDataHelper;
     }
 
     /**
@@ -62,7 +67,7 @@ class GoogleContent implements ContentInterface
      *
      * @return string
      */
-    public function getCardContent(Card $card, string $id, string $mimeType)
+    public function getCardContent(Card $card, string $id, ?string $mimeType = null)
     {
         $service = $this->googleConnection->getDriveService($this->cardRepository->getUser($card));
 
@@ -78,5 +83,17 @@ class GoogleContent implements ContentInterface
         }
 
         return $content->getBody();
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
+     */
+    public function getCardContentData(Card $card, ?string $id, ?string $mimeType): Collection
+    {
+        $content = $this->getCardContent($card, $id, $mimeType);
+        $data = $this->extractDataHelper->getFileData($mimeType, $content);
+
+        return collect(array_merge($data->toArray(), ['content' => $content]));
     }
 }

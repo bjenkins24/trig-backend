@@ -274,8 +274,30 @@ class CardRepositoryTest extends TestCase
         self::assertNull($card);
     }
 
+    public function testNoActualCreatedUpdateOrInsert(): void
+    {
+        $this->refreshDb();
+        $knownDate = Carbon::create(2001, 5, 21, 12);
+        Carbon::setTestNow($knownDate);
+
+        $title = 'mycooltitle';
+        app(CardRepository::class)->updateOrInsert([
+            'title'        => $title,
+            'url'          => 'https://coolurl',
+            'card_type_id' => 2,
+            'user_id'      => 1,
+        ]);
+
+        $this->assertDatabaseHas('cards', [
+            'title'              => $title,
+            'actual_created_at'  => $knownDate,
+            'actual_modified_at' => $knownDate,
+        ]);
+    }
+
     public function testUpdateOrInsert(): void
     {
+        $this->refreshDb();
         $card = Card::find(1);
         $title = 'my cool title';
         app(CardRepository::class)->updateOrInsert(['title' => $title], $card);

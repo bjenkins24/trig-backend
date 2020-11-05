@@ -114,19 +114,26 @@ class ExtractDataHelper
         return collect($data);
     }
 
-    public function getWebsite(string $url): string
+    public function getWebsite(string $url): Collection
     {
         $readability = new Readability(new ReadabilityConfiguration());
-        $html = file_get_contents($url);
+        $html = $this->fileHelper->fileGetContents($url);
 
         try {
             $readability->parse($html);
 
-            return (new Html2Text($readability))->getText();
+            return collect([
+                'image'   => $readability->getImage(),
+                'author'  => $readability->getAuthor(),
+                'excerpt' => $readability->getExcerpt(),
+                'title'   => $readability->getTitle(),
+                'text'    => (new Html2Text($readability))->getText(),
+                'html'    => $readability->getContent(),
+            ]);
         } catch (ReadabilityParseException $e) {
             echo sprintf('Error processing text: %s', $e->getMessage());
 
-            return '';
+            return collect([]);
         }
     }
 }

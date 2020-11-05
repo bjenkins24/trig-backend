@@ -12,6 +12,7 @@ use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -102,7 +103,7 @@ class CardRepository
     {
         $result = $this->searchCardsRaw($user, $queryConstraints);
         $hits = collect($result['hits']['hits']);
-        $ids = $hits->map(function ($hit) {
+        $ids = $hits->map(static function ($hit) {
             return $hit['_id'];
         });
 
@@ -254,7 +255,7 @@ class CardRepository
         return $cardIntegration->card()->first();
     }
 
-    public function updateOrInsert(array $fields, ?Card $card): ?Card
+    public function updateOrInsert(array $fields, ?Card $card = null): ?Card
     {
         if ($card) {
             $card->update($fields);
@@ -262,7 +263,15 @@ class CardRepository
             return $card;
         }
 
-        return Card::create($fields);
+        $newFields = collect($fields);
+        if (! $newFields->get('actual_created_at')) {
+            $newFields->put('actual_created_at', Carbon::now());
+        }
+        if (! $newFields->get('actual_modified_at')) {
+            $newFields->put('actual_modified_at', Carbon::now());
+        }
+
+        return Card::create($newFields->toArray());
     }
 
     public function removeAllPermissions(Card $card): void
@@ -271,7 +280,7 @@ class CardRepository
         if (! $permissions) {
             return;
         }
-        $permissions->each(function ($permission) {
+        $permissions->each(static function ($permission) {
             $permission->delete();
         });
     }

@@ -8,12 +8,9 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
-use App\Modules\Card\CardRepository;
 use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
-use App\Utils\ExtractDataHelper;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +18,6 @@ use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\Support\Traits\SyncCardsTrait;
 use Tests\TestCase;
-use Tests\Utils\ExtractDataHelperTest;
 
 class SyncCardsTest extends TestCase
 {
@@ -199,26 +195,21 @@ class SyncCardsTest extends TestCase
     }
 
     /**
-     * @throws OauthIntegrationNotFound
      * @throws JsonException
+     * @throws OauthIntegrationNotFound
      */
     public function testSaveCardData(): void
     {
         Queue::fake();
-        $this->mock(GoogleContent::class, static function ($mock) {
-            $mock->shouldReceive('getCardContent')->andReturn('my cool content');
-        });
-
-        $cardData = (new ExtractDataHelperTest())->getMockDataResult('my cool content');
-
-        $cardData->put('created', Carbon::create($cardData->get('created'))->toDateTimeString());
-        $cardData->put('modified', Carbon::create($cardData->get('modified'))->toDateTimeString());
-        $cardData->put('print_date', Carbon::create($cardData->get('print_date'))->toDateTimeString());
-        $cardData->put('save_date', Carbon::create($cardData->get('save_date'))->toDateTimeString());
-        $content = $cardData->get('content');
-
-        $this->mock(ExtractDataHelper::class, static function ($mock) use ($cardData) {
-            $mock->shouldReceive('getFileData')->andReturn($cardData)->once();
+        $fakeData = collect([
+            'content'     => 'cool content',
+            'title'       => 'cool title',
+            'description' => 'cool description',
+            'author'      => 'cool author',
+            'image'       => 'mycoolimage',
+        ]);
+        $this->mock(GoogleContent::class, static function ($mock) use ($fakeData) {
+            $mock->shouldReceive('getCardContentData')->andReturn(clone $fakeData);
         });
 
         [$syncCards, $data, $user] = $this->getSetup();
@@ -226,32 +217,22 @@ class SyncCardsTest extends TestCase
 
         $card = Card::find(1);
 
-        $syncCards->saveCardData($card);
+        // Remove the current image so the new image will save
+        $card->image = '';
+        $card->save();
 
-        $cardData->forget('content');
-        $cardData = $cardData->reject(static function ($value) {
-            return ! $value;
-        });
+        $result = $syncCards->saveCardData($card);
 
         $this->assertDatabaseHas('cards', [
-            'content'    => $content,
-            'properties' => json_encode($cardData->toArray(), JSON_THROW_ON_ERROR),
+            'id'                 => '1',
+            'content'            => $fakeData->get('content'),
+            'title'              => $fakeData->get('title'),
+            'description'        => $fakeData->get('description'),
+            'image'              => Config::get('app.url').Storage::url(SyncCardsIntegration::IMAGE_FOLDER.'/'.$card->id).'.jpg',
+            'properties'         => json_encode(['author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
         ]);
-        Queue::assertPushed(CardDedupe::class, 1);
-    }
 
-    /**
-     * @throws OauthIntegrationNotFound
-     */
-    public function testNoIntegrationSaveCardData(): void
-    {
-        $this->refreshDb();
-        $this->mock(CardRepository::class, static function ($mock) {
-            $mock->shouldReceive('getCardIntegration')->once()->andReturn(null);
-        });
-        [$syncCards, $data, $user] = $this->getSetup();
-        $card = Card::find(1);
-        $result = $syncCards->saveCardData($card);
-        self::assertFalse($result);
+        Queue::assertPushed(CardDedupe::class, 1);
+        self::assertTrue($result);
     }
 }
