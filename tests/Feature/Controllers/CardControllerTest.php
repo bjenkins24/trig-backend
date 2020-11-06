@@ -142,6 +142,36 @@ class CardControllerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @group n
+     */
+    public function testUpdateCardNullFields(): void
+    {
+        Queue::fake();
+        $this->refreshDb();
+        $original = [
+            'url'         => 'https://asdasd.com',
+            'title'       => 'old title',
+            'content'     => 'good content',
+            'description' => 'awesome description',
+        ];
+
+        $response = $this->client('POST', 'card', $original);
+        $update = [
+            'id'          => $this->getResponseData($response)->get('id'),
+            'title'       => 'new title',
+            'description' => null,
+        ];
+        $this->client('PUT', 'card', $update);
+        $this->assertDatabaseHas('cards', [
+            'url'         => $original['url'],
+            'title'       => $update['title'],
+            'content'     => $original['content'],
+            'description' => null,
+        ]);
+    }
+
+    /**
+     * @throws JsonException
      */
     public function testUpdateCardNotFound(): void
     {

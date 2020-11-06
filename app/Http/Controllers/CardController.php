@@ -13,6 +13,7 @@ use App\Modules\OauthIntegration\OauthIntegrationService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use JsonException;
 
 class CardController extends Controller
 {
@@ -106,6 +107,9 @@ class CardController extends Controller
         ]);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function update(UpdateCardRequest $request): JsonResponse
     {
         $user = $request->user();
@@ -126,16 +130,22 @@ class CardController extends Controller
             ], 403);
         }
 
-        $card = $this->cardRepository->updateOrInsert([
-            'user_id'             => $user->id,
-            'url'                 => $request->get('url'),
-            'title'               => $request->get('title'),
-            'description'         => $request->get('description'),
-            'content'             => $request->get('content'),
-            'actual_created_at'   => $request->get('createdAt'),
-            'actual_modified_at'  => $request->get('modifiedAt'),
-            'image'               => $request->get('image'),
-        ], $card);
+        $fields = collect(json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR));
+        $data = [];
+        $fields->each(static function ($fieldValue, $field) use ($request, &$data) {
+            if ('createdAt' === $field) {
+                $data['actual_created_at'] = $request->get($fieldValue);
+            }
+            if ('modifiedAt' === $field) {
+                $data['actual_modified_at'] = $request->get($fieldValue);
+            }
+            $data[$field] = $request->get($field);
+        });
+
+        $card = $this->cardRepository->updateOrInsert(
+            array_merge(['user_id' => $user->id], $data),
+            $card
+        );
 
         $cardType = CardType::find($card->card_type_id)->name;
         if ($this->oauthIntegrationService->isIntegrationValid($cardType)) {
