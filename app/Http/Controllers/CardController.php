@@ -132,14 +132,15 @@ class CardController extends Controller
 
         $fields = collect(json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR));
         $data = [];
-        $fields->each(static function ($fieldValue, $field) use ($request, &$data) {
+        $fields->each(static function ($fieldValue, $field) use (&$data) {
             if ('createdAt' === $field) {
-                $data['actual_created_at'] = $request->get($fieldValue);
+                return $data['actual_created_at'] = $fieldValue;
             }
             if ('modifiedAt' === $field) {
-                $data['actual_modified_at'] = $request->get($fieldValue);
+                return $data['actual_modified_at'] = $fieldValue;
             }
-            $data[$field] = $request->get($field);
+
+            return $data[$field] = $fieldValue;
         });
 
         $card = $this->cardRepository->updateOrInsert(
