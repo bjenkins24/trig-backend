@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
@@ -280,8 +281,12 @@ class CardRepositoryTest extends TestCase
         $knownDate = Carbon::create(2001, 5, 21, 12);
         Carbon::setTestNow($knownDate);
 
+        $this->mock(ThumbnailHelper::class, static function ($mock) {
+            $mock->shouldReceive('saveThumbnail');
+        });
         $title = 'mycooltitle';
         app(CardRepository::class)->updateOrInsert([
+            'image'        => 'cool_image',
             'title'        => $title,
             'url'          => 'https://coolurl',
             'card_type_id' => 2,
@@ -300,7 +305,10 @@ class CardRepositoryTest extends TestCase
         $this->refreshDb();
         $card = Card::find(1);
         $title = 'my cool title';
-        app(CardRepository::class)->updateOrInsert(['title' => $title], $card);
+        $this->mock(ThumbnailHelper::class, static function ($mock) {
+            $mock->shouldReceive('saveThumbnail');
+        });
+        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image'], $card);
         $this->assertDatabaseHas('cards', [
             'id'    => 1,
             'title' => $title,

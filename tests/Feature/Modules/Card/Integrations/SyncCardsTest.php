@@ -8,8 +8,8 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Integrations\Google\GoogleContent;
-use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
@@ -91,7 +91,7 @@ class SyncCardsTest extends TestCase
             'url'                => $card['url'],
             'actual_created_at'  => $card['actual_created_at'],
             'actual_modified_at' => $card['actual_modified_at'],
-            'image'              => Config::get('app.url').Storage::url(SyncCardsIntegration::IMAGE_FOLDER.'/'.$newCard->id),
+            'image'              => Config::get('app.url').Storage::url(ThumbnailHelper::IMAGE_FOLDER.'/'.$newCard->id),
             'image_width'        => $this->getMockThumbnail()->get('width'),
             'image_height'       => $this->getMockThumbnail()->get('height'),
         ]);
@@ -228,7 +228,7 @@ class SyncCardsTest extends TestCase
             'content'            => $fakeData->get('content'),
             'title'              => $fakeData->get('title'),
             'description'        => $fakeData->get('description'),
-            'image'              => Config::get('app.url').Storage::url(SyncCardsIntegration::IMAGE_FOLDER.'/'.$card->id).'.jpg',
+            'image'              => Config::get('app.url').Storage::url(ThumbnailHelper::IMAGE_FOLDER.'/'.$card->id).'.jpg',
             'properties'         => json_encode(['author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
         ]);
 

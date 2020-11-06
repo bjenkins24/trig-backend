@@ -9,6 +9,7 @@ use App\Models\Card;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardType\CardTypeRepository;
@@ -16,17 +17,11 @@ use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
-use App\Utils\FileHelper;
 use Exception;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class SyncCards
 {
-    public const IMAGE_FOLDER = 'card-thumbnails';
-
     private string $integrationKey;
     private ContentInterface $contentIntegration;
     private IntegrationInterface $integration;
@@ -35,7 +30,7 @@ class SyncCards
     private CardTypeRepository $cardTypeRepository;
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
-    private FileHelper $fileHelper;
+    private ThumbnailHelper $thumbnailHelper;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
@@ -43,14 +38,14 @@ class SyncCards
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
-        FileHelper $fileHelper
+        ThumbnailHelper $thumbnailHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->cardRepository = $cardRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
-        $this->fileHelper = $fileHelper;
+        $this->thumbnailHelper = $thumbnailHelper;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -58,54 +53,6 @@ class SyncCards
         $this->integration = $integration;
         $this->contentIntegration = $contentIntegration;
         $this->integrationKey = $integration::getIntegrationKey();
-    }
-
-    private function getThumbnail(Collection $data): Collection
-    {
-        try {
-            $thumbnail = $this->fileHelper->fileGetContents($data->get('thumbnail_uri'));
-        } catch (Exception $e) {
-            Log::notice('Couldn\'t get a thumbnail: '.$data->get('thumbnail_uri').' - '.$e->getMessage());
-
-            return collect([]);
-        }
-
-        $fileInfo = collect($this->fileHelper->getImageSizeFromString($thumbnail));
-
-        if (! $fileInfo->has('mime')) {
-            Log::notice('Couldn\'t get a thumbnail. It had no mime type: '.$data->get('thumbnail_uri'));
-
-            return collect([]);
-        }
-
-        return collect([
-            'thumbnail' => $thumbnail,
-            'extension' => $this->fileHelper->mimeToExtension($fileInfo->get('mime')),
-            'width'     => $fileInfo->get(0),
-            'height'    => $fileInfo->get(1),
-        ]);
-    }
-
-    private function saveThumbnail(Collection $data, Card $card): bool
-    {
-        if (! $data->get('thumbnail_uri')) {
-            return false;
-        }
-        $imagePath = 'public/'.self::IMAGE_FOLDER.'/'.$card->id;
-        $thumbnail = $this->getThumbnail($data);
-        if ($thumbnail->isEmpty()) {
-            return false;
-        }
-        $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
-        $result = Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail'));
-        if ($result) {
-            $card->image = Config::get('app.url').Storage::url($imagePathWithExtension);
-            $card->image_width = $thumbnail->get('width');
-            $card->image_height = $thumbnail->get('height');
-            $card->save();
-        }
-
-        return true;
     }
 
     private function savePermissions(Collection $data, Card $card): bool
@@ -188,7 +135,7 @@ class SyncCards
             $this->cardRepository->createIntegration($card, $data->get('foreign_id'), $this->integrationKey);
         }
 
-        $this->saveThumbnail($data, $card);
+        $this->thumbnailHelper->saveThumbnail($data, $card);
         $this->savePermissions($cardData->get('permissions'), $card);
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
@@ -209,7 +156,7 @@ class SyncCards
         $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
 
         if ($data->get('image')) {
-            $this->saveThumbnail(collect(['thumbnail_uri' => $data->get('image')]), $card);
+            $this->thumbnailHelper->saveThumbnail(collect(['thumbnail_uri' => $data->get('image')]), $card);
             $data->forget('image');
         }
 

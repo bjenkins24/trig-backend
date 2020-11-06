@@ -48,6 +48,14 @@ class OauthIntegrationService
         );
     }
 
+    public function isIntegrationValid(string $integration): bool
+    {
+        $className = Str::studly($integration);
+        $fullClassPath = "App\\Modules\\Card\\Integrations\\{$className}\\{$className}Content";
+
+        return class_exists($fullClassPath);
+    }
+
     /**
      *  Make an integration class using the fully qualified path.
      *

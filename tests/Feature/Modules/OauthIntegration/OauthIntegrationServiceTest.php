@@ -10,12 +10,28 @@ class OauthIntegrationServiceTest extends TestCase
 {
     /**
      * Get access token.
-     *
-     * @return void
      */
-    public function testIncorrectIntegrationKey()
+    public function testIncorrectIntegrationKey(): void
     {
         $this->expectException(OauthIntegrationNotFound::class);
         app(OauthIntegrationService::class)->makeIntegration('find it', 'google', 'integration');
+    }
+
+    /**
+     * @dataProvider integrationProvider
+     */
+    public function testIsIntegrationValid(string $key, bool $expectedResult): void
+    {
+        $isValid = app(OauthIntegrationService::class)->isIntegrationValid($key);
+        self::assertEquals($expectedResult, $isValid);
+    }
+
+    public function integrationProvider(): array
+    {
+        return [
+            ['fakeKey', false],
+            ['google',  true],
+            ['link',    true],
+        ];
     }
 }

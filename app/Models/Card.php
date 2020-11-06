@@ -89,6 +89,7 @@ class Card extends Model
         'actual_created_at',
         'actual_modified_at',
         'url',
+        'content',
     ];
 
     /**

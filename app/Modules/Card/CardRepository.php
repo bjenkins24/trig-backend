@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -23,13 +24,16 @@ class CardRepository
 {
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
+    private ThumbnailHelper $thumbnailHelper;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
-        ElasticQueryBuilderHelper $elasticQueryBuilderHelper
+        ElasticQueryBuilderHelper $elasticQueryBuilderHelper,
+        ThumbnailHelper $thumbnailHelper
     ) {
         $this->elasticQueryBuilderHelper = $elasticQueryBuilderHelper;
         $this->oauthIntegration = $oauthIntegration;
+        $this->thumbnailHelper = $thumbnailHelper;
     }
 
     /**
@@ -257,13 +261,16 @@ class CardRepository
 
     public function updateOrInsert(array $fields, ?Card $card = null): ?Card
     {
+        $newFields = collect($fields);
         if ($card) {
             $card->update($fields);
+            if ($newFields->get('image')) {
+                $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
+            }
 
             return $card;
         }
 
-        $newFields = collect($fields);
         if (! $newFields->get('actual_created_at')) {
             $newFields->put('actual_created_at', Carbon::now());
         }
@@ -271,7 +278,12 @@ class CardRepository
             $newFields->put('actual_modified_at', Carbon::now());
         }
 
-        return Card::create($newFields->toArray());
+        $card = Card::create($newFields->toArray());
+        if ($newFields->get('image')) {
+            $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
+        }
+
+        return $card;
     }
 
     public function removeAllPermissions(Card $card): void

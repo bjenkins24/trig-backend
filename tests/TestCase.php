@@ -5,6 +5,8 @@ namespace Tests;
 use Artisan;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
 use JsonException;
 use RuntimeException;
@@ -36,6 +38,20 @@ abstract class TestCase extends BaseTestCase
         return $this->withHeaders(array_merge($headers, [
             'Authorization' => 'Bearer '.$token,
         ]))->json($method, $endpoint, $params);
+    }
+
+    /**
+     * @param JsonResponse|TestResponse $response
+     *
+     * @throws JsonException
+     */
+    protected function getResponseData($response, string $type = 'data'): Collection
+    {
+        if ('data' === $type) {
+            return collect(json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR)[$type]);
+        }
+
+        return collect(json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     /**

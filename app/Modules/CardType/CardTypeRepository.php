@@ -13,4 +13,9 @@ class CardTypeRepository
     {
         return CardType::firstOrCreate(['name' => $name]);
     }
+
+    public function findByName(string $name): CardType
+    {
+        return CardType::where('name', '=', $name);
+    }
 }
