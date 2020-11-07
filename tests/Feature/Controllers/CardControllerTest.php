@@ -46,6 +46,20 @@ class CardControllerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testCreateCardNoProtocol(): void
+    {
+        Queue::fake();
+        $this->refreshDb();
+        $response = $this->client('POST', 'card', ['url' => 'google.com']);
+        self::assertEquals('http://google.com', $this->getResponseData($response)->get('url'));
+        $this->assertDatabaseHas('cards', [
+            'url' => 'http://google.com',
+        ]);
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testCreateCardFail(): void
     {
         $this->mock(CardRepository::class, static function ($mock) {

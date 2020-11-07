@@ -90,6 +90,7 @@ class Card extends Model
         'actual_modified_at',
         'url',
         'content',
+        'token',
     ];
 
     /**

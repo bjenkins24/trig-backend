@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Card;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class UpdateCardRequest extends FormRequest
 {
@@ -14,6 +15,13 @@ class UpdateCardRequest extends FormRequest
         return true;
     }
 
+    public function prepareForValidation(): void
+    {
+        if ($this->has('url') && ! Str::contains($this->url, 'http')) {
+            $this->merge(['url' => "http://{$this->get('url')}"]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -21,6 +29,7 @@ class UpdateCardRequest extends FormRequest
     {
         return [
             'id'     => 'required',
+            'url'    => 'url',
         ];
     }
 }

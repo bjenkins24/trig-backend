@@ -62,7 +62,7 @@ trait SyncCardsTrait
                     'description'        => 'My cool description',
                     'actual_created_at'  => '2018-12-22 12:30:00',
                     'actual_modified_at' => '2018-12-22 12:30:00',
-                    'thumbnail_uri'      => 'https://docs.google.com/a/trytrig.com/feeds/vt?gd=true&id=1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k&v=14&s=AMedNnoAAAAAXpUOTCtmc4zTbEZ6g0EPywj-ypToA8-U&sz=s220',
+                    'image'              => 'https://docs.google.com/a/trytrig.com/feeds/vt?gd=true&id=1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k&v=14&s=AMedNnoAAAAAXpUOTCtmc4zTbEZ6g0EPywj-ypToA8-U&sz=s220',
                 ],
                 'permissions' => [
                     'users'      => [],

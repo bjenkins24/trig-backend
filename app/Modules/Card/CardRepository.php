@@ -13,6 +13,7 @@ use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
+use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -112,7 +113,7 @@ class CardRepository
         });
 
         return Card::whereIn('id', $ids)
-            ->select('id', 'user_id', 'title', 'card_type_id', 'image', 'actual_created_at', 'url')
+            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url')
             ->with(['user:id,first_name,last_name,email'])
             ->orderBy('actual_created_at', 'desc')
             ->get();
@@ -259,6 +260,9 @@ class CardRepository
         return $cardIntegration->card()->first();
     }
 
+    /**
+     * @throws Exception
+     */
     public function updateOrInsert(array $fields, ?Card $card = null): ?Card
     {
         $newFields = collect($fields);
@@ -277,6 +281,8 @@ class CardRepository
         if (! $newFields->get('actual_modified_at')) {
             $newFields->put('actual_modified_at', Carbon::now());
         }
+
+        $newFields->put('token', bin2hex(random_bytes(24)));
 
         $card = Card::create($newFields->toArray());
         if ($newFields->get('image')) {

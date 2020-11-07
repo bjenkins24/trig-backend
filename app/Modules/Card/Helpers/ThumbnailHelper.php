@@ -49,7 +49,7 @@ class ThumbnailHelper
 
     public function saveThumbnail(string $thumbnailUri, Card $card): bool
     {
-        $imagePath = 'public/'.self::IMAGE_FOLDER.'/'.$card->id;
+        $imagePath = 'public/'.self::IMAGE_FOLDER.'/'.$card->token;
         $thumbnail = $this->getThumbnail($thumbnailUri);
         if ($thumbnail->isEmpty()) {
             return false;

@@ -8,14 +8,13 @@ class CreateCardsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('cards', function (Blueprint $table) {
+        Schema::create('cards', static function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('token')->unique()->index();
             $table->foreignId('card_type_id')->constrained();
             $table->string('title')->index();
             $table->text('description')->nullable();

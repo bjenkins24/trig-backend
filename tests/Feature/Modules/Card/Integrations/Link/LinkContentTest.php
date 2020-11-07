@@ -21,7 +21,10 @@ class LinkContentTest extends TestCase
         $this->mock(ExtractDataHelper::class, static function ($mock) use ($mockWebsite) {
             $mock->shouldReceive('getWebsite')->andReturn($mockWebsite);
         });
-        $cardData = app(LinkContent::class)->getCardContentData(Card::find(1));
+        $card = Card::find(1);
+        $card->url = 'https://www.productplan.com/glossary/feature-less-roadmap/';
+        $cardData = app(LinkContent::class)->getCardContentData($card);
+
         self::assertEquals(collect([
             'title'       => $mockWebsite->get('title'),
             'content'     => $mockWebsite->get('text'),

@@ -13,25 +13,26 @@ use App\Modules\OauthIntegration\OauthIntegrationService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use JsonException;
 
 class CardController extends Controller
 {
-    // public function get(Request $request, ?string $queryConstraints = null)
-    // {
-    //     $user = $request->user();
-    //     $organization = $user->organizations()->first();
-    //     $users = $organization->users()->pluck('users.id');
-    //     $cards = Card::whereIn('user_id', $users)
-    //         ->select('id', 'user_id', 'title', 'card_type_id', 'image', 'actual_created_at', 'url')
-    //         ->with(['user:id,first_name,last_name,email'])
-    //         ->orderBy('actual_created_at', 'desc')
-    //         ->paginate(25);
-    //     $cards = parse_str($queryConstraints, $queryConstraints);
-    //     collect($queryConstraints);
-
-    //     return response()->json(['data' => $cards]);
-    // }
+//     public function get(Request $request, ?string $queryConstraints = null)
+//     {
+//         $user = $request->user();
+//         $organization = $user->organizations()->first();
+//         $users = $organization->users()->pluck('users.id');
+//         $cards = Card::whereIn('user_id', $users)
+//             ->select('id', 'user_id', 'title', 'card_type_id', 'image', 'actual_created_at', 'url')
+//             ->with(['user:id,first_name,last_name,email'])
+//             ->orderBy('actual_created_at', 'desc')
+//             ->paginate(25);
+//         $cards = parse_str($queryConstraints, $queryConstraints);
+//         collect($queryConstraints);
+//
+//         return response()->json(['data' => $cards]);
+//     }
 
     private CardRepository $cardRepository;
     private CardTypeRepository $cardTypeRepository;
@@ -57,7 +58,7 @@ class CardController extends Controller
         $card = $this->cardRepository->updateOrInsert([
             'card_type_id'        => $cardType->id,
             'user_id'             => $user->id,
-            'url'                 => $request->get('url'),
+            'url'                 => $request->url,
             'title'               => $request->get('title') ?? $request->get('url'),
             'description'         => $request->get('description'),
             'content'             => $request->get('content'),

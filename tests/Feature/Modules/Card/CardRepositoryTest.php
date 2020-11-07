@@ -14,6 +14,7 @@ use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
+use Exception;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
@@ -300,6 +301,9 @@ class CardRepositoryTest extends TestCase
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testUpdateOrInsert(): void
     {
         $this->refreshDb();
@@ -323,6 +327,7 @@ class CardRepositoryTest extends TestCase
             'actual_created_at'  => '123',
             'actual_modified_at' => '123',
         ], null);
+        self::assertNotEmpty($newCard->token);
         $this->assertDatabaseHas('cards', [
             'title' => $newCardTitle,
         ]);

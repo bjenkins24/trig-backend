@@ -117,7 +117,7 @@ class GoogleIntegrationTest extends TestCase
             'description'        => $file->description,
             'actual_created_at'  => $file->createdTime,
             'actual_modified_at' => $file->modifiedTime,
-            'thumbnail_uri'      => $thumbnailLink,
+            'image'              => $thumbnailLink,
         ], $cardData['data']);
         self::assertNotEmpty($cardData['permissions']);
     }

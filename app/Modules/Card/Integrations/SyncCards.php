@@ -135,7 +135,9 @@ class SyncCards
             $this->cardRepository->createIntegration($card, $data->get('foreign_id'), $this->integrationKey);
         }
 
-        $this->thumbnailHelper->saveThumbnail($data, $card);
+        if ($data->get('image')) {
+            $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
+        }
         $this->savePermissions($cardData->get('permissions'), $card);
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
@@ -156,7 +158,7 @@ class SyncCards
         $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
 
         if ($data->get('image')) {
-            $this->thumbnailHelper->saveThumbnail(collect(['thumbnail_uri' => $data->get('image')]), $card);
+            $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
             $data->forget('image');
         }
 

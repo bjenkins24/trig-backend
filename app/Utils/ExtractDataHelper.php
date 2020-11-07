@@ -88,7 +88,7 @@ class ExtractDataHelper
     {
         $extension = $this->fileHelper->mimeToExtension($mimeType);
         if (! $extension) {
-            Log::notice('The mimetype '.$mimeType.' could not be mapped to an extension.');
+            Log::notice("The mimetype $mimeType could not be mapped to an extension.");
 
             return collect([]);
         }
@@ -103,7 +103,7 @@ class ExtractDataHelper
         try {
             $data = $this->getData(base_path().'/storage/app/'.$filename);
         } catch (Exception $e) {
-            Log::notice('We couldn\'t extract the data from a file with type '.$mimeType);
+            Log::notice("We couldn't extract the data from a file with type $mimeType");
             Storage::delete($filename);
 
             return collect([]);

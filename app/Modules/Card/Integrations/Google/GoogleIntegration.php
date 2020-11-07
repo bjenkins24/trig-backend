@@ -156,7 +156,7 @@ class GoogleIntegration implements IntegrationInterface
             'description'        => $file->description,
             'actual_created_at'  => $file->createdTime,
             'actual_modified_at' => $file->modifiedTime,
-            'thumbnail_uri'      => $this->getThumbnailLink($user, $file),
+            'image'              => $this->getThumbnailLink($user, $file),
         ];
 
         $permissions = $this->getPermissions($user, $file);

@@ -6,9 +6,10 @@ use App\Models\CardType;
 use App\Models\User;
 use Faker\Generator as Faker;
 
-$factory->define(Card::class, function (Faker $faker) {
+$factory->define(Card::class, static function (Faker $faker) {
     return [
         'user_id'            => factory(User::class)->create()->id,
+        'token'              => bin2hex(random_bytes(24)),
         'card_type_id'       => factory(CardType::class)->create()->id,
         'title'              => $faker->realText(rand(10, 50)),
         'description'        => $faker->realText(rand(50, 150)),

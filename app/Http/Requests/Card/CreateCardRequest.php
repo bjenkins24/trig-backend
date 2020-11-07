@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Card;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class CreateCardRequest extends FormRequest
 {
@@ -12,6 +13,13 @@ class CreateCardRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    public function prepareForValidation(): void
+    {
+        if ($this->has('url') && ! Str::contains($this->url, 'http')) {
+            $this->merge(['url' => "http://{$this->get('url')}"]);
+        }
     }
 
     /**
