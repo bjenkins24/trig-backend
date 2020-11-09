@@ -174,7 +174,7 @@ class ElasticQueryBuilderHelper
                 'should' => [
                     $this->makeUserCondition($user),
                     $this->makeOrganizationCondition($user),
-                    $this->makeTeamCondition($user),
+//                    $this->makeTeamCondition($user),
                     $this->makeSpecificPermissionsCondition($user),
                 ],
             ],

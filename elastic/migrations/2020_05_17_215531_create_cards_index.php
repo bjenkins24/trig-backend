@@ -14,7 +14,7 @@ final class CreateCardsIndex implements MigrationInterface
      */
     public function up(): void
     {
-        Index::create('cards', function (Mapping $mapping, Settings $settings) {
+        Index::create('cards', static function (Mapping $mapping, Settings $settings) {
             $mapping->long('user_id');
             $mapping->long('card_type_id');
             $mapping->long('organization_id');

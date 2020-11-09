@@ -59,5 +59,8 @@
     "bugs": {
         "url": "https://github.com/bjenkins24/trig-backend/issues"
     },
-    "homepage": "https://github.com/bjenkins24/trig-backend#readme"
+    "homepage": "https://github.com/bjenkins24/trig-backend#readme",
+    "dependencies": {
+        "@nesk/puphpeteer": "^1.6.0"
+    }
 }

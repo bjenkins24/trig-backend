@@ -2,11 +2,7 @@
 
 namespace App\Utils;
 
-use andreskrey\Readability\Configuration as ReadabilityConfiguration;
-use andreskrey\Readability\ParseException as ReadabilityParseException;
-use andreskrey\Readability\Readability;
 use Exception;
-use Html2Text\Html2Text;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -112,28 +108,5 @@ class ExtractDataHelper
         Storage::delete($filename);
 
         return collect($data);
-    }
-
-    public function getWebsite(string $url): Collection
-    {
-        $readability = new Readability(new ReadabilityConfiguration());
-        $html = $this->fileHelper->fileGetContents($url);
-
-        try {
-            $readability->parse($html);
-
-            return collect([
-                'image'   => $readability->getImage(),
-                'author'  => $readability->getAuthor(),
-                'excerpt' => $readability->getExcerpt(),
-                'title'   => $readability->getTitle(),
-                'text'    => (new Html2Text($readability))->getText(),
-                'html'    => $readability->getContent(),
-            ]);
-        } catch (ReadabilityParseException $e) {
-            echo sprintf('Error processing text: %s', $e->getMessage());
-
-            return collect([]);
-        }
     }
 }
