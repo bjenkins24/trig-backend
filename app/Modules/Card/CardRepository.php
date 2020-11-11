@@ -114,10 +114,10 @@ class CardRepository
         });
 
         return Card::whereIn('cards.id', $ids)
-            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url')
+            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'favorites')
             ->with(['user:id,first_name,last_name,email'])
             ->with('cardType:id,name')
-            ->with('cardFavorite:id')
+            ->with('cardFavorite:card_id')
             ->orderBy('actual_created_at', 'desc')
             ->get();
     }
@@ -273,6 +273,7 @@ class CardRepository
                 'card_id' => $card->id,
                 'user_id' => $card->user_id,
             ]);
+            ++$card->favorites;
         }
         if (isset($fields['favorited']) && ! $fields['favorited']) {
             $cardFavorite = CardFavorite::where('card_id', $card->id)
@@ -280,8 +281,11 @@ class CardRepository
                 ->first();
             if ($cardFavorite) {
                 $cardFavorite->delete();
+
+                --$card->favorites;
             }
         }
+        $card->save();
     }
 
     /**

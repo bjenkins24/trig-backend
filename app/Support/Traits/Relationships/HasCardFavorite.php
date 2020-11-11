@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\CardFavorite;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 trait HasCardFavorite
@@ -11,6 +12,6 @@ trait HasCardFavorite
      */
     public function cardFavorite(): HasOne
     {
-        return $this->hasOne('App\Models\CardFavorite');
+        return $this->hasOne(CardFavorite::class);
     }
 }

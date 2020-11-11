@@ -314,8 +314,9 @@ class CardRepositoryTest extends TestCase
         });
         app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => true], $card);
         $this->assertDatabaseHas('cards', [
-            'id'    => 1,
-            'title' => $title,
+            'id'        => 1,
+            'title'     => $title,
+            'favorites' => 1,
         ]);
 
         $this->assertDatabaseHas('card_favorites', [
@@ -324,6 +325,11 @@ class CardRepositoryTest extends TestCase
         ]);
 
         app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => false], $card);
+
+        $this->assertDatabaseHas('cards', [
+            'id'        => 1,
+            'favorites' => 0,
+        ]);
 
         $this->assertDatabaseMissing('card_favorites', [
             'card_id' => 1,

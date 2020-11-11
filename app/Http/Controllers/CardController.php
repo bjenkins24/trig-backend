@@ -110,6 +110,7 @@ class CardController extends Controller
 
     /**
      * @throws JsonException
+     * @throws Exception
      */
     public function update(UpdateCardRequest $request): JsonResponse
     {
