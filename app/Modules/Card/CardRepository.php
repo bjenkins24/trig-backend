@@ -4,6 +4,7 @@ namespace App\Modules\Card;
 
 use App\Models\Card;
 use App\Models\CardDuplicate;
+use App\Models\CardFavorite;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Organization;
@@ -265,6 +266,27 @@ class CardRepository
     /**
      * @throws Exception
      */
+    private function saveFavorited(array $fields, Card $card): void
+    {
+        if (isset($fields['favorited']) && $fields['favorited']) {
+            CardFavorite::create([
+                'card_id' => $card->id,
+                'user_id' => $card->user_id,
+            ]);
+        }
+        if (isset($fields['favorited']) && ! $fields['favorited']) {
+            $cardFavorite = CardFavorite::where('card_id', $card->id)
+                ->where('user_id', $card->user_id)
+                ->first();
+            if ($cardFavorite) {
+                $cardFavorite->delete();
+            }
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     public function updateOrInsert(array $fields, ?Card $card = null): ?Card
     {
         $newFields = collect($fields);
@@ -273,6 +295,7 @@ class CardRepository
             if ($newFields->get('image')) {
                 $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
             }
+            $this->saveFavorited($fields, $card);
 
             return $card;
         }
@@ -290,6 +313,7 @@ class CardRepository
         if ($newFields->get('image')) {
             $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
         }
+        $this->saveFavorited($fields, $card);
 
         return $card;
     }

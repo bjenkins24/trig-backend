@@ -312,10 +312,22 @@ class CardRepositoryTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
-        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image'], $card);
+        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => true], $card);
         $this->assertDatabaseHas('cards', [
             'id'    => 1,
             'title' => $title,
+        ]);
+
+        $this->assertDatabaseHas('card_favorites', [
+            'card_id' => 1,
+            'user_id' => 1,
+        ]);
+
+        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => false], $card);
+
+        $this->assertDatabaseMissing('card_favorites', [
+            'card_id' => 1,
+            'user_id' => 1,
         ]);
 
         $newCardTitle = 'my new card';
@@ -326,8 +338,14 @@ class CardRepositoryTest extends TestCase
             'url'                => 'haha',
             'actual_created_at'  => '123',
             'actual_modified_at' => '123',
+            'favorited'          => false,
         ], null);
         self::assertNotEmpty($newCard->token);
+        $this->assertDatabaseMissing('card_favorites', [
+            'card_id' => 6,
+            'user_id' => 1,
+        ]);
+
         $this->assertDatabaseHas('cards', [
             'title' => $newCardTitle,
         ]);
