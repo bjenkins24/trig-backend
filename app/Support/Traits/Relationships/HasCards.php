@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\Card;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 trait HasCards
@@ -11,6 +12,6 @@ trait HasCards
      */
     public function cards(): HasMany
     {
-        return $this->hasMany('App\Models\Card');
+        return $this->hasMany(Card::class);
     }
 }

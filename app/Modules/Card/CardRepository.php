@@ -112,9 +112,10 @@ class CardRepository
             return $hit['_id'];
         });
 
-        return Card::whereIn('id', $ids)
+        return Card::whereIn('cards.id', $ids)
             ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url')
             ->with(['user:id,first_name,last_name,email'])
+            ->with('cardType:id,name')
             ->orderBy('actual_created_at', 'desc')
             ->get();
     }

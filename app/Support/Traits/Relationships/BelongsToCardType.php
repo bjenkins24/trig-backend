@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\CardType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait BelongsToCardType
@@ -11,6 +12,6 @@ trait BelongsToCardType
      */
     public function cardType(): BelongsTo
     {
-        return $this->belongsTo('App\Models\CardType');
+        return $this->belongsTo(CardType::class);
     }
 }
