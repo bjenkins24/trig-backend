@@ -47,7 +47,6 @@ class WebsiteContentHelper
 
         $page = $browser->newPage();
         $page->setExtraHTTPHeaders($this->getHeaders());
-        $page->setUserAgent();
         $page->goto($url);
         $content = $page->content();
 

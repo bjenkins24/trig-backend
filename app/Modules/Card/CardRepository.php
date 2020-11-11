@@ -26,6 +26,7 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
+    private const SEARCH_LIMIT = 90;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
@@ -85,9 +86,8 @@ class CardRepository
         });
     }
 
-    public function searchCardsRaw(User $user, ?string $queryConstraints = null)
+    public function searchCardsRaw(User $user, ?string $queryConstraints = null): array
     {
-        $searchLimit = 30;
         parse_str($queryConstraints, $queryConstraints);
         $constraints = collect($queryConstraints);
 
@@ -96,8 +96,8 @@ class CardRepository
         return Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->from($page * $searchLimit)
-            ->size($searchLimit)
+            ->from($page * self::SEARCH_LIMIT)
+            ->size(self::SEARCH_LIMIT)
             ->raw();
     }
 
@@ -116,6 +116,7 @@ class CardRepository
             ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url')
             ->with(['user:id,first_name,last_name,email'])
             ->with('cardType:id,name')
+            ->with('cardFavorite:id')
             ->orderBy('actual_created_at', 'desc')
             ->get();
     }
