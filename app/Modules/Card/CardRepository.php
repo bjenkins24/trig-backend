@@ -118,9 +118,7 @@ class CardRepository
             ->with(['user:id,first_name,last_name,email'])
             ->with('cardType:id,name')
             ->with('cardFavorite:card_id')
-            ->with(['cardSyncs' => static function ($q) {
-                $q->select('card_id')->take(1);
-            }])
+            ->with('cardSync:card_id')
             ->orderBy('actual_created_at', 'desc')
             ->get();
     }
