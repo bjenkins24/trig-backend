@@ -15,7 +15,7 @@ class CardSyncs extends Migration
     {
         Schema::create('card_syncs', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId('card_id');
+            $table->foreignId('card_id')->constrained()->onDelete('cascade');
             $table->string('status')->index();
             $table->timestamps();
         });
