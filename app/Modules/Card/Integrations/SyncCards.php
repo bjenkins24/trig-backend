@@ -12,6 +12,7 @@ use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
+use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
@@ -27,6 +28,7 @@ class SyncCards
     private IntegrationInterface $integration;
     private OauthConnectionRepository $oauthConnectionRepository;
     private CardRepository $cardRepository;
+    private CardSyncRepository $cardSyncRepository;
     private CardTypeRepository $cardTypeRepository;
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
@@ -35,6 +37,7 @@ class SyncCards
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
         CardRepository $cardRepository,
+        CardSyncRepository $cardSyncRepository,
         CardTypeRepository $cardTypeRepository,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
@@ -42,6 +45,7 @@ class SyncCards
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->cardRepository = $cardRepository;
+        $this->cardSyncRepository = $cardSyncRepository;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
@@ -178,7 +182,15 @@ class SyncCards
             return ! $value;
         });
         $card->properties = $data->toArray();
-        $card->save();
+        $result = $card->save();
+
+        if ($result) {
+            $this->cardSyncRepository->create([
+                'card_id' => $card->id,
+                // Successful sync
+                'status'  => 1,
+            ]);
+        }
 
         if ($card->content) {
             CardDedupe::dispatch($card)->onQueue('card-dedupe');

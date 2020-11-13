@@ -3,8 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\Card;
-use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,15 +33,16 @@ class SaveCardData implements ShouldQueue
         $this->integration = $integration;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @throws OauthIntegrationNotFound
-     */
     public function handle(): void
     {
-        $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-
-        $syncCardsIntegration->saveCardData($this->card);
+        try {
+            $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
+            $syncCardsIntegration->saveCardData($this->card);
+        } catch (Exception $error) {
+            app(CardSyncRepository::class)->create([
+              'card_id' => $this->card->id,
+              'status'  => 0,
+            ]);
+        }
     }
 }

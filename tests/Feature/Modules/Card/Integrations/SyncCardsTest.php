@@ -232,6 +232,11 @@ class SyncCardsTest extends TestCase
             'properties'         => json_encode(['author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
         ]);
 
+        $this->assertDatabaseHas('card_syncs', [
+            'id'     => 1,
+            'status' => 1,
+        ]);
+
         Queue::assertPushed(CardDedupe::class, 1);
         self::assertTrue($result);
     }

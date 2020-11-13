@@ -34,7 +34,7 @@ class WebsiteContentHelper
         return Http::withOptions([
             'referer' => true,
             'headers' => $this->getHeaders(),
-        ])->get($url)->get;
+        ])->get($url);
     }
 
     /**

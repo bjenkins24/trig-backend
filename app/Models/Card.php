@@ -8,6 +8,7 @@ use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\HasCardDuplicates;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
+use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use ElasticScoutDriverPlus\CustomSearch;
@@ -70,6 +71,7 @@ class Card extends Model
     use HasCardFavorite;
     use HasCardIntegration;
     use HasCardDuplicates;
+    use HasCardSyncs;
     use Permissionables;
     use LinkShareable;
     use Searchable;

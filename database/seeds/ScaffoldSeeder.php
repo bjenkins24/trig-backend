@@ -5,6 +5,7 @@ use App\Models\CardIntegration;
 use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Config;
 
 class ScaffoldSeeder extends Seeder
 {
@@ -16,14 +17,11 @@ class ScaffoldSeeder extends Seeder
     protected $user;
 
     /**
-     * Run the database seeds.
-     *
-     * @return void
+     * @throws JsonException
+     * @throws Exception
      */
-    public function run()
+    public function run(): void
     {
-        $faker = Factory::create();
-
         if ('production' === env('APP_ENV')) {
             throw new Exception('The scaffolding seeder cannot be run on production.');
         }
@@ -31,10 +29,10 @@ class ScaffoldSeeder extends Seeder
         $user = User::where('email', \Config::get('constants.seed.email'))->first();
         if (! $user) {
             $user = factory(User::class)->create([
-                'first_name' => \Config::get('constants.seed.first_name'),
-                'last_name'  => \Config::get('constants.seed.last_name'),
-                'email'      => \Config::get('constants.seed.email'),
-                'password'   => bcrypt(\Config::get('constants.seed.password')),
+                'first_name' => Config::get('constants.seed.first_name'),
+                'last_name'  => Config::get('constants.seed.last_name'),
+                'email'      => Config::get('constants.seed.email'),
+                'password'   => bcrypt(Config::get('constants.seed.password')),
             ]);
             $user->organizations()->firstOrCreate([
                 'name' => 'Trig',
@@ -42,8 +40,7 @@ class ScaffoldSeeder extends Seeder
         }
         factory(Card::class, 1)->create([
             'user_id'    => $user->id,
-            'content'    => \Config::get('constants.seed.card.content'),
-            'properties' => json_encode(['title' => \Config::get('constants.seed.card.doc_title')]),
+            'content'    => Config::get('constants.seed.card.content'),
         ]);
 
         factory(Card::class, 3)->create([
