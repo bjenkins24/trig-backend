@@ -129,28 +129,40 @@ class CardControllerTest extends TestCase
         Queue::fake();
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
-        $cardId = $this->getResponseData($response)->get('id');
+        $newCard = $this->getResponseData($response);
+
+        $this->assertDatabaseMissing('card_favorites', [
+            'card_id' => $newCard->get('id'),
+            'user_id' => $newCard->get('user_id'),
+        ]);
 
         $now = Carbon::now();
 
         $newData = [
-            'id'                 => $cardId,
+            'id'                 => $newCard->get('id'),
             'url'                => 'https://newurl.com',
             'title'              => 'Cool new url',
             'description'        => 'cool new Description',
             'content'            => 'cool new content',
             'createdAt'          => $now,
             'modifiedAt'         => $now,
+            'isFavorited'        => true,
         ];
 
-        $response = $this->client('PUT', 'card', $newData);
-        self::assertEquals($cardId, $this->getResponseData($response)->get('id'));
+        $response = $this->client('PATCH', 'card', $newData);
+        self::assertEquals(204, $response->getStatusCode());
 
+        $data = $newData;
         $data['actual_created_at'] = $now->toDateTimeString();
         $data['actual_modified_at'] = $now->toDateTimeString();
-        unset($data['createdAt'], $data['modifiedAt']);
+        $data['total_favorites'] = 1;
+        unset($data['createdAt'], $data['modifiedAt'], $data['isFavorited']);
 
         $this->assertDatabaseHas('cards', $data);
+        $this->assertDatabaseHas('card_favorites', [
+            'card_id' => $newCard->get('id'),
+            'user_id' => $newCard->get('user_id'),
+        ]);
         Queue::assertPushed(SaveCardData::class, 2);
     }
 

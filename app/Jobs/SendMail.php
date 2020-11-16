@@ -37,7 +37,6 @@ class SendMail implements ShouldQueue
      */
     public function handle(): void
     {
-        dd($this->user);
         Mail::to($this->user)->send($this->mail);
     }
 }

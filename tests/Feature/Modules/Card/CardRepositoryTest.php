@@ -36,16 +36,57 @@ class CardRepositoryTest extends TestCase
             'max_score' => 1.0,
             'hits'      => [
                 [
-                    '_index' => 'card',
-                    '_type'  => 'cards',
-                    '_id'    => '1',
-                    '_score' => 1.0,
+                    '_index'  => 'card',
+                    '_type'   => 'cards',
+                    '_id'     => '1',
+                    '_score'  => 1.0,
+                    '_source' => [
+                        'user_id'           => 7,
+                        'card_type_id'      => 1,
+                        'organization_id'   => 2,
+                        'title'             => 'Interview with a Product Manager from FANG',
+                        'doc_title'         => null,
+                        'content'           => "INTERVIEW WITH A PRODUCT MANAGER FROM FANG\n\n [https:\/\/www.youtube.com\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\nHow Compelling Is Your Writing?\n\nGrammarly [\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\n",
+                        'permissions'       => [],
+                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
+                        'card_duplicate_ids'=> '10',
+                    ],
+                    'fields' => [
+                        'card_duplicate_ids' => ['10'],
+                    ],
+                    'highlight' => [
+                        'title' => [
+                            '<em>Interview<\/em> with a Product Manager from FANG',
+                        ],
+                        'content' => [
+                            '<em>INTERVIEW<\/em> WITH A PRODUCT MANAGER FROM FANG\n\n [https:\/\/www.youtube.com\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\nHow Compelling Is Your Writing?\n\nGrammarly [\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]',
+                        ],
+                    ],
                 ],
                 [
-                    '_index' => 'card',
-                    '_type'  => 'cards',
-                    '_id'    => '2',
-                    '_score' => 1.0,
+                    '_index'  => 'card',
+                    '_type'   => 'cards',
+                    '_id'     => '2',
+                    '_score'  => 1.0,
+                    '_source' => [
+                        'user_id'           => 7,
+                        'card_type_id'      => 2,
+                        'organization_id'   => 3,
+                        'title'             => 'Interview with a Engineer',
+                        'doc_title'         => null,
+                        'content'           => '',
+                        'permissions'       => [],
+                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
+                        'card_duplicate_ids'=> '10',
+                    ],
+                    'fields' => [
+                        'card_duplicate_ids' => ['11'],
+                    ],
+                    'highlight' => [
+                        'title' => [
+                            '<em>Interview<\/em> with a Engineer',
+                        ],
+                    ],
                 ],
             ],
         ],
@@ -73,13 +114,40 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
         $result = app(CardRepository::class)->searchCards(User::find(1));
+
+        $fields = collect([
+            'id',
+            'token',
+            'cardType',
+            'title',
+            'url',
+            'image',
+            'imageWidth',
+            'imageHeight',
+            'totalFavorites',
+            'isFavorited',
+            'lastAttemptedSync',
+            'createdAt',
+            'modifiedAt',
+        ]);
+
+        $data = collect($result->get(0));
+        $fields->each(static function ($field) use ($data) {
+            self::assertTrue($data->contains($field));
+        });
+        $user = $data->get('user');
+        self::assertTrue(isset($user['id']));
+        self::assertTrue(isset($user['email']));
+        self::assertTrue(isset($user['firstName']));
+        self::assertTrue(isset($user['lastName']));
+
         $hasOne = false;
         $hasTwo = false;
         $result->each(static function ($card) use (&$hasOne, &$hasTwo) {
-            if (1 === $card->id) {
+            if (1 === $card['id']) {
                 $hasOne = true;
             }
-            if (2 === $card->id) {
+            if (2 === $card['id']) {
                 $hasTwo = true;
             }
         });
@@ -314,9 +382,9 @@ class CardRepositoryTest extends TestCase
         });
         app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => true], $card);
         $this->assertDatabaseHas('cards', [
-            'id'         => 1,
-            'title'      => $title,
-            'favorites'  => 1,
+            'id'               => 1,
+            'title'            => $title,
+            'total_favorites'  => 1,
         ]);
 
         $this->assertDatabaseMissing('card_syncs', [
@@ -332,8 +400,8 @@ class CardRepositoryTest extends TestCase
         app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => false], $card);
 
         $this->assertDatabaseHas('cards', [
-            'id'        => 1,
-            'favorites' => 0,
+            'id'              => 1,
+            'total_favorites' => 0,
         ]);
 
         $this->assertDatabaseMissing('card_favorites', [

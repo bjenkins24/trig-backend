@@ -87,16 +87,24 @@ class CardRepository
         });
     }
 
-    public function searchCardsRaw(User $user, ?string $queryConstraints = null): array
+    public function searchCardsRaw(User $user, Collection $constraints): array
     {
-        parse_str($queryConstraints, $queryConstraints);
-        $constraints = collect($queryConstraints);
-
-        $page = $constraints->get('page', 0);
+        $page = $constraints->get('p', 0);
 
         return Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
+            ->highlightRaw([
+                'fields' => [
+                    'title' => [
+                        'number_of_fragments' => 1,
+                    ],
+                    'content' => [
+                        'number_of_fragments' => 1,
+                        'fragment_size'       => 200,
+                    ],
+                ],
+            ])
             ->from($page * self::SEARCH_LIMIT)
             ->size(self::SEARCH_LIMIT)
             ->raw();
@@ -105,22 +113,72 @@ class CardRepository
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
-    public function searchCards(User $user, ?string $queryConstraints = null): Collection
+    public function searchCards(User $user, ?Collection $constraints = null): Collection
     {
-        $result = $this->searchCardsRaw($user, $queryConstraints);
+        if (! $constraints) {
+            $constraints = collect([]);
+        }
+        $result = $this->searchCardsRaw($user, $constraints);
         $hits = collect($result['hits']['hits']);
         $ids = $hits->map(static function ($hit) {
             return $hit['_id'];
         });
 
-        return Card::whereIn('cards.id', $ids)
-            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'favorites')
-            ->with(['user:id,first_name,last_name,email'])
+        $result = Card::whereIn('cards.id', $ids)
+            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites')
+            ->with('user:id,first_name,last_name,email')
             ->with('cardType:id,name')
             ->with('cardFavorite:card_id')
-            ->with('cardSync:card_id')
+            ->with('cardSync:card_id,created_at')
             ->orderBy('actual_created_at', 'desc')
             ->get();
+
+        return collect($result->map(static function ($card) {
+            $lastAttemptedSync = null;
+            if ($card->cardSync) {
+                $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
+            }
+            $isFavorited = false;
+            if ($card->cardFavorite) {
+                $isFavorited = (bool) $card->cardFavorite->card_id;
+            }
+            $cardType = null;
+            if ($card->cardType) {
+                $cardType = $card->cardType->name;
+            }
+            $user = null;
+            if ($card->user) {
+                $user['id'] = $card->user['id'];
+                $user['firstName'] = $card->user['first_name'];
+                $user['lastName'] = $card->user['last_name'];
+                $user['email'] = $card->user['email'];
+            }
+            $createdAt = $card->actual_created_at;
+            if ($createdAt) {
+                $createdAt = $createdAt->toIso8601String();
+            }
+            $modifiedAt = $card->actual_modified_at;
+            if ($modifiedAt) {
+                $modifiedAt = $modifiedAt->toIso8601String();
+            }
+
+            return [
+                'id'                 => $card->id,
+                'user'               => $user,
+                'token'              => $card->token,
+                'cardType'           => $cardType,
+                'title'              => $card->title,
+                'url'                => $card->url,
+                'image'              => $card->image,
+                'imageWidth'         => $card->image_width,
+                'imageHeight'        => $card->image_height,
+                'totalFavorites'     => (int) $card->total_favorites,
+                'isFavorited'        => $isFavorited,
+                'lastAttemptedSync'  => $lastAttemptedSync,
+                'createdAt'          => $createdAt,
+                'modifiedAt'         => $modifiedAt,
+            ];
+        }));
     }
 
     public function getCardIntegration(Card $card): ?CardIntegration
@@ -269,21 +327,21 @@ class CardRepository
      */
     private function saveFavorited(array $fields, Card $card): void
     {
-        if (isset($fields['favorited']) && $fields['favorited']) {
+        if (isset($fields['isFavorited']) && $fields['isFavorited']) {
             CardFavorite::create([
                 'card_id' => $card->id,
                 'user_id' => $card->user_id,
             ]);
-            ++$card->favorites;
+            ++$card->total_favorites;
         }
-        if (isset($fields['favorited']) && ! $fields['favorited']) {
+        if (isset($fields['isFavorited']) && ! $fields['isFavorited']) {
             $cardFavorite = CardFavorite::where('card_id', $card->id)
                 ->where('user_id', $card->user_id)
                 ->first();
             if ($cardFavorite) {
                 $cardFavorite->delete();
 
-                --$card->favorites;
+                --$card->total_favorites;
             }
         }
         $card->save();

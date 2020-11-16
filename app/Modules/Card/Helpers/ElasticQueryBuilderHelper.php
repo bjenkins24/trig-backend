@@ -181,10 +181,25 @@ class ElasticQueryBuilderHelper
         ];
     }
 
+    public function buildSearchCondition($constraints): ?array
+    {
+        if (! $constraints->get('q')) {
+            return [];
+        }
+
+        return [
+            'simple_query_string' => [
+                'query'  => $constraints->get('q'),
+                'fields' => ['title', 'content'],
+            ],
+        ];
+    }
+
     public function baseQuery(User $user, Collection $constraints): array
     {
         return [
             'bool' => [
+                'must'   => $this->buildSearchCondition($constraints),
                 'filter' => [
                     $this->makePermissionsConditions($user),
                 ],

@@ -65,6 +65,7 @@ class CardController extends Controller
             'actual_created_at'   => $request->get('createdAt'),
             'actual_modified_at'  => $request->get('modifiedAt'),
             'image'               => $request->get('image'),
+            'favorited'           => $request->get('isFavorited'),
         ]);
 
         if (! $card) {
@@ -134,6 +135,7 @@ class CardController extends Controller
 
         $fields = collect(json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR));
         $data = [];
+        // Map fields to DB fields
         $fields->each(static function ($fieldValue, $field) use (&$data) {
             if ('createdAt' === $field) {
                 return $data['actual_created_at'] = $fieldValue;
@@ -155,9 +157,7 @@ class CardController extends Controller
             SaveCardData::dispatch($card, $cardType);
         }
 
-        return response()->json([
-            'data' => $card,
-        ]);
+        return response()->json([], 204);
     }
 
     /**
@@ -188,9 +188,9 @@ class CardController extends Controller
         return response()->json([], 204);
     }
 
-    public function getAll(Request $request, ?string $queryConstraints = null)
+    public function getAll(Request $request)
     {
-        $cards = $this->cardRepository->searchCards($request->user(), $queryConstraints);
+        $cards = $this->cardRepository->searchCards($request->user(), collect($request->all()));
 
         return response()->json(['data' => $cards]);
     }
