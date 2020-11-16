@@ -104,6 +104,7 @@ class CardController extends Controller
             ], 403);
         }
 
+        // TODO: make the get request match the params in getAll and update
         return response()->json([
             'data' => $card,
         ]);
