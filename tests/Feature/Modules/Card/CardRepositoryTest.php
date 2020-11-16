@@ -128,18 +128,24 @@ class CardRepositoryTest extends TestCase
             'isFavorited',
             'lastAttemptedSync',
             'createdAt',
-            'modifiedAt',
         ]);
 
-        $data = collect($result->get(0));
+        $userFields = collect([
+            'id',
+            'email',
+            'firstName',
+            'lastName',
+        ]);
+
+        $data = $result->get(0);
         $fields->each(static function ($field) use ($data) {
-            self::assertTrue($data->contains($field));
+            self::assertArrayHasKey($field, $data);
         });
-        $user = $data->get('user');
-        self::assertTrue(isset($user['id']));
-        self::assertTrue(isset($user['email']));
-        self::assertTrue(isset($user['firstName']));
-        self::assertTrue(isset($user['lastName']));
+
+        $user = $data['user'];
+        $userFields->each(static function ($field) use ($user) {
+            self::assertArrayHasKey($field, $user);
+        });
 
         $hasOne = false;
         $hasTwo = false;
@@ -211,16 +217,16 @@ class CardRepositoryTest extends TestCase
     public function testDedupe(): void
     {
         $card1 = Card::find(1);
-        $card1->actual_modified_at = Carbon::now()->subDays(20);
+        $card1->actual_updated_at = Carbon::now()->subDays(20);
         $card1->save();
 
         // Card 2 is more recent so it should become the primary_card_id
         $card2 = Card::find(2);
-        $card2->actual_modified_at = Carbon::now()->subDays(10);
+        $card2->actual_updated_at = Carbon::now()->subDays(10);
         $card2->save();
 
         $card3 = Card::find(3);
-        $card3->actual_modified_at = Carbon::now()->subDays(30);
+        $card3->actual_updated_at = Carbon::now()->subDays(30);
         $card3->save();
 
         $this->partialMock(CardRepository::class, function ($mock) {
@@ -243,7 +249,7 @@ class CardRepositoryTest extends TestCase
             'duplicate_card_id' => 2,
         ]);
 
-        $card3->actual_modified_at = Carbon::now()->subDays(1);
+        $card3->actual_updated_at = Carbon::now()->subDays(1);
         $card3->save();
         $result = app(CardRepository::class)->dedupe($card1);
         self::assertTrue($result);
@@ -365,7 +371,7 @@ class CardRepositoryTest extends TestCase
         $this->assertDatabaseHas('cards', [
             'title'              => $title,
             'actual_created_at'  => $knownDate,
-            'actual_modified_at' => $knownDate,
+            'actual_updated_at'  => $knownDate,
         ]);
     }
 
@@ -416,7 +422,7 @@ class CardRepositoryTest extends TestCase
             'card_type_id'       => 2,
             'url'                => 'haha',
             'actual_created_at'  => '123',
-            'actual_modified_at' => '123',
+            'actual_updated_at'  => '123',
             'favorited'          => false,
         ], null);
         self::assertNotEmpty($newCard->token);

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class CardRepository
 {
@@ -133,7 +134,7 @@ class CardRepository
             ->orderBy('actual_created_at', 'desc')
             ->get();
 
-        return collect($result->map(static function ($card) {
+        return collect($result->map(function ($card) {
             $lastAttemptedSync = null;
             if ($card->cardSync) {
                 $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
@@ -142,10 +143,6 @@ class CardRepository
             if ($card->cardFavorite) {
                 $isFavorited = (bool) $card->cardFavorite->card_id;
             }
-            $cardType = null;
-            if ($card->cardType) {
-                $cardType = $card->cardType->name;
-            }
             $user = null;
             if ($card->user) {
                 $user['id'] = $card->user['id'];
@@ -153,32 +150,47 @@ class CardRepository
                 $user['lastName'] = $card->user['last_name'];
                 $user['email'] = $card->user['email'];
             }
-            $createdAt = $card->actual_created_at;
-            if ($createdAt) {
-                $createdAt = $createdAt->toIso8601String();
-            }
-            $modifiedAt = $card->actual_modified_at;
-            if ($modifiedAt) {
-                $modifiedAt = $modifiedAt->toIso8601String();
-            }
+            $fields = $this->mapToFields($card);
+            $fields['isFavorited'] = $isFavorited;
+            $fields['lastAttemptedSync'] = $lastAttemptedSync;
+            $fields['user'] = $user;
 
-            return [
-                'id'                 => $card->id,
-                'user'               => $user,
-                'token'              => $card->token,
-                'cardType'           => $cardType,
-                'title'              => $card->title,
-                'url'                => $card->url,
-                'image'              => $card->image,
-                'imageWidth'         => $card->image_width,
-                'imageHeight'        => $card->image_height,
-                'totalFavorites'     => (int) $card->total_favorites,
-                'isFavorited'        => $isFavorited,
-                'lastAttemptedSync'  => $lastAttemptedSync,
-                'createdAt'          => $createdAt,
-                'modifiedAt'         => $modifiedAt,
-            ];
+            return $fields;
         }));
+    }
+
+    public function mapToFields(Card $card): array
+    {
+        $fields = collect($card->toArray());
+        $newFields = [];
+        foreach ($fields as $field => $fieldValue) {
+            if ('actual_created_at' === $field) {
+                $newFields['createdAt'] = $card->actual_created_at->toIso8601String();
+                continue;
+            }
+            if ('actual_updated_at' === $field) {
+                $newFields['updatedAt'] = $card->actual_updated_at->toIso8601String();
+                continue;
+            }
+            if ('card_type_id' === $field) {
+                $cardType = null;
+                if ($card->cardType) {
+                    $cardType = $card->cardType->name;
+                }
+                $newFields['cardType'] = $cardType;
+                unset($cardTypeId);
+            }
+            if ('total_favorites' === $field) {
+                $newFields['totalFavorites'] = (int) $fieldValue;
+            }
+            // Fields to remove
+            if ('created_at' === $field || 'updated_at' === $field || 'properties' === $field) {
+                continue;
+            }
+            $newFields[Str::camel($field)] = $fieldValue;
+        }
+
+        return $newFields;
     }
 
     public function getCardIntegration(Card $card): ?CardIntegration
@@ -232,11 +244,11 @@ class CardRepository
         // Get the most recently modified card duplicate and make that primary
         $primary = $duplicateIds->reduce(function ($carry, $id) {
             $card = Card::find($id);
-            if ($carry && $card->actual_modified_at->isBefore($carry['modified'])) {
+            if ($carry && $card->actual_updated_at->isBefore($carry['modified'])) {
                 return $carry;
             }
-            if (! $carry || ($carry && $card->actual_modified_at->isAfter($carry['modified']))) {
-                return ['id' => $id, 'modified' => $card->actual_modified_at];
+            if (! $carry || ($carry && $card->actual_updated_at->isAfter($carry['modified']))) {
+                return ['id' => $id, 'modified' => $card->actual_updated_at];
             }
         });
 
@@ -366,8 +378,8 @@ class CardRepository
         if (! $newFields->get('actual_created_at')) {
             $newFields->put('actual_created_at', Carbon::now());
         }
-        if (! $newFields->get('actual_modified_at')) {
-            $newFields->put('actual_modified_at', Carbon::now());
+        if (! $newFields->get('actual_updated_at')) {
+            $newFields->put('actual_updated_at', Carbon::now());
         }
 
         $newFields->put('token', bin2hex(random_bytes(24)));

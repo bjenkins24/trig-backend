@@ -110,7 +110,7 @@ class SyncCards
                 return;
             }
 
-            if ($existingCard->actual_modified_at >= $data->get('actual_modified_at')) {
+            if ($existingCard->actual_updated_at >= $data->get('actual_updated_at')) {
                 return;
             }
         }
@@ -123,7 +123,7 @@ class SyncCards
 
         $card = $this->cardRepository->updateOrInsert([
             'actual_created_at'         => $data->get('actual_created_at'),
-            'actual_modified_at'        => $data->get('actual_modified_at'),
+            'actual_updated_at'         => $data->get('actual_updated_at'),
             'card_type_id'              => $cardType->id,
             'description'               => $data->get('description'),
             'title'                     => $data->get('title'),

@@ -48,6 +48,9 @@ class CardController extends Controller
         $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
+    /**
+     * @throws Exception
+     */
     public function create(CreateCardRequest $request): JsonResponse
     {
         $user = $request->user();
@@ -63,7 +66,7 @@ class CardController extends Controller
             'description'         => $request->get('description'),
             'content'             => $request->get('content'),
             'actual_created_at'   => $request->get('createdAt'),
-            'actual_modified_at'  => $request->get('modifiedAt'),
+            'actual_updated_at'   => $request->get('updatedAt'),
             'image'               => $request->get('image'),
             'favorited'           => $request->get('isFavorited'),
         ]);
@@ -80,7 +83,7 @@ class CardController extends Controller
         }
 
         return response()->json([
-            'data' => $card,
+            'data' => $this->cardRepository->mapToFields($card),
         ]);
     }
 
@@ -141,8 +144,8 @@ class CardController extends Controller
             if ('createdAt' === $field) {
                 return $data['actual_created_at'] = $fieldValue;
             }
-            if ('modifiedAt' === $field) {
-                return $data['actual_modified_at'] = $fieldValue;
+            if ('updatedAt' === $field) {
+                return $data['actual_updated_at'] = $fieldValue;
             }
 
             return $data[$field] = $fieldValue;

@@ -27,17 +27,17 @@ class CardControllerTest extends TestCase
             'description'        => 'Description',
             'content'            => 'content',
             'createdAt'          => $now,
-            'modifiedAt'         => $now,
+            'updatedAt'          => $now,
         ];
         $response = $this->client('POST', 'card', $data);
         // Check if the response returns the id
         self::assertEquals(6, $this->getResponseData($response)->get('id'));
 
         $data['actual_created_at'] = $now->toDateTimeString();
-        $data['actual_modified_at'] = $now->toDateTimeString();
+        $data['actual_updated_at'] = $now->toDateTimeString();
         $cardTypeId = CardType::where('name', '=', 'link')->first()->id;
         $data['card_type_id'] = $cardTypeId;
-        unset($data['createdAt'], $data['modifiedAt']);
+        unset($data['createdAt'], $data['updatedAt']);
 
         $this->assertDatabaseHas('cards', $data);
         Queue::assertPushed(SaveCardData::class, 1);
@@ -145,7 +145,7 @@ class CardControllerTest extends TestCase
             'description'        => 'cool new Description',
             'content'            => 'cool new content',
             'createdAt'          => $now,
-            'modifiedAt'         => $now,
+            'updatedAt'          => $now,
             'isFavorited'        => true,
         ];
 
@@ -154,9 +154,9 @@ class CardControllerTest extends TestCase
 
         $data = $newData;
         $data['actual_created_at'] = $now->toDateTimeString();
-        $data['actual_modified_at'] = $now->toDateTimeString();
+        $data['actual_updated_at'] = $now->toDateTimeString();
         $data['total_favorites'] = 1;
-        unset($data['createdAt'], $data['modifiedAt'], $data['isFavorited']);
+        unset($data['createdAt'], $data['updatedAt'], $data['isFavorited']);
 
         $this->assertDatabaseHas('cards', $data);
         $this->assertDatabaseHas('card_favorites', [

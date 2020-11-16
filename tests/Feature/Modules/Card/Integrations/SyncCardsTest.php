@@ -32,7 +32,7 @@ class SyncCardsTest extends TestCase
         $initialData = $this->getMockData();
         $title = 'My super cool title';
         $initialData[0]['data']['title'] = $title;
-        $initialData[0]['data']['actual_modified_at'] = '1701-01-01 10:35:00';
+        $initialData[0]['data']['actual_updated_at'] = '1701-01-01 10:35:00';
         [$syncCards, $data, $user] = $this->getSetup(null, $initialData);
 
         $cardIntegration = CardIntegration::find(1);
@@ -90,7 +90,7 @@ class SyncCardsTest extends TestCase
             'description'        => $card['description'],
             'url'                => $card['url'],
             'actual_created_at'  => $card['actual_created_at'],
-            'actual_modified_at' => $card['actual_modified_at'],
+            'actual_updated_at'  => $card['actual_updated_at'],
             'image'              => Config::get('app.url').Storage::url(ThumbnailHelper::IMAGE_FOLDER.'/'.$newCard->token),
             'image_width'        => $this->getMockThumbnail()->get('width'),
             'image_height'       => $this->getMockThumbnail()->get('height'),

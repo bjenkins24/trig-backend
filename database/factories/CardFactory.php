@@ -17,6 +17,6 @@ $factory->define(Card::class, static function (Faker $faker) {
         'url'                => $faker->url,
         'content'            => $faker->realText(rand(200, 400)),
         'actual_created_at'  => $faker->dateTime('2020-04-26 12:00:00'),
-        'actual_modified_at' => $faker->dateTime('2020-04-26 14:00:00'),
+        'actual_updated_at'  => $faker->dateTime('2020-04-26 14:00:00'),
     ];
 });

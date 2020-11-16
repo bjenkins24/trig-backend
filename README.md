@@ -68,7 +68,7 @@ commands below. But for reference this is what it does:
 
 # DB Design
 `cards`
-(id, user_id, card_type_id, link, title, description, image, actual_created_at actual_modified_at created_at modified_at)
+(id, user_id, card_type_id, link, title, description, image, actual_created_at actual_updated_at created_at modified_at)
 
 `card_favorites`
 (id, card_id, user_id)

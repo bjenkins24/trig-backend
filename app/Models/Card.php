@@ -29,7 +29,7 @@ use Laravel\Scout\Searchable;
  * @property int|null                                                             $image_width
  * @property string                                                               $url
  * @property \Illuminate\Support\Carbon                                           $actual_created_at
- * @property \Illuminate\Support\Carbon                                           $actual_modified_at
+ * @property \Illuminate\Support\Carbon                                           $actual_updated_at
  * @property \Illuminate\Support\Collection|null                                  $properties
  * @property \Illuminate\Support\Carbon|null                                      $created_at
  * @property \Illuminate\Support\Carbon|null                                      $updated_at
@@ -48,7 +48,7 @@ use Laravel\Scout\Searchable;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereActualCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereActualModifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereActualupdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereCardTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Card whereCreatedAt($value)
@@ -89,7 +89,7 @@ class Card extends Model
         'description',
         'image',
         'actual_created_at',
-        'actual_modified_at',
+        'actual_updated_at',
         'url',
         'content',
         'token',
@@ -102,7 +102,7 @@ class Card extends Model
      */
     protected $casts = [
         'actual_created_at'         => 'datetime',
-        'actual_modified_at'        => 'datetime',
+        'actual_updated_at'         => 'datetime',
         'properties'                => 'collection',
     ];
 
