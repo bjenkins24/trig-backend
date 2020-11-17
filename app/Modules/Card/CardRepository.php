@@ -134,7 +134,7 @@ class CardRepository
             ->orderBy('actual_created_at', 'desc')
             ->get();
 
-        return collect($result->map(function ($card) {
+        return collect($result->map(function ($card, $key) use ($hits, $constraints) {
             $lastAttemptedSync = null;
             if ($card->cardSync) {
                 $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
@@ -154,6 +154,20 @@ class CardRepository
             $fields['isFavorited'] = $isFavorited;
             $fields['lastAttemptedSync'] = $lastAttemptedSync;
             $fields['user'] = $user;
+            if ($constraints->contains('h')) {
+                $hit = $hits->first(static function ($hit) use ($card) {
+                    return (int) $hit['_id'] === $card->id;
+                });
+                if (! empty($hit['highlight'])) {
+                    $fields['highlights'] = [];
+                    if (! empty($hit['highlight']['title'])) {
+                        $fields['highlights']['title'] = $hit['highlight']['title'][0];
+                    }
+                    if (! empty($hit['highlight']['content'])) {
+                        $fields['highlights']['content'] = $hit['highlight']['content'][0];
+                    }
+                }
+            }
 
             return $fields;
         }));

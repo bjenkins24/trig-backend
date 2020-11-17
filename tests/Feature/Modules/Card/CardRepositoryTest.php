@@ -141,6 +141,7 @@ class CardRepositoryTest extends TestCase
         $fields->each(static function ($field) use ($data) {
             self::assertArrayHasKey($field, $data);
         });
+        self::assertArrayNotHasKey('highlights', $data);
 
         $user = $data['user'];
         $userFields->each(static function ($field) use ($user) {
@@ -159,6 +160,18 @@ class CardRepositoryTest extends TestCase
         });
         self::assertTrue($hasOne);
         self::assertTrue($hasTwo);
+    }
+
+    public function testSearchCardsHighlights(): void
+    {
+        $this->partialMock(CardRepository::class, static function ($mock) {
+            $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
+        });
+        $result = app(CardRepository::class)->searchCards(User::find(1), collect(['h' => true]));
+        $card = $result->get(0);
+        self::assertArrayHasKey('highlights', $card);
+        self::assertArrayHasKey('title', $card['highlights']);
+        self::assertArrayHasKey('content', $card['highlights']);
     }
 
     public function testDenormalizePermissions(): void
@@ -234,7 +247,7 @@ class CardRepositoryTest extends TestCase
         });
 
         $result = app(CardRepository::class)->dedupe($card1);
-        $this->assertTrue($result);
+        self::assertTrue($result);
 
         $this->assertDatabaseHas('card_duplicates', [
             'primary_card_id'   => 2,
@@ -441,7 +454,7 @@ class CardRepositoryTest extends TestCase
     public function testRemovePermissions(): void
     {
         $fields = [
-            'permissionable_type' => 'App\Models\Card',
+            'permissionable_type' => Card::class,
             'permissionable_id'   => 1,
             'capability_id'       => 1,
         ];
