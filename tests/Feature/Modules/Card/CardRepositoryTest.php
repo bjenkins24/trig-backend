@@ -167,7 +167,7 @@ class CardRepositoryTest extends TestCase
         $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
-        $result = app(CardRepository::class)->searchCards(User::find(1), collect(['h' => true]));
+        $result = app(CardRepository::class)->searchCards(User::find(1), collect(['h' => '1']));
         $card = $result->get(0);
         self::assertArrayHasKey('highlights', $card);
         self::assertArrayHasKey('title', $card['highlights']);
