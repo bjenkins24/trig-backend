@@ -386,7 +386,7 @@ class CardRepositoryTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
-        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => true], $card);
+        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'isFavorited' => true], $card);
         $this->assertDatabaseHas('cards', [
             'id'               => 1,
             'title'            => $title,
@@ -403,7 +403,7 @@ class CardRepositoryTest extends TestCase
             'user_id' => 1,
         ]);
 
-        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'favorited' => false], $card);
+        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'isFavorited' => false], $card);
 
         $this->assertDatabaseHas('cards', [
             'id'              => 1,

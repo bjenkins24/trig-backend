@@ -4,11 +4,15 @@ namespace Tests\Feature\Modules\Card\Integrations\Link;
 
 use App\Models\Card;
 use App\Modules\Card\Integrations\Link\LinkContent;
-use App\Utils\ExtractDataHelper;
+use App\Utils\WebsiteContentHelper;
+use Exception;
 use Tests\TestCase;
 
 class LinkContentTest extends TestCase
 {
+    /**
+     * @throws Exception
+     */
     public function testGetCardDataContent(): void
     {
         $mockWebsite = collect([
@@ -18,7 +22,7 @@ class LinkContentTest extends TestCase
             'excerpt'     => 'descipriton',
             'image'       => 'cool image',
         ]);
-        $this->mock(ExtractDataHelper::class, static function ($mock) use ($mockWebsite) {
+        $this->mock(WebsiteContentHelper::class, static function ($mock) use ($mockWebsite) {
             $mock->shouldReceive('getWebsite')->andReturn($mockWebsite);
         });
         $card = Card::find(1);

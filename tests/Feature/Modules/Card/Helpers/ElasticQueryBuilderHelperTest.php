@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Modules\Card\Helpers;
 
+use App\Models\Person;
 use App\Models\User;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use Tests\TestCase;
 
 class ElasticQueryBuilderHelperTest extends TestCase
 {
-    public function testMakePermissionsConditions()
+    public function testMakePermissionsConditions(): void
     {
         User::find(1)->teams()->create([
             'organization_id' => 1,
@@ -68,34 +69,7 @@ class ElasticQueryBuilderHelperTest extends TestCase
                                                 'filter' => [
                                                     [
                                                         'match' => [
-                                                            'permissions.type' => 'App/Models/Team',
-                                                        ],
-                                                    ],
-                                                    [
-                                                        'match' => [
-                                                            'permissions.id' => 1,
-                                                        ],
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                    [
-                        'nested' => [
-                            'path'  => 'permissions',
-                            'query' => [
-                                'bool' => [
-                                    'should' => [
-                                        [
-                                            'bool' => [
-                                                'filter' => [
-                                                    [
-                                                        'match' => [
-                                                            'permissions.type' => 'App\Models\User',
+                                                            'permissions.type' => User::class,
                                                         ],
                                                     ],
                                                     [
@@ -111,7 +85,7 @@ class ElasticQueryBuilderHelperTest extends TestCase
                                                 'filter' => [
                                                     [
                                                         'match' => [
-                                                            'permissions.type' => 'App\Models\Person',
+                                                            'permissions.type' => Person::class,
                                                         ],
                                                     ],
                                                     [
@@ -131,6 +105,6 @@ class ElasticQueryBuilderHelperTest extends TestCase
             ],
         ];
 
-        $this->assertEquals($expected, $result);
+        self::assertEquals($expected, $result);
     }
 }

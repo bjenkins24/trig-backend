@@ -161,7 +161,7 @@ class CardControllerTest extends TestCase
         $this->assertDatabaseHas('cards', $data);
         $this->assertDatabaseHas('card_favorites', [
             'card_id' => $newCard->get('id'),
-            'user_id' => $newCard->get('user_id'),
+            'user_id' => $newCard->get('userId'),
         ]);
         Queue::assertPushed(SaveCardData::class, 2);
     }
@@ -186,7 +186,7 @@ class CardControllerTest extends TestCase
             'title'       => 'new title',
             'description' => null,
         ];
-        $this->client('PUT', 'card', $update);
+        $this->client('PATCH', 'card', $update);
         $this->assertDatabaseHas('cards', [
             'url'         => $original['url'],
             'title'       => $update['title'],
@@ -200,7 +200,7 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardNotFound(): void
     {
-        $response = $this->client('PUT', 'card', ['id' => '12000']);
+        $response = $this->client('PATCH', 'card', ['id' => '12000']);
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(400, $response->getStatusCode());
     }
@@ -210,7 +210,7 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardForbidden(): void
     {
-        $response = $this->client('PUT', 'card', ['id' => '5']);
+        $response = $this->client('PATCH', 'card', ['id' => '5']);
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(403, $response->getStatusCode());
     }

@@ -184,7 +184,7 @@ class CardRepository
                 $newFields['totalFavorites'] = (int) $fieldValue;
             }
             // Fields to remove
-            if ('created_at' === $field || 'updated_at' === $field || 'properties' === $field) {
+            if ('created_at' === $field || 'updated_at' === $field || 'properties' === $field || 'card_sync' === $field || 'card_type' === $field) {
                 continue;
             }
             $newFields[Str::camel($field)] = $fieldValue;
