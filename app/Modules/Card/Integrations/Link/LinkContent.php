@@ -27,7 +27,7 @@ class LinkContent implements ContentInterface
 
         return collect([
             'title'        => $website->get('title'),
-            'content'      => $website->get('text'),
+            'content'      => $website->get('html'),
             'author'       => $website->get('author'),
             'description'  => $website->get('excerpt'),
             'image'        => $website->get('image'),

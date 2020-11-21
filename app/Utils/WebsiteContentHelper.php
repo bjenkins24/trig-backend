@@ -125,9 +125,7 @@ class WebsiteContentHelper
                 'author'  => $readability->getAuthor(),
                 'excerpt' => $readability->getExcerpt(),
                 'title'   => $readability->getTitle(),
-                'text'    => (new HtmlConverter(['strip_tags' => true]))->convert($readability),
                 'html'    => $readability->getContent(),
-                'dom'     => $readability->getDOMDocument(),
             ]);
         } catch (ReadabilityParseException $e) {
             echo sprintf('Error processing text: %s', $e->getMessage());
