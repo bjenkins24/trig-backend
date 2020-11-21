@@ -6,12 +6,13 @@ use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
 use Campo\UserAgent;
+use DOMDocument;
 use Exception;
-use Html2Text\Html2Text;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use League\HTMLToMarkdown\HtmlConverter;
 use Nesk\Puphpeteer\Puppeteer;
 
 class WebsiteContentHelper
@@ -67,6 +68,46 @@ class WebsiteContentHelper
         return $this->fullFetch($url);
     }
 
+    public function removeTag(string $html, string $tag): string
+    {
+        $doc = new DOMDocument();
+        $doc->loadHTML($html);
+        $tags = $doc->getElementsByTagName($tag);
+        $length = $tags->length;
+        for ($i = 0; $i < $length; ++$i) {
+            $tags->item($i)->parentNode->removeChild($tags->item($i));
+        }
+        $html = $doc->saveHTML();
+        $html = preg_replace('/<!DOCTYPE.*?<html>.*?<body>/ims', '', $html);
+
+        return str_replace('</body></html>', '', $html);
+    }
+
+    public function makeWebsiteSearchable(string $html): string
+    {
+        // Header tags don't render too well in plain text
+        // making the full size don't look good either so we're just removing them
+        $tagsToRemove = [
+            'script',
+            'style',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+        ];
+
+        foreach ($tagsToRemove as $tag) {
+            $html = $this->removeTag($html, $tag);
+        }
+
+        // This will remove images altogether, but it will also remove anchors while preserving their text content
+        $parsedHtml = strip_tags($html, '<p><em><strong><pre><b><i><ul><ol><li><table><tr><td><th><br><blockquote>');
+
+        return (new HtmlConverter(['strip_tags' => true]))->convert($parsedHtml);
+    }
+
     /**
      * @throws Exception
      */
@@ -84,8 +125,9 @@ class WebsiteContentHelper
                 'author'  => $readability->getAuthor(),
                 'excerpt' => $readability->getExcerpt(),
                 'title'   => $readability->getTitle(),
-                'text'    => (new Html2Text($readability))->getText(),
+                'text'    => (new HtmlConverter(['strip_tags' => true]))->convert($readability),
                 'html'    => $readability->getContent(),
+                'dom'     => $readability->getDOMDocument(),
             ]);
         } catch (ReadabilityParseException $e) {
             echo sprintf('Error processing text: %s', $e->getMessage());

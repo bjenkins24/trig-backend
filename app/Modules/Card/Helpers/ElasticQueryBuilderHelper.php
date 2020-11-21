@@ -181,17 +181,56 @@ class ElasticQueryBuilderHelper
         ];
     }
 
+    public function buildSpanCondition(string $field, string $word): array
+    {
+        return [
+            'span_multi' => [
+                'match' => [
+                    'fuzzy' => [
+                        $field => $word,
+                    ],
+                ],
+            ],
+        ];
+    }
+
     public function buildSearchCondition($constraints): ?array
     {
-        if (! $constraints->get('q')) {
+        $query = $constraints->get('q');
+        if (! $query) {
             return [];
         }
 
+        $query = str_replace('-', ' ', $query);
+        $words = collect(explode(' ', $query));
+
+        $queryTitle = $words->map(function ($word) {
+            return $this->buildSpanCondition('title', $word);
+        });
+
+        $queryContent = $words->map(function ($word) {
+            return $this->buildSpanCondition('content', $word);
+        });
+
         return [
-            'simple_query_string' => [
-                'query'  => $constraints->get('q'),
-                'fields' => ['title', 'content'],
-            ],
+           'bool' => [
+               'should' => [
+                   [
+                       'span_near' => [
+                           'clauses'  => $queryTitle->toArray(),
+                           'slop'     => 10,
+                           'in_order' => false,
+                       ],
+                   ],
+                   [
+                       'span_near' => [
+                           'clauses'  => $queryContent->toArray(),
+                           'slop'     => 200,
+                           'in_order' => false,
+                       ],
+                   ],
+               ],
+           ],
         ];
     }
 

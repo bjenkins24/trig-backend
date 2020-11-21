@@ -92,23 +92,29 @@ class CardRepository
     {
         $page = $constraints->get('p', 0);
 
-        return Card::rawSearch()
+        $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->highlightRaw([
-                'fields' => [
-                    'title' => [
-                        'number_of_fragments' => 1,
-                    ],
-                    'content' => [
-                        'number_of_fragments' => 1,
-                        'fragment_size'       => 200,
-                    ],
-                ],
-            ])
             ->from($page * self::SEARCH_LIMIT)
-            ->size(self::SEARCH_LIMIT)
-            ->raw();
+            ->size(self::SEARCH_LIMIT);
+
+        if ($constraints->get('h', 1) && $constraints->get('q')) {
+            $rawQuery->highlightRaw([
+                    'fields' => [
+                        'title' => [
+                            'order'               => 'score',
+                            'number_of_fragments' => 1,
+                        ],
+                        'content' => [
+                            'order'               => 'score',
+                            'fragment_size'       => 500,
+                            'number_of_fragments' => 1,
+                        ],
+                    ],
+                ]);
+        }
+
+        return $rawQuery->raw();
     }
 
     /**
@@ -125,14 +131,27 @@ class CardRepository
             return $hit['_id'];
         });
 
-        $result = Card::whereIn('cards.id', $ids)
+        $query = Card::whereIn('cards.id', $ids)
             ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites')
             ->with('user:id,first_name,last_name,email')
             ->with('cardType:id,name')
             ->with('cardFavorite:card_id')
-            ->with('cardSync:card_id,created_at')
-            ->orderBy('actual_created_at', 'desc')
-            ->get();
+            ->with('cardSync:card_id,created_at');
+
+        if (! $constraints->get('q')) {
+            $query->orderBy('actual_created_at', 'desc');
+        }
+
+        $result = $query->get();
+
+        if ($constraints->get('q')) {
+            // Sort by score
+            $result = $hits->map(static function ($hit) use ($result) {
+                return $result->first(static function ($card) use ($hit) {
+                    return $card->id === (int) $hit['_id'];
+                });
+            });
+        }
 
         return collect($result->map(function ($card) use ($hits, $constraints) {
             $lastAttemptedSync = null;

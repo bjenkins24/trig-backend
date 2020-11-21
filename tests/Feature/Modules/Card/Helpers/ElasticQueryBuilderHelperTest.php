@@ -107,4 +107,106 @@ class ElasticQueryBuilderHelperTest extends TestCase
 
         self::assertEquals($expected, $result);
     }
+
+    public function testBuildSearchCondition(): void
+    {
+        $result = app(ElasticQueryBuilderHelper::class)->buildSearchCondition(collect(['q' => 'my cool house-at']));
+
+        $expected = [
+            'bool' => [
+                'should' => [
+                    [
+                        'span_near' => [
+                            'clauses' => [
+                                [
+                                    'span_multi' => [
+                                        'match' => [
+                                            'fuzzy' => [
+                                                'title' => 'my',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'span_multi' => [
+                                        'match' => [
+                                            'fuzzy' => [
+                                                'title' => 'cool',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'span_multi' => [
+                                        'match' => [
+                                            'fuzzy' => [
+                                                'title' => 'house',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'span_multi' => [
+                                        'match' => [
+                                            'fuzzy' => [
+                                                'title' => 'at',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            'slop'     => 10,
+                            'in_order' => false,
+                        ],
+                        [
+                            'span_near' => [
+                                'clauses' => [
+                                    [
+                                        'span_multi' => [
+                                            'match' => [
+                                                'fuzzy' => [
+                                                    'title' => 'my',
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                    [
+                                        'span_multi' => [
+                                            'match' => [
+                                                'fuzzy' => [
+                                                    'title' => 'cool',
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                    [
+                                        'span_multi' => [
+                                            'match' => [
+                                                'fuzzy' => [
+                                                    'title' => 'house',
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                    [
+                                        'span_multi' => [
+                                            'match' => [
+                                                'fuzzy' => [
+                                                    'title' => 'at',
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                                'slop'     => 20,
+                                'in_order' => false,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        self::assertEquals($expected, $result);
+    }
 }

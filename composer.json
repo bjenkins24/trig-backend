@@ -26,9 +26,11 @@
         "laravel/passport": "^8.4",
         "laravel/scout": "^8.0",
         "laravel/tinker": "^2.0",
+        "league/html-to-markdown": "^4.10",
         "nesk/puphpeteer": "^1.6",
         "sentry/sentry-laravel": "^1.8",
-        "vaites/php-apache-tika": "^0.9.2"
+        "vaites/php-apache-tika": "^0.9.2",
+      "ext-dom": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.7",

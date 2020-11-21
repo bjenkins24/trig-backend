@@ -23,6 +23,7 @@ class LinkContent implements ContentInterface
     public function getCardContentData(Card $card, ?string $id = null, ?string $mimeType = null): Collection
     {
         $website = $this->websiteContentHelper->getWebsite($card->url);
+        $card->htmlContent = $website->get('html');
 
         return collect([
             'title'        => $website->get('title'),
