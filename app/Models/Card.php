@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Modules\Card\CardRepository;
+use App\Modules\CardType\CardTypeRepository;
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\HasCardDuplicates;
@@ -126,13 +127,15 @@ class Card extends Model
             $organizationId = $organization->id;
         }
 
+        $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
+
         return [
             'user_id'            => $this->user_id,
             'card_type_id'       => $this->card_type_id,
             'organization_id'    => $organizationId,
             'title'              => $this->title,
             'doc_title'          => $docTitle,
-            'content'            => app(WebsiteContentHelper::class)->makeWebsiteSearchable($this->content),
+            'content'            => $linkTypeId === $this->card_type_id ? app(WebsiteContentHelper::class)->makeContentSearchable($this->content) : $this->content,
             'permissions'        => $permissions,
             'actual_created_at'  => $this->actual_created_at,
             'card_duplicate_ids' => $cardDuplicateIds,

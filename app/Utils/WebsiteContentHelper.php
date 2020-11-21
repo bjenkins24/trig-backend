@@ -83,7 +83,7 @@ class WebsiteContentHelper
         return str_replace('</body></html>', '', $html);
     }
 
-    public function makeWebsiteSearchable(string $html): string
+    public function makeContentSearchable(string $html): string
     {
         // Header tags don't render too well in plain text
         // making the full size don't look good either so we're just removing them

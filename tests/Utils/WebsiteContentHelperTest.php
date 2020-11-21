@@ -19,9 +19,6 @@ class WebsiteContentHelperTest extends TestCase
         );
     }
 
-    /**
-     * @group n
-     */
     public function testMakeContentSearchable(): void
     {
         $testString = <<<EOD
@@ -56,7 +53,7 @@ My cool link
 > Hello
 EOD;
 
-        $result = app(WebsiteContentHelper::class)->makeWebsiteSearchable($testString);
+        $result = app(WebsiteContentHelper::class)->makeContentSearchable($testString);
         self::assertEquals($expected, $result);
     }
 
