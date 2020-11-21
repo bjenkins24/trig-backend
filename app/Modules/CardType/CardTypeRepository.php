@@ -16,6 +16,6 @@ class CardTypeRepository
 
     public function findByName(string $name): CardType
     {
-        return CardType::where('name', '=', $name);
+        return CardType::where('name', '=', $name)->first();
     }
 }
