@@ -71,7 +71,11 @@ class WebsiteContentHelper
     public function removeTag(string $html, string $tag): string
     {
         $doc = new DOMDocument();
-        $doc->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        try {
+            $doc->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        } catch (Exception $error) {
+            return $html;
+        }
         $tags = $doc->getElementsByTagName($tag);
         $length = $tags->length;
         for ($i = 0; $i < $length; ++$i) {
@@ -83,8 +87,11 @@ class WebsiteContentHelper
         return $doc->saveHTML();
     }
 
-    public function makeContentSearchable(string $html): string
+    public function makeContentSearchable(?string $html): string
     {
+        if (! $html) {
+            return '';
+        }
         // Header tags don't render too well in plain text
         // making the full size don't look good either so we're just removing them
         $tagsToRemove = [

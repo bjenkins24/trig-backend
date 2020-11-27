@@ -194,8 +194,11 @@ class CardController extends Controller
 
     public function getAll(Request $request)
     {
-        $cards = $this->cardRepository->searchCards($request->user(), collect($request->all()));
+        $results = $this->cardRepository->searchCards($request->user(), collect($request->all()));
 
-        return response()->json(['data' => $cards]);
+        return response()->json([
+            'data' => $results->get('cards'),
+            'meta' => $results->get('meta'),
+        ]);
     }
 }

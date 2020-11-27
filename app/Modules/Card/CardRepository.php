@@ -28,7 +28,7 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
-    private const SEARCH_LIMIT = 90;
+    private const DEFAULT_SEARCH_LIMIT = 20;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
@@ -91,12 +91,13 @@ class CardRepository
     public function searchCardsRaw(User $user, Collection $constraints): array
     {
         $page = $constraints->get('p', 0);
+        $limit = $constraints->get('l', self::DEFAULT_SEARCH_LIMIT);
 
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->from($page * self::SEARCH_LIMIT)
-            ->size(self::SEARCH_LIMIT);
+            ->from($page * $limit)
+            ->size($limit);
 
         if ($constraints->get('h', 1) && $constraints->get('q')) {
             $rawQuery->highlightRaw([
@@ -129,6 +130,7 @@ class CardRepository
         }
         $result = $this->searchCardsRaw($user, $constraints);
         $hits = collect($result['hits']['hits']);
+        $totalResults = $result['hits']['total']['value'];
         $ids = $hits->map(static function ($hit) {
             return $hit['_id'];
         });
@@ -147,15 +149,27 @@ class CardRepository
         $result = $query->get();
 
         if ($constraints->get('q')) {
-            // Sort by score
             $result = $hits->map(static function ($hit) use ($result) {
-                return $result->first(static function ($card) use ($hit) {
+                // Sort by score
+                $final = $result->first(static function ($card) use ($hit) {
                     return $card->id === (int) $hit['_id'];
                 });
+                // Add id of elastic search hit that _isn't_ in mysql
+                if (! $final) {
+                    return collect(['id' => $hit['_id']]);
+                }
+
+                return $final;
             });
         }
 
-        return collect($result->map(function ($card) use ($hits, $constraints) {
+        $result = collect($result->map(function ($card) use ($hits, $constraints) {
+            // If the card exists in elastic search, but not in the database we need to set up a guard
+            if (! $card->get('title')) {
+                Log::notice('A card exists in elastic search, but not within the database. Card id: '.$card->get('id'));
+                // TODO: It's probably safe to remove the card from elastic search here
+                return [];
+            }
             $lastAttemptedSync = null;
             if ($card->cardSync) {
                 $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
@@ -192,6 +206,18 @@ class CardRepository
 
             return $fields;
         }));
+
+        return collect([
+            // We may have an empty card if the card exists in elastic search, but not mysql
+            'cards' => $result->filter(static function ($card) {
+                return ! empty($card);
+            }),
+            'meta' => [
+                'page'         => (int) $constraints->get('p'),
+                'totalPages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
+                'totalResults' => $totalResults,
+            ],
+        ]);
     }
 
     public function mapToFields(Card $card): array
@@ -416,6 +442,9 @@ class CardRepository
         if (! $newFields->get('actual_updated_at')) {
             $newFields->put('actual_updated_at', Carbon::now());
         }
+
+        // Remove text matching if a user included it in the url
+        $newFields->put('url', substr($newFields->get('url'), 0, strpos($newFields->get('url'), '#:~:text')));
 
         $newFields->put('token', bin2hex(random_bytes(24)));
 

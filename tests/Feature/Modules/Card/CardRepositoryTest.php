@@ -39,7 +39,7 @@ class CardRepositoryTest extends TestCase
                     '_index'  => 'card',
                     '_type'   => 'cards',
                     '_id'     => '1',
-                    '_score'  => 1.0,
+                    '_score'  => 0.5,
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 1,
@@ -73,6 +73,31 @@ class CardRepositoryTest extends TestCase
                         'card_type_id'      => 2,
                         'organization_id'   => 3,
                         'title'             => 'Interview with a Engineer',
+                        'doc_title'         => null,
+                        'content'           => '',
+                        'permissions'       => [],
+                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
+                        'card_duplicate_ids'=> '10',
+                    ],
+                    'fields' => [
+                        'card_duplicate_ids' => ['11'],
+                    ],
+                    'highlight' => [
+                        'title' => [
+                            '<em>Interview<\/em> with a Engineer',
+                        ],
+                    ],
+                ],
+                [
+                    '_index'  => 'card',
+                    '_type'   => 'cards',
+                    '_id'     => '29084129',
+                    '_score'  => 1.0,
+                    '_source' => [
+                        'user_id'           => 7,
+                        'card_type_id'      => 2,
+                        'organization_id'   => 3,
+                        'title'             => "This one isn't in the db",
                         'doc_title'         => null,
                         'content'           => '',
                         'permissions'       => [],
@@ -137,7 +162,19 @@ class CardRepositoryTest extends TestCase
             'lastName',
         ]);
 
-        $data = $result->get(0);
+        self::assertEquals([
+            'totalPages'   => 202,
+            'page'         => 0,
+            'totalResults' => 4026,
+        ], $result->get('meta'));
+        // Reverse the order - sort by score check
+        self::assertEquals(2, $result->get('cards')[0]['id']);
+        self::assertEquals(1, $result->get('cards')[1]['id']);
+
+        // The last hit shouldn't exist because it's an ID that doesn't exist in the DB
+        self::assertEmpty($result->get(2));
+
+        $data = $result->get('cards')[0];
         $fields->each(static function ($field) use ($data) {
             self::assertArrayHasKey($field, $data);
         });
@@ -150,7 +187,7 @@ class CardRepositoryTest extends TestCase
 
         $hasOne = false;
         $hasTwo = false;
-        $result->each(static function ($card) use (&$hasOne, &$hasTwo) {
+        $result->get('cards')->each(static function ($card) use (&$hasOne, &$hasTwo) {
             if (1 === $card['id']) {
                 $hasOne = true;
             }
@@ -433,7 +470,7 @@ class CardRepositoryTest extends TestCase
             'title'              => $newCardTitle,
             'user_id'            => 1,
             'card_type_id'       => 2,
-            'url'                => 'haha',
+            'url'                => 'https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576#:~:text=turkey,-%20and%20wash%20the%20turkey',
             'actual_created_at'  => '123',
             'actual_updated_at'  => '123',
             'favorited'          => false,
@@ -445,7 +482,9 @@ class CardRepositoryTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('cards', [
-            'title' => $newCardTitle,
+            'title'        => $newCardTitle,
+            'url'          => 'https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+            'card_type_id' => 2,
         ]);
         self::assertEquals($newCard->title, $newCardTitle);
         $this->refreshDb();
