@@ -44,14 +44,19 @@ class WebsiteContentHelper
     public function fullFetch(string $url): string
     {
         $puppeteer = new Puppeteer();
-        $browser = $puppeteer->launch();
+        try {
+            $browser = $puppeteer->launch();
 
-        $page = $browser->newPage();
-        $page->setExtraHTTPHeaders($this->getHeaders());
-        $page->goto($url);
-        $content = $page->content();
+            $page = $browser->newPage();
+            $page->setExtraHTTPHeaders($this->getHeaders());
+            $page->goto($url);
+            $content = $page->content();
 
-        $browser->close();
+            $browser->close();
+        } catch (Exception $exception) {
+            // Timed out
+            $content = '';
+        }
 
         return $content;
     }

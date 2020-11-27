@@ -8,6 +8,7 @@ use App\Jobs\SaveCardData;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Exception;
@@ -58,18 +59,25 @@ class CardController extends Controller
         $cardTypeKey = $request->get('card_type') ?? 'link';
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
-        $card = $this->cardRepository->updateOrInsert([
-            'card_type_id'        => $cardType->id,
-            'user_id'             => $user->id,
-            'url'                 => $request->url,
-            'title'               => $request->get('title') ?? $request->get('url'),
-            'description'         => $request->get('description'),
-            'content'             => $request->get('content'),
-            'actual_created_at'   => $request->get('createdAt'),
-            'actual_updated_at'   => $request->get('updatedAt'),
-            'image'               => $request->get('image'),
-            'favorited'           => $request->get('isFavorited'),
-        ]);
+        try {
+            $card = $this->cardRepository->updateOrInsert([
+                'card_type_id'      => $cardType->id,
+                'user_id'           => $user->id,
+                'url'               => $request->url,
+                'title'             => $request->get('title') ?? $request->get('url'),
+                'description'       => $request->get('description'),
+                'content'           => $request->get('content'),
+                'actual_created_at' => $request->get('createdAt'),
+                'actual_updated_at' => $request->get('updatedAt'),
+                'image'             => $request->get('image'),
+                'favorited'         => $request->get('isFavorited'),
+            ]);
+        } catch (CardExists $exception) {
+            return response()->json([
+                'error'   => 'exists',
+                'message' => $exception,
+            ]);
+        }
 
         if (! $card) {
             return response()->json([
@@ -151,10 +159,17 @@ class CardController extends Controller
             return $data[$field] = $fieldValue;
         });
 
-        $card = $this->cardRepository->updateOrInsert(
-            array_merge(['user_id' => $user->id], $data),
-            $card
-        );
+        try {
+            $card = $this->cardRepository->updateOrInsert(
+                array_merge(['user_id' => $user->id], $data),
+                $card
+            );
+        } catch (CardExists $exception) {
+            return response()->json([
+                'error'   => 'exists',
+                'message' => $exception,
+            ]);
+        }
 
         $cardType = CardType::find($card->card_type_id)->name;
         if ($this->oauthIntegrationService->isIntegrationValid($cardType)) {

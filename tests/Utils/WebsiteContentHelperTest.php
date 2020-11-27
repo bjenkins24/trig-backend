@@ -60,13 +60,6 @@ EOD;
         self::assertEquals('', $result);
     }
 
-    public function testGetWebsite(): void
-    {
-        $result = app(WebsiteContentHelper::class)->getWebsite('https://www.productplan.com/glossary/feature-less-roadmap/');
-        $result = app(WebsiteContentHelper::class)->makeContentSearchable($result['html']);
-        dd($result);
-    }
-
     public function adjustUrlProvider(): array
     {
         return [

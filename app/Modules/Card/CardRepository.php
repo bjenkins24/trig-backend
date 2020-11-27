@@ -9,6 +9,7 @@ use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Organization;
 use App\Models\User;
+use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
@@ -420,6 +421,40 @@ class CardRepository
         $card->save();
     }
 
+    public function cardExists(string $url, int $userId, ?int $cardId = null): bool
+    {
+        // Get common starting url - https and www
+        if (! Str::contains($url, '://')) {
+            $url = 'https://'.$url;
+        }
+        if (! Str::contains($url, '://www.')) {
+            $url = Str::replaceFirst('://', '://www.', $url);
+        }
+        $url = Str::replaceFirst('http://', 'https://', $url);
+
+        $query = Card::where('user_id', $userId)
+            ->where(static function ($query) use ($url) {
+                // https://www.mycooltest.com
+                $query->where('url', $url)
+                    // https://mycooltest.com
+                    ->orWhere('url', Str::replaceFirst('www.', '', $url))
+                    // http://www.mycooltest.com
+                    ->orWhere('url', Str::replaceFirst('https://', 'http://', $url))
+                    // http://mycooltest.com
+                    ->orWhere('url', Str::replaceFirst('www.', '', Str::replaceFirst('https://', 'http://', $url)))
+                    // mycooltest.com
+                    ->orWhere('url', Str::replaceFirst('https://www.', '', $url))
+                    // www.mycooltest.com
+                    ->orWhere('url', Str::replaceFirst('https://', '', $url));
+            });
+
+        if ($cardId) {
+            $query->where('id', '!=', $cardId);
+        }
+
+        return $query->exists();
+    }
+
     /**
      * @throws Exception
      */
@@ -427,6 +462,10 @@ class CardRepository
     {
         $newFields = collect($fields);
         if ($card) {
+            // If the url already exists on a different card let's not let them make an update
+            if ($newFields->get('url') && $this->cardExists($newFields->get('url'), (int) $card->user_id, $card->id)) {
+                throw new CardExists('This user already has a card with this url. The update was unsuccessful.');
+            }
             $card->update($fields);
             if ($newFields->get('image')) {
                 $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
@@ -436,6 +475,10 @@ class CardRepository
             return $card;
         }
 
+        if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {
+            throw new CardExists('This user already has a card with this url. The card was not created.');
+        }
+
         if (! $newFields->get('actual_created_at')) {
             $newFields->put('actual_created_at', Carbon::now());
         }
@@ -443,8 +486,10 @@ class CardRepository
             $newFields->put('actual_updated_at', Carbon::now());
         }
 
-        // Remove text matching if a user included it in the url
-        $newFields->put('url', substr($newFields->get('url'), 0, strpos($newFields->get('url'), '#:~:text')));
+        // Remove text matching if a user included it in the url so search will work correctly
+        if (Str::contains($newFields->get('url'), '#:~:text')) {
+            $newFields->put('url', substr($newFields->get('url'), 0, strpos($newFields->get('url'), '#:~:text')));
+        }
 
         $newFields->put('token', bin2hex(random_bytes(24)));
 

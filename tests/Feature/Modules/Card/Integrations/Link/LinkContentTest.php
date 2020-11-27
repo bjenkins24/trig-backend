@@ -15,6 +15,7 @@ class LinkContentTest extends TestCase
      */
     public function testGetCardDataContent(): void
     {
+        $this->refreshDb();
         $mockWebsite = collect([
             'title'       => 'hello',
             'text'        => 'cool text',
@@ -31,7 +32,7 @@ class LinkContentTest extends TestCase
 
         self::assertEquals(collect([
             'title'       => $mockWebsite->get('title'),
-            'content'     => $mockWebsite->get('text'),
+            'content'     => $mockWebsite->get('html'),
             'author'      => $mockWebsite->get('author'),
             'description' => $mockWebsite->get('excerpt'),
             'image'       => $mockWebsite->get('image'),

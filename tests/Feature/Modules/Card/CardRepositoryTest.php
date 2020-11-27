@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Person;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ThumbnailHelper;
@@ -38,8 +39,36 @@ class CardRepositoryTest extends TestCase
                 [
                     '_index'  => 'card',
                     '_type'   => 'cards',
+                    '_id'     => '2',
+                    '_score'  => 1.0,
+                    '_source' => [
+                        'user_id'           => 7,
+                        'card_type_id'      => 2,
+                        'organization_id'   => 3,
+                        'title'             => 'Interview with a Engineer',
+                        'doc_title'         => null,
+                        'content'           => '',
+                        'permissions'       => [],
+                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
+                        'card_duplicate_ids'=> '10',
+                    ],
+                    'fields' => [
+                        'card_duplicate_ids' => ['11'],
+                    ],
+                    'highlight' => [
+                        'title' => [
+                            '<em>Interview<\/em> with a Engineer',
+                        ],
+                        'content' => [
+                            '<em>Cool<\/em> content with engineer',
+                        ],
+                    ],
+                ],
+                [
+                    '_index'  => 'card',
+                    '_type'   => 'cards',
                     '_id'     => '1',
-                    '_score'  => 0.5,
+                    '_score'  => 0.7,
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 1,
@@ -66,33 +95,8 @@ class CardRepositoryTest extends TestCase
                 [
                     '_index'  => 'card',
                     '_type'   => 'cards',
-                    '_id'     => '2',
-                    '_score'  => 1.0,
-                    '_source' => [
-                        'user_id'           => 7,
-                        'card_type_id'      => 2,
-                        'organization_id'   => 3,
-                        'title'             => 'Interview with a Engineer',
-                        'doc_title'         => null,
-                        'content'           => '',
-                        'permissions'       => [],
-                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
-                        'card_duplicate_ids'=> '10',
-                    ],
-                    'fields' => [
-                        'card_duplicate_ids' => ['11'],
-                    ],
-                    'highlight' => [
-                        'title' => [
-                            '<em>Interview<\/em> with a Engineer',
-                        ],
-                    ],
-                ],
-                [
-                    '_index'  => 'card',
-                    '_type'   => 'cards',
                     '_id'     => '29084129',
-                    '_score'  => 1.0,
+                    '_score'  => 0.5,
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 2,
@@ -138,7 +142,7 @@ class CardRepositoryTest extends TestCase
         $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
-        $result = app(CardRepository::class)->searchCards(User::find(1));
+        $result = app(CardRepository::class)->searchCards(User::find(1), collect(['q' => 'test']));
 
         $fields = collect([
             'id',
@@ -167,6 +171,7 @@ class CardRepositoryTest extends TestCase
             'page'         => 0,
             'totalResults' => 4026,
         ], $result->get('meta'));
+
         // Reverse the order - sort by score check
         self::assertEquals(2, $result->get('cards')[0]['id']);
         self::assertEquals(1, $result->get('cards')[1]['id']);
@@ -205,7 +210,7 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
         $result = app(CardRepository::class)->searchCards(User::find(1), collect(['h' => '1']));
-        $card = $result->get(0);
+        $card = $result->get('cards')[0];
         self::assertArrayHasKey('highlights', $card);
         self::assertArrayHasKey('title', $card['highlights']);
         self::assertArrayHasKey('content', $card['highlights']);
@@ -427,6 +432,42 @@ class CardRepositoryTest extends TestCase
 
     /**
      * @throws Exception
+     * @dataProvider urlProvider
+     */
+    public function testCardExists(string $testUrl, bool $expectedExist): void
+    {
+        $url = 'https://www.mycooltest.com';
+        $this->refreshDb();
+        app(CardRepository::class)->updateOrInsert([
+            'url'          => $url,
+            'title'        => 'my cool test',
+            'user_id'      => 1,
+            'card_type_id' => 1,
+        ]);
+        $exists = app(CardRepository::class)->cardExists($testUrl, 1);
+        self::assertEquals($exists, $expectedExist);
+        $exists = app(CardRepository::class)->cardExists($url, 2);
+        self::assertFalse($exists);
+    }
+
+    public function urlProvider(): array
+    {
+        return [
+            ['https://www.mycooltest.com', true],
+            ['https://mycooltest.com', true],
+            ['http://www.mycooltest.com', true],
+            ['http://mycooltest.com', true],
+            ['www.mycooltest.com', true],
+            ['mycooltest.com', true],
+            ['mycooltest', false],
+            // We're allowing duplicate urls with a hash because some JS routers use a hash instead of a normal url to route to different internal pages
+            ['mycooltest.com#mytag', false],
+            ['mycooltest.net', false],
+        ];
+    }
+
+    /**
+     * @throws Exception
      */
     public function testUpdateOrInsert(): void
     {
@@ -436,7 +477,13 @@ class CardRepositoryTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
-        app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'isFavorited' => true], $card);
+        $firstCardUrl = 'https://firstCardUrl.com';
+        app(CardRepository::class)->updateOrInsert([
+            'url'         => $firstCardUrl,
+            'title'       => $title,
+            'image'       => 'cool_image',
+            'isFavorited' => true,
+        ], $card);
         $this->assertDatabaseHas('cards', [
             'id'               => 1,
             'title'            => $title,
@@ -480,6 +527,30 @@ class CardRepositoryTest extends TestCase
             'card_id' => 6,
             'user_id' => 1,
         ]);
+
+        // Try an existing card with a url that already exists
+        try {
+            app(CardRepository::class)->updateOrInsert([
+                'user_id'            => 1,
+                'url'                => $firstCardUrl,
+            ], $newCard);
+            // This should never be reached
+            self::assertFalse(true);
+        } catch (CardExists $exception) {
+            self::assertTrue(true);
+        }
+
+        // Try a new card with a url that already exists - it should throw an error
+        try {
+            app(CardRepository::class)->updateOrInsert([
+                'user_id' => 1,
+                'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+                'title'   => $newCardTitle,
+            ], null);
+            self::assertFalse(true);
+        } catch (CardExists $exception) {
+            self::assertTrue(true);
+        }
 
         $this->assertDatabaseHas('cards', [
             'title'        => $newCardTitle,

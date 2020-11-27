@@ -47,7 +47,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected function getResponseData($response, string $type = 'data'): Collection
     {
-        if ('data' === $type) {
+        if ('data' === $type || 'meta' === $type) {
             return collect(json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR)[$type]);
         }
 

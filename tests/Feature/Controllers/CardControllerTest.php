@@ -105,6 +105,22 @@ class CardControllerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testGetAll(): void
+    {
+        $this->mock(CardRepository::class, static function ($mock) {
+            $mock->shouldReceive('searchCards')->andReturn(collect([
+               'cards' => 'cards',
+               'meta'  => 'meta',
+            ]));
+        });
+        $response = $this->client('GET', 'cards');
+        self::assertEquals('cards', $this->getResponseData($response, 'data')->get(0));
+        self::assertEquals('meta', $this->getResponseData($response, 'meta')->get(0));
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testGetCardNotFound(): void
     {
         $response = $this->client('GET', 'card/100');
