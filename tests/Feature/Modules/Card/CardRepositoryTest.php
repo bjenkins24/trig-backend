@@ -167,7 +167,7 @@ class CardRepositoryTest extends TestCase
         ]);
 
         self::assertEquals([
-            'totalPages'   => 202,
+            'totalPages'   => (int) ceil(4026 / CardRepository::DEFAULT_SEARCH_LIMIT),
             'page'         => 0,
             'totalResults' => 4026,
         ], $result->get('meta'));

@@ -29,7 +29,7 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
-    private const DEFAULT_SEARCH_LIMIT = 21;
+    public const DEFAULT_SEARCH_LIMIT = 20;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
