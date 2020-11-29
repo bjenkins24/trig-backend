@@ -29,7 +29,7 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
-    private const DEFAULT_SEARCH_LIMIT = 20;
+    private const DEFAULT_SEARCH_LIMIT = 21;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
@@ -137,7 +137,7 @@ class CardRepository
         });
 
         $query = Card::whereIn('cards.id', $ids)
-            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites')
+            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites', 'description')
             ->with('user:id,first_name,last_name,email')
             ->with('cardType:id,name')
             ->with('cardFavorite:card_id')

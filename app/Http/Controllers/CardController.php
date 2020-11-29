@@ -75,8 +75,8 @@ class CardController extends Controller
         } catch (CardExists $exception) {
             return response()->json([
                 'error'   => 'exists',
-                'message' => $exception,
-            ]);
+                'message' => $exception->getMessage(),
+            ], 409);
         }
 
         if (! $card) {
@@ -167,8 +167,8 @@ class CardController extends Controller
         } catch (CardExists $exception) {
             return response()->json([
                 'error'   => 'exists',
-                'message' => $exception,
-            ]);
+                'message' => $exception->getMessage(),
+            ], 409);
         }
 
         $cardType = CardType::find($card->card_type_id)->name;

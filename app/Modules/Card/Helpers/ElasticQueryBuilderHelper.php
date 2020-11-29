@@ -201,7 +201,8 @@ class ElasticQueryBuilderHelper
             return [];
         }
 
-        $query = str_replace('-', ' ', $query);
+        // Lower case the query string ES requires it to be lower case
+        $query = strtolower(str_replace('/', ' ', str_replace('-', ' ', $query)));
         $words = collect(explode(' ', $query));
 
         $queryTitle = $words->map(function ($word) {
@@ -225,7 +226,7 @@ class ElasticQueryBuilderHelper
                    [
                        'span_near' => [
                            'clauses'  => $queryContent->toArray(),
-                           'slop'     => 200,
+                           'slop'     => 1000,
                            'in_order' => false,
                        ],
                    ],

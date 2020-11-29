@@ -32,7 +32,7 @@
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Utils/FileHelper.php</file>
-                <file>./app/Utils/WebsiteContentHelper.php</file>
+                <file>./app/Utils/WebsiteExtraction/WebsiteExtractionHelper.php</file>
                 <file>./app/Modules/Card/Integrations/Google/GoogleConnection.php</file>
                 <!-- There are some methods in this service that aren't worth it to test some that are -->
                 <file>./app/Modules/OauthConnection/OauthConnectionService.php</file>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Utils;
+namespace App\Utils\WebsiteExtraction;
 
 use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
@@ -11,20 +11,27 @@ use Exception;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use League\HTMLToMarkdown\HtmlConverter;
+use Mews\Purifier\Facades\Purifier;
 use Nesk\Puphpeteer\Puppeteer;
 
-class WebsiteContentHelper
+class WebsiteExtractionHelper
 {
     private function getHeaders(): array
     {
-        return [
-            'User-Agent'      => UserAgent::random(),
+        $headers = [
             'Accept-Encoding' => 'gzip, deflate, br',
             'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language' => 'en,en-US;q=0,5',
-       ];
+        ];
+        try {
+            $headers['User-Agent'] = UserAgent::random();
+        } catch (Exception $e) {
+            // No-op
+            // If for some reason we can't get a user agent, it's ok to just continue
+        }
+
+        return $headers;
     }
 
     /**
@@ -59,18 +66,6 @@ class WebsiteContentHelper
         }
 
         return $content;
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function fetchWebsite(string $url): string
-    {
-        if (Str::contains($url, 'docs.google.com')) {
-            return $this->simpleFetch($url);
-        }
-
-        return $this->fullFetch($url);
     }
 
     public function removeTag(string $html, string $tag): string
@@ -122,51 +117,29 @@ class WebsiteContentHelper
         return (new HtmlConverter(['strip_tags' => true]))->convert($parsedHtml);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function getWebsite(string $url): Collection
+    public function parseHtml(string $html): Collection
     {
         $readability = new Readability(new ReadabilityConfiguration());
-        $url = $this->adjustUrl($url);
-        $html = $this->fetchWebsite($url);
 
         try {
             $readability->parse($html);
+
+            $parsedHtml = $readability->getContent();
+            if ($parsedHtml) {
+                $parsedHtml = Purifier::clean($parsedHtml);
+            }
 
             return collect([
                 'image'   => $readability->getImage(),
                 'author'  => $readability->getAuthor(),
                 'excerpt' => $readability->getExcerpt(),
                 'title'   => $readability->getTitle(),
-                'html'    => $readability->getContent(),
+                'html'    => $parsedHtml,
             ]);
         } catch (ReadabilityParseException $e) {
             echo sprintf('Error processing text: %s', $e->getMessage());
 
             return collect([]);
         }
-    }
-
-    /**
-     * Some types of urls need a bit of fudging to get the right content. For example
-     * google docs files.
-     */
-    public function adjustUrl(string $url): string
-    {
-        $adjustedUrl = $url;
-        // We want the end of the url to be `/export/html` for google docs files
-        if (Str::contains($url, 'docs.google.com')) {
-            // example: https://docs.google.com/document/d/1UQ8oR8EqHrOB9DCmbPIfopVeSP-I18Ot4nTDW_VSlPs/edit
-            $result = explode('/', $adjustedUrl);
-            $removeString = $result[6] ?? '';
-            $adjustedUrl = str_replace($removeString, '', $adjustedUrl);
-            if ('/' === substr($adjustedUrl, -1)) {
-                $adjustedUrl = substr($adjustedUrl, 0, -1);
-            }
-            $adjustedUrl .= '/export/html';
-        }
-
-        return $adjustedUrl;
     }
 }

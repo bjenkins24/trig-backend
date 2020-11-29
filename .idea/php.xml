@@ -176,6 +176,8 @@
       <path value="$PROJECT_DIR$/vendor/clue/socket-raw" />
       <path value="$PROJECT_DIR$/vendor/campo/random-user-agent" />
       <path value="$PROJECT_DIR$/vendor/league/html-to-markdown" />
+      <path value="$PROJECT_DIR$/vendor/ezyang/htmlpurifier" />
+      <path value="$PROJECT_DIR$/vendor/mews/purifier" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.4" />

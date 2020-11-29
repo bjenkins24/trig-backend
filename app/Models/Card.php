@@ -12,7 +12,7 @@ use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
-use App\Utils\WebsiteContentHelper;
+use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use ElasticScoutDriverPlus\CustomSearch;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
@@ -135,7 +135,7 @@ class Card extends Model
             'organization_id'    => $organizationId,
             'title'              => $this->title,
             'doc_title'          => $docTitle,
-            'content'            => $linkTypeId === $this->card_type_id ? app(WebsiteContentHelper::class)->makeContentSearchable($this->content) : $this->content,
+            'content'            => $linkTypeId === $this->card_type_id ? app(WebsiteExtractionHelper::class)->makeContentSearchable($this->content) : $this->content,
             'permissions'        => $permissions,
             'actual_created_at'  => $this->actual_created_at,
             'card_duplicate_ids' => $cardDuplicateIds,

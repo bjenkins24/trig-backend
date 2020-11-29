@@ -160,6 +160,12 @@ class SyncCards
         }
 
         $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
+        // If there's no card content we should just stop. If this is in error, `getCardContentData` will do the
+        // retry logic and logging. This can be a legitimate result of getCardContentData though, so we're just going
+        // to no-op here instead of logging
+        if ($data->isEmpty()) {
+            return false;
+        }
 
         if ($data->get('image')) {
             $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
