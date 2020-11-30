@@ -3,6 +3,7 @@
 namespace Tests\Feature\Controllers;
 
 use App\Jobs\SaveCardData;
+use App\Models\CardSync;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
 use Illuminate\Support\Carbon;
@@ -138,6 +139,37 @@ class CardControllerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @group n
+     */
+    public function testUpdateCardSaveData(): void
+    {
+        $this->refreshDb();
+        Queue::fake();
+
+        $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
+        $newCard = $this->getResponseData($response);
+        CardSync::where('card_id', $newCard->get('id'))->delete();
+
+        $now = Carbon::now();
+
+        $newData = [
+            'id'                 => $newCard->get('id'),
+            'url'                => 'https://newurl.com',
+            'title'              => 'Cool new url',
+            'description'        => 'cool new Description',
+            'content'            => 'cool new content',
+            'createdAt'          => $now,
+            'updatedAt'          => $now,
+            'isFavorited'        => true,
+        ];
+
+        $this->client('PATCH', 'card', $newData);
+
+        Queue::assertPushed(SaveCardData::class, 2);
+    }
+
+    /**
+     * @throws JsonException
      */
     public function testUpdateCardSuccess(): void
     {
@@ -179,7 +211,7 @@ class CardControllerTest extends TestCase
             'card_id' => $newCard->get('id'),
             'user_id' => $newCard->get('userId'),
         ]);
-        Queue::assertPushed(SaveCardData::class, 2);
+        Queue::assertPushed(SaveCardData::class, 1);
     }
 
     /**

@@ -9,43 +9,30 @@ use App\Models\Card;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
+use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use JsonException;
 
 class CardController extends Controller
 {
-//     public function get(Request $request, ?string $queryConstraints = null)
-//     {
-//         $user = $request->user();
-//         $organization = $user->organizations()->first();
-//         $users = $organization->users()->pluck('users.id');
-//         $cards = Card::whereIn('user_id', $users)
-//             ->select('id', 'user_id', 'title', 'card_type_id', 'image', 'actual_created_at', 'url')
-//             ->with(['user:id,first_name,last_name,email'])
-//             ->orderBy('actual_created_at', 'desc')
-//             ->paginate(25);
-//         $cards = parse_str($queryConstraints, $queryConstraints);
-//         collect($queryConstraints);
-//
-//         return response()->json(['data' => $cards]);
-//     }
-
     private CardRepository $cardRepository;
     private CardTypeRepository $cardTypeRepository;
+    private CardSyncRepository $cardSyncRepository;
     private OauthIntegrationService $oauthIntegrationService;
 
     public function __construct(
         CardRepository $cardRepo,
         CardTypeRepository $cardTypeRepository,
+        CardSyncRepository $cardSyncRepository,
         OauthIntegrationService $oauthIntegrationService
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
+        $this->cardSyncRepository = $cardSyncRepository;
         $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
@@ -172,7 +159,11 @@ class CardController extends Controller
         }
 
         $cardType = CardType::find($card->card_type_id)->name;
-        if ($this->oauthIntegrationService->isIntegrationValid($cardType)) {
+        $secondsSinceLastSync = $this->cardSyncRepository->secondsSinceLastAttempt($card->id);
+        if (
+            (! $secondsSinceLastSync || $secondsSinceLastSync > 86400) &&
+            $this->oauthIntegrationService->isIntegrationValid($cardType)
+        ) {
             SaveCardData::dispatch($card, $cardType);
         }
 
