@@ -8,15 +8,12 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
-use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Storage;
 use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\Support\Traits\SyncCardsTrait;
@@ -68,9 +65,6 @@ class SyncCardsTest extends TestCase
 
         $card = $data[0]['data'];
 
-        Storage::shouldReceive('put')->andReturn(true)->once();
-        Storage::shouldReceive('url')->andReturn('/my_cool_thing.jpg')->twice();
-
         $syncCards->syncCards($user, time());
 
         $cardType = CardType::where('name', '=', $card['card_type'])->first();
@@ -94,9 +88,6 @@ class SyncCardsTest extends TestCase
             'url'                => $card['url'],
             'actual_created_at'  => $card['actual_created_at'],
             'actual_updated_at'  => $card['actual_updated_at'],
-            'image'              => Config::get('app.url').Storage::url(ThumbnailHelper::IMAGE_FOLDER.'/'.$newCard->token),
-            'image_width'        => $this->getMockThumbnail()->get('width'),
-            'image_height'       => $this->getMockThumbnail()->get('height'),
         ]);
     }
 
@@ -276,7 +267,6 @@ class SyncCardsTest extends TestCase
             'content'            => $fakeData->get('content'),
             'title'              => $fakeData->get('title'),
             'description'        => $fakeData->get('description'),
-            'image'              => Config::get('app.url').Storage::url(ThumbnailHelper::IMAGE_FOLDER.'/'.$card->token).'.jpg',
             'properties'         => json_encode(['author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
         ]);
 

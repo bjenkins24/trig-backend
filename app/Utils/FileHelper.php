@@ -2,8 +2,16 @@
 
 namespace App\Utils;
 
+use Intervention\Image\Facades\Image as ImageFacade;
+use Intervention\Image\Image;
+
 class FileHelper
 {
+    public function makeImage(string $uri): Image
+    {
+        return ImageFacade::make($uri);
+    }
+
     public function fileGetContents(string $filename): string
     {
         return file_get_contents($filename);

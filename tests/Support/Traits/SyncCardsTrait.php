@@ -3,11 +3,11 @@
 namespace Tests\Support\Traits;
 
 use App\Models\User;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
-use App\Utils\FileHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 
@@ -20,8 +20,6 @@ trait SyncCardsTrait
         return collect([
             'thumbnail' => 'coolthumbnail',
             'extension' => 'jpg',
-            'width'     => 200,
-            'height'    => 500,
         ]);
     }
 
@@ -84,13 +82,8 @@ trait SyncCardsTrait
             $mock->shouldReceive('getAllCardData')->andReturn($data);
             $mock->shouldReceive('getIntegrationKey')->andReturn('google');
         });
-        $this->partialMock(FileHelper::class, function ($mock) {
-            $mock->shouldReceive('fileGetContents');
-            $mock->shouldReceive('getImageSizeFromString')->andReturn([
-                0      => $this->getMockThumbnail()->get('width'),
-                1      => $this->getMockThumbnail()->get('height'),
-                'mime' => 'image/jpg',
-            ]);
+        $this->partialMock(ThumbnailHelper::class, static function ($mock) {
+            $mock->shouldReceive('saveThumbnail');
         });
 
         return app(OauthIntegrationService::class)->makeSyncCards($service);
