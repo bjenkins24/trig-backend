@@ -5,6 +5,7 @@ namespace App\Utils\WebsiteExtraction;
 use andreskrey\Readability\Configuration as ReadabilityConfiguration;
 use andreskrey\Readability\ParseException as ReadabilityParseException;
 use andreskrey\Readability\Readability;
+use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use Campo\UserAgent;
 use DOMDocument;
 use Exception;
@@ -35,18 +36,24 @@ class WebsiteExtractionHelper
     }
 
     /**
-     * @throws Exception
+     * @throws WebsiteNotFound
      */
     public function simpleFetch(string $url): Response
     {
-        return Http::withOptions([
+        $result = Http::withOptions([
             'referer' => true,
             'headers' => $this->getHeaders(),
         ])->get($url);
+
+        if ($result->status() >= 400) {
+            throw new WebsiteNotFound("The url returned an error code of {$result->status()} for $url");
+        }
+
+        return $result;
     }
 
     /**
-     * @throws Exception
+     * @throws WebsiteNotFound
      */
     public function fullFetch(string $url): string
     {
@@ -56,13 +63,20 @@ class WebsiteExtractionHelper
 
             $page = $browser->newPage();
             $page->setExtraHTTPHeaders($this->getHeaders());
-            $page->goto($url);
+            $response = $page->goto($url);
             $content = $page->content();
 
             $browser->close();
         } catch (Exception $exception) {
             // Timed out
             $content = '';
+        }
+
+        if (isset($response)) {
+            $status = (int) $response->headers()['status'];
+            if ($status >= 400) {
+                throw new WebsiteNotFound("The url returned an error code of {$status} for $url");
+            }
         }
 
         return $content;

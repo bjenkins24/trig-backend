@@ -2,8 +2,8 @@
 
 namespace App\Utils\WebsiteExtraction\WebsiteTypes;
 
+use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteExtractionInterface;
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class GoogleDocsExtraction extends BaseExtraction implements WebsiteExtractionInterface
 {
     /**
-     * @throws Exception
+     * @throws WebsiteNotFound
      */
     public function getWebsite(): Collection
     {

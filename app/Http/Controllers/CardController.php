@@ -158,13 +158,8 @@ class CardController extends Controller
             ], 409);
         }
 
-        $cardType = CardType::find($card->card_type_id)->name;
-        $secondsSinceLastSync = $this->cardSyncRepository->secondsSinceLastAttempt($card->id);
-        if (
-            (! $secondsSinceLastSync || $secondsSinceLastSync > 86400) &&
-            $this->oauthIntegrationService->isIntegrationValid($cardType)
-        ) {
-            SaveCardData::dispatch($card, $cardType);
+        if ($this->cardSyncRepository->shouldSync($card)) {
+            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name);
         }
 
         return response()->json([], 204);

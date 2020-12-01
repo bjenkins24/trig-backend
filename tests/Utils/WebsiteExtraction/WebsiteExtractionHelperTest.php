@@ -47,4 +47,13 @@ EOD;
         $result = app(WebsiteExtractionHelper::class)->makeContentSearchable('');
         self::assertEquals('', $result);
     }
+
+    /**
+     * @group n
+     */
+    public function testSimpleFetch()
+    {
+        $result = app(WebsiteExtractionHelper::class)->fullFetch('https://laracasts.com/discuss/channels/eloquent/delete-record-using-whereasdasd');
+        dd($result);
+    }
 }

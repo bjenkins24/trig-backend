@@ -6,6 +6,7 @@ use App\Jobs\CardDedupe;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
+use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -16,8 +17,10 @@ use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
+use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
+use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -27,6 +30,7 @@ class SyncCards
     private ContentInterface $contentIntegration;
     private IntegrationInterface $integration;
     private OauthConnectionRepository $oauthConnectionRepository;
+    private OauthIntegrationService $oauthIntegrationService;
     private CardRepository $cardRepository;
     private CardSyncRepository $cardSyncRepository;
     private CardTypeRepository $cardTypeRepository;
@@ -39,11 +43,13 @@ class SyncCards
         CardRepository $cardRepository,
         CardSyncRepository $cardSyncRepository,
         CardTypeRepository $cardTypeRepository,
+        OauthIntegrationService $oauthIntegrationService,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
         ThumbnailHelper $thumbnailHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
+        $this->oauthIntegrationService = $oauthIntegrationService;
         $this->cardRepository = $cardRepository;
         $this->cardSyncRepository = $cardSyncRepository;
         $this->cardTypeRepository = $cardTypeRepository;
@@ -151,6 +157,10 @@ class SyncCards
 
     public function saveCardData(Card $card): bool
     {
+        if (! $this->cardSyncRepository->shouldSync($card)) {
+            return false;
+        }
+        $this->oauthIntegrationService->isIntegrationValid(CardType::find($card->card_type_id)->name);
         $cardIntegration = $this->cardRepository->getCardIntegration($card);
         $id = null;
         $mimeType = null;
@@ -159,7 +169,15 @@ class SyncCards
             $mimeType = $this->cardRepository->getCardType($card)->name;
         }
 
-        $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
+        try {
+            $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
+        } catch (WebsiteNotFound $exception) {
+            $this->cardSyncRepository->create([
+                'card_id' => $card->id,
+                'status'  => 2,
+            ]);
+        }
+
         // If there's no card content we should just stop. If this is in error, `getCardContentData` will do the
         // retry logic and logging. This can be a legitimate result of getCardContentData though, so we're just going
         // to no-op here instead of logging

@@ -11,6 +11,9 @@ class CardSync extends Model
 
     /**
      * The attributes that are mass assignable.
+     * status = 0 - Failed
+     * status = 1 - Success
+     * status = 2 - Fail hard - do not retry (like 404 website).
      *
      * @var array
      */
