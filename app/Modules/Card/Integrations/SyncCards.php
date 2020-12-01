@@ -176,6 +176,8 @@ class SyncCards
                 'card_id' => $card->id,
                 'status'  => 2,
             ]);
+
+            return false;
         }
 
         // If there's no card content we should just stop. If this is in error, `getCardContentData` will do the

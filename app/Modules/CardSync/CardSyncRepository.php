@@ -46,6 +46,6 @@ class CardSyncRepository
         $secondsSinceLastAttempt = $this->secondsSinceLastAttempt($card->id);
 
         return $this->oauthIntegrationService->isIntegrationValid($cardType) &&
-            (! $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS);
+            (null === $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS);
     }
 }

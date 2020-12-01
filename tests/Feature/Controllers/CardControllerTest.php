@@ -6,6 +6,7 @@ use App\Jobs\SaveCardData;
 use App\Models\CardSync;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
+use App\Modules\CardSync\CardSyncRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
@@ -181,6 +182,13 @@ class CardControllerTest extends TestCase
         $this->assertDatabaseMissing('card_favorites', [
             'card_id' => $newCard->get('id'),
             'user_id' => $newCard->get('user_id'),
+        ]);
+
+        // Since we're faking SaveCardData it's not going to say it saved. so let's save it manually here for the test
+        // to mimic what would happen after a post normally
+        app(CardSyncRepository::class)->create([
+            'card_id' => $newCard->get('id'),
+            'status'  => 1,
         ]);
 
         $now = Carbon::now();

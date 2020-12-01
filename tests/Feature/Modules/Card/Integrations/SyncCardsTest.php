@@ -10,7 +10,10 @@ use App\Models\CardType;
 use App\Models\Person;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Integrations\Google\GoogleContent;
+use App\Modules\CardSync\CardSyncRepository;
+use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -195,6 +198,49 @@ class SyncCardsTest extends TestCase
     }
 
     /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testSaveCardDataNotFound(): void
+    {
+        $this->partialMock(CardSyncRepository::class, static function ($mock) {
+            $mock->shouldReceive('shouldSync')->andReturn(true);
+        });
+        $this->mock(GoogleContent::class, static function ($mock) {
+            $mock->shouldReceive('getCardContentData')->andThrow(new WebsiteNotFound());
+        });
+
+        [$syncCards, $data, $user] = $this->getSetup();
+        $syncCards->syncCards($user);
+
+        $card = Card::find(1);
+
+        $result = $syncCards->saveCardData($card);
+        self::assertFalse($result);
+        $this->assertDatabaseHas('card_syncs', [
+            'card_id' => $card->id,
+            'status'  => 2,
+        ]);
+    }
+
+    /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testSaveCardDataNoSync(): void
+    {
+        $this->mock(CardSyncRepository::class, static function ($mock) {
+            $mock->shouldReceive('shouldSync')->andReturn(false);
+        });
+
+        [$syncCards, $data, $user] = $this->getSetup();
+        $syncCards->syncCards($user);
+
+        $card = Card::find(1);
+
+        $result = $syncCards->saveCardData($card);
+        self::assertFalse($result);
+    }
+
+    /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
      */
@@ -215,9 +261,11 @@ class SyncCardsTest extends TestCase
         [$syncCards, $data, $user] = $this->getSetup();
         $syncCards->syncCards($user);
 
+        $cardType = app(CardTypeRepository::class)->firstOrCreate('link');
         $card = Card::find(1);
 
         // Remove the current image so the new image will save
+        $card->card_type_id = $cardType->id;
         $card->image = '';
         $card->save();
 
