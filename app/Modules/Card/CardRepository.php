@@ -138,10 +138,12 @@ class CardRepository
         });
 
         $query = Card::whereIn('cards.id', $ids)
-            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites', 'description')
+            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites', 'total_views', 'description')
             ->with('user:id,first_name,last_name,email')
             ->with('cardType:id,name')
-            ->with('cardFavorite:card_id')
+            ->with(['cardFavorite' => static function ($query) use ($user) {
+                $query->where('user_id', $user->id)->select('card_id')->limit(1);
+            }])
             ->with('cardSync:card_id,created_at');
 
         if (! $constraints->get('q')) {
