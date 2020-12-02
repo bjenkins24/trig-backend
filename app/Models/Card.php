@@ -10,6 +10,7 @@ use App\Support\Traits\Relationships\HasCardDuplicates;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
+use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
@@ -71,6 +72,7 @@ class Card extends Model
     use BelongsToUser;
     use BelongsToCardType;
     use HasCardFavorite;
+    use HasCardView;
     use HasCardIntegration;
     use HasCardDuplicates;
     use HasCardSyncs;
