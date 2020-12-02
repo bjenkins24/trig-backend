@@ -232,6 +232,35 @@ class SyncCardsTest extends TestCase
     }
 
     /**
+     * @throws OauthIntegrationNotFound
+     */
+    public function testSaveCardDataForceSync(): void
+    {
+        $this->partialMock(CardSyncRepository::class, static function ($mock) {
+            $mock->shouldReceive('shouldSync')->andReturn(false);
+        });
+        Queue::fake();
+        $fakeData = collect([
+            'content'     => 'cool content',
+            'title'       => 'cool title',
+            'description' => 'cool description',
+            'author'      => 'cool author',
+            'image'       => 'https://www.productplan.com/uploads/feature-less-roadmap-1-1024x587.png',
+        ]);
+        $this->mock(GoogleContent::class, static function ($mock) use ($fakeData) {
+            $mock->shouldReceive('getCardContentData')->andReturn(clone $fakeData);
+        });
+
+        [$syncCards, $data, $user] = $this->getSetup();
+        $syncCards->syncCards($user);
+
+        $card = Card::find(1);
+
+        $result = $syncCards->saveCardData($card, true);
+        self::assertTrue($result);
+    }
+
+    /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
      */

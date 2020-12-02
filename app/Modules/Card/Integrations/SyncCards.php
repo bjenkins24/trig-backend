@@ -155,9 +155,9 @@ class SyncCards
         }
     }
 
-    public function saveCardData(Card $card): bool
+    public function saveCardData(Card $card, bool $forceSync = false): bool
     {
-        if (! $this->cardSyncRepository->shouldSync($card)) {
+        if (! $forceSync && ! $this->cardSyncRepository->shouldSync($card)) {
             return false;
         }
         $this->oauthIntegrationService->isIntegrationValid(CardType::find($card->card_type_id)->name);

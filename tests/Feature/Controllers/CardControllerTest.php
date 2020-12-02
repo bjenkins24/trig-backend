@@ -3,7 +3,6 @@
 namespace Tests\Feature\Controllers;
 
 use App\Jobs\SaveCardData;
-use App\Models\CardSync;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
 use App\Modules\CardSync\CardSyncRepository;
@@ -149,7 +148,11 @@ class CardControllerTest extends TestCase
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $newCard = $this->getResponseData($response);
-        CardSync::where('card_id', $newCard->get('id'))->delete();
+        // This is what would happen if we weren't faking the queue
+        app(CardSyncRepository::class)->create([
+            'card_id' => $newCard->get('id'),
+            'status'  => 1,
+        ]);
 
         $now = Carbon::now();
 
@@ -162,6 +165,32 @@ class CardControllerTest extends TestCase
             'createdAt'          => $now,
             'updatedAt'          => $now,
             'isFavorited'        => true,
+        ];
+
+        $this->client('PATCH', 'card', $newData);
+
+        Queue::assertPushed(SaveCardData::class, 1);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testUpdateCardSaveDataForceSync(): void
+    {
+        $this->refreshDb();
+        Queue::fake();
+
+        $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
+        $newCard = $this->getResponseData($response);
+        // This is what would happen if we weren't faking the queue
+        app(CardSyncRepository::class)->create([
+            'card_id' => $newCard->get('id'),
+            'status'  => 1,
+        ]);
+
+        $newData = [
+            'id'        => $newCard->get('id'),
+            'forceSync' => true,
         ];
 
         $this->client('PATCH', 'card', $newData);
