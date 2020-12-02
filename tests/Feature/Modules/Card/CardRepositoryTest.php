@@ -478,16 +478,20 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('saveThumbnail');
         });
         $firstCardUrl = 'https://firstCardUrl.com';
+        $favoritedById = 10;
+        $viewedById = 12;
         app(CardRepository::class)->updateOrInsert([
             'url'         => $firstCardUrl,
             'title'       => $title,
             'image'       => 'cool_image',
-            'isFavorited' => true,
+            'favoritedBy' => $favoritedById,
+            'viewedBy'    => $viewedById,
         ], $card);
         $this->assertDatabaseHas('cards', [
             'id'               => 1,
             'title'            => $title,
             'total_favorites'  => 1,
+            'total_views'      => 1,
         ]);
 
         $this->assertDatabaseMissing('card_syncs', [
@@ -497,7 +501,12 @@ class CardRepositoryTest extends TestCase
 
         $this->assertDatabaseHas('card_favorites', [
             'card_id' => 1,
-            'user_id' => 1,
+            'user_id' => $favoritedById,
+        ]);
+
+        $this->assertDatabaseHas('card_favorites', [
+            'card_id' => 1,
+            'user_id' => $viewedById,
         ]);
 
         app(CardRepository::class)->updateOrInsert(['title' => $title, 'image' => 'cool_image', 'isFavorited' => false], $card);
