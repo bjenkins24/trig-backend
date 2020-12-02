@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Card;
+use App\Observers\CardObserver;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Card::observe(CardObserver::class);
         if (DB::connection() instanceof SQLiteConnection) {
             DB::statement(DB::raw('PRAGMA foreign_keys=1'));
         }

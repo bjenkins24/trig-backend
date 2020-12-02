@@ -4,18 +4,21 @@
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use Faker\Generator as Faker;
 
 $factory->define(Card::class, static function (Faker $faker) {
+    $token = bin2hex(random_bytes(24));
+
     return [
         'user_id'            => factory(User::class)->create()->id,
-        'token'              => bin2hex(random_bytes(24)),
+        'token'              => $token,
         'card_type_id'       => factory(CardType::class)->create()->id,
-        'title'              => $faker->realText(rand(10, 50)),
-        'description'        => $faker->realText(rand(50, 150)),
-        'image'              => $faker->imageUrl(640, 480),
+        'title'              => $faker->realText(random_int(10, 50)),
+        'description'        => $faker->realText(random_int(50, 150)),
+        'image'              => 'https://coolstuff.com/public/'.ThumbnailHelper::IMAGE_FOLDER.'/thumbnail/'.$token.'.jpg',
         'url'                => $faker->url,
-        'content'            => $faker->realText(rand(200, 400)),
+        'content'            => $faker->realText(random_int(200, 400)),
         'actual_created_at'  => $faker->dateTime('2020-04-26 12:00:00'),
         'actual_updated_at'  => $faker->dateTime('2020-04-26 14:00:00'),
     ];

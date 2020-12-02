@@ -10,6 +10,7 @@ use App\Modules\CardSync\CardSyncRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
+use Storage;
 use Tests\TestCase;
 
 class CardControllerTest extends TestCase
@@ -296,6 +297,7 @@ class CardControllerTest extends TestCase
     public function testDeleteCardSuccess(): void
     {
         Queue::fake();
+        Storage::fake();
         $this->refreshDb();
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $cardId = $this->getResponseData($response)->get('id');
