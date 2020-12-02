@@ -55,7 +55,7 @@ class ThumbnailHelper
         Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail')->encode($thumbnail->get('extension'))->__toString());
 
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
-        $resizedImage = $this->filehelper->makeImage($thumbnail->get('thumbnail'))->resize(251, null, static function ($constraint) {
+        $resizedImage = $this->fileHelper->makeImage($thumbnail->get('thumbnail'))->resize(251, null, static function ($constraint) {
             $constraint->aspectRatio();
         });
         $result = Storage::put($thumbnailPathWithExtension, $resizedImage->encode($thumbnail->get('extension'))->__toString());

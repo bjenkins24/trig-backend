@@ -72,7 +72,7 @@ class WebsiteExtractionHelper
             $content = '';
         }
 
-        if (isset($response)) {
+        if (isset($response, $response->headers()['status'])) {
             $status = (int) $response->headers()['status'];
             if ($status >= 400) {
                 throw new WebsiteNotFound("The url returned an error code of {$status} for $url");

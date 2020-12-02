@@ -475,6 +475,13 @@ class CardRepository
             return $card;
         }
 
+        if (! $newFields->get('user_id')) {
+            throw new Exception('You must supply a user_id');
+        }
+        if (! $newFields->get('card_type_id')) {
+            throw new Exception('You must supply a card_type_id');
+        }
+
         if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {
             throw new CardExists('This user already has a card with this url. The card was not created.');
         }
