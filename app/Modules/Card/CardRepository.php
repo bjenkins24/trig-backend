@@ -7,6 +7,7 @@ use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
 use App\Models\CardIntegration;
 use App\Models\CardType;
+use App\Models\CardView;
 use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardExists;
@@ -399,18 +400,38 @@ class CardRepository
     /**
      * @throws Exception
      */
+    private function saveView(array $fields, Card $card): void
+    {
+        if (! isset($fields['viewedBy'])) {
+            return;
+        }
+        CardView::create([
+            'card_id' => $card->id,
+            'user_id' => $fields['viewedBy'],
+        ]);
+        ++$card->total_views;
+
+        $card->save();
+    }
+
+    /**
+     * @throws Exception
+     */
     private function saveFavorited(array $fields, Card $card): void
     {
-        if (isset($fields['isFavorited']) && $fields['isFavorited']) {
+        if (! isset($fields['favoritedBy']) && ! isset($fields['unfavoritedBy'])) {
+            return;
+        }
+        if (isset($fields['favoritedBy'])) {
             CardFavorite::create([
                 'card_id' => $card->id,
-                'user_id' => $card->user_id,
+                'user_id' => $fields['favoritedBy'],
             ]);
             ++$card->total_favorites;
         }
-        if (isset($fields['isFavorited']) && ! $fields['isFavorited']) {
+        if (isset($fields['unfavoritedBy'])) {
             $cardFavorite = CardFavorite::where('card_id', $card->id)
-                ->where('user_id', $card->user_id)
+                ->where('user_id', $fields['unfavoritedBy'])
                 ->first();
             if ($cardFavorite) {
                 $cardFavorite->delete();
@@ -471,15 +492,9 @@ class CardRepository
                 $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
             }
             $this->saveFavorited($fields, $card);
+            $this->saveView($fields, $card);
 
             return $card;
-        }
-
-        if (! $newFields->get('user_id')) {
-            throw new Exception('You must supply a user_id');
-        }
-        if (! $newFields->get('card_type_id')) {
-            throw new Exception('You must supply a card_type_id');
         }
 
         if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {
@@ -505,6 +520,7 @@ class CardRepository
             $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $card);
         }
         $this->saveFavorited($fields, $card);
+        $this->saveView($fields, $card);
 
         return $card;
     }
