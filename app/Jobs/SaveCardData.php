@@ -20,7 +20,6 @@ class SaveCardData implements ShouldQueue
     use SerializesModels;
 
     public string $integration;
-    public bool $forceSync;
     public Card $card;
 
     /**
@@ -28,18 +27,17 @@ class SaveCardData implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Card $card, string $integration, bool $forceSync = false)
+    public function __construct(Card $card, string $integration)
     {
         $this->card = $card;
         $this->integration = $integration;
-        $this->forceSync = $forceSync;
     }
 
     public function handle(): void
     {
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-            $syncCardsIntegration->saveCardData($this->card, $this->forceSync);
+            $syncCardsIntegration->saveCardData($this->card);
         } catch (Exception $error) {
             app(CardSyncRepository::class)->create([
               'card_id' => $this->card->id,

@@ -175,32 +175,6 @@ class CardControllerTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function testUpdateCardSaveDataForceSync(): void
-    {
-        $this->refreshDb();
-        Queue::fake();
-
-        $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
-        $newCard = $this->getResponseData($response);
-        // This is what would happen if we weren't faking the queue
-        app(CardSyncRepository::class)->create([
-            'card_id' => $newCard->get('id'),
-            'status'  => 1,
-        ]);
-
-        $newData = [
-            'id'        => $newCard->get('id'),
-            'forceSync' => true,
-        ];
-
-        $this->client('PATCH', 'card', $newData);
-
-        Queue::assertPushed(SaveCardData::class, 2);
-    }
-
-    /**
-     * @throws JsonException
-     */
     public function testUpdateCardSuccess(): void
     {
         $this->refreshDb();

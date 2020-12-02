@@ -158,8 +158,8 @@ class CardController extends Controller
             ], 409);
         }
 
-        if ($this->cardSyncRepository->shouldSync($card) || $request->get('forceSync')) {
-            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name, $request->get('forceSync'));
+        if ($this->cardSyncRepository->shouldSync($card)) {
+            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name);
         }
 
         return response()->json([], 204);
