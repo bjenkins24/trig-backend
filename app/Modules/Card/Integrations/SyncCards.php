@@ -20,7 +20,6 @@ use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
-use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -169,16 +168,7 @@ class SyncCards
             $mimeType = $this->cardRepository->getCardType($card)->name;
         }
 
-        try {
-            $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
-        } catch (WebsiteNotFound $exception) {
-            $this->cardSyncRepository->create([
-                'card_id' => $card->id,
-                'status'  => 2,
-            ]);
-
-            return false;
-        }
+        $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
 
         // If there's no card content we should just stop. If this is in error, `getCardContentData` will do the
         // retry logic and logging. This can be a legitimate result of getCardContentData though, so we're just going

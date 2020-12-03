@@ -6,5 +6,5 @@ use Illuminate\Support\Collection;
 
 interface WebsiteExtractionInterface
 {
-    public function getWebsite(): Collection;
+    public function getWebsite(int $currentRetryAttempt): Collection;
 }

@@ -54,25 +54,21 @@ class WebsiteExtractionHelper
 
     /**
      * @throws WebsiteNotFound
+     * @throws Exception       - We're going to catch this exception later and retry
      */
     public function fullFetch(string $url): string
     {
         $puppeteer = new Puppeteer();
-        try {
-            $browser = $puppeteer->launch();
+        $browser = $puppeteer->launch();
 
-            $page = $browser->newPage();
-            $page->setExtraHTTPHeaders($this->getHeaders());
-            $response = $page->goto($url);
-            $content = $page->content();
+        $page = $browser->newPage();
+        $page->setExtraHTTPHeaders($this->getHeaders());
+        $response = $page->goto($url);
+        $content = $page->content();
 
-            $browser->close();
-        } catch (Exception $exception) {
-            // Timed out
-            $content = '';
-        }
+        $browser->close();
 
-        if (isset($response, $response->headers()['status'])) {
+        if (isset($response->headers()['status'])) {
             $status = (int) $response->headers()['status'];
             if ($status >= 400) {
                 throw new WebsiteNotFound("The url returned an error code of {$status} for $url");
