@@ -211,11 +211,22 @@ class CardRepository
             return $fields;
         }));
 
+        $removedCard = 0;
+        $result->filter(static function ($card) use (&$removedCard) {
+            if (! empty($card)) {
+                return true;
+            }
+            ++$removedCard;
+
+            return false;
+        })->values();
+        $totalResults -= $removedCard;
+
         return collect([
             // We may have an empty card if the card exists in elastic search, but not mysql
             'cards' => $result->filter(static function ($card) {
                 return ! empty($card);
-            }),
+            })->values(),
             'meta' => [
                 'page'         => (int) $constraints->get('p'),
                 'totalPages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
