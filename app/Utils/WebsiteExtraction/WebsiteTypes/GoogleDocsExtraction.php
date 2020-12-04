@@ -14,7 +14,7 @@ class GoogleDocsExtraction extends BaseExtraction implements WebsiteExtractionIn
     /**
      * @throws WebsiteNotFound
      */
-    public function getWebsite(int $currentRetryAttempt): Collection
+    public function getWebsite(int $currentRetryAttempt = 0): Collection
     {
         // This will get everything but the content correctly
         $baseDoc = $this->websiteExtractionHelper->parseHtml($this->websiteExtractionHelper->simpleFetch($this->url));

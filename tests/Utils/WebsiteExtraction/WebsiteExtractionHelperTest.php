@@ -2,7 +2,12 @@
 
 namespace Tests\Utils\WebsiteExtraction;
 
+use App\Models\Card;
+use App\Modules\Card\CardRepository;
+use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
 use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class WebsiteExtractionHelperTest extends TestCase
@@ -46,5 +51,28 @@ EOD;
 
         $result = app(WebsiteExtractionHelper::class)->makeContentSearchable('');
         self::assertEquals('', $result);
+    }
+
+    /**
+     * @group n
+     */
+    public function testFullFetch()
+    {
+        $result = app(WebsiteExtractionFactory::class)->make('https://d9db56472fd41226d193-1e5e0d4b7948acaf6080b0dce0b35ed5.ssl.cf1.rackcdn.com/spectools/docs/wd-spectools-word-sample-04.doc')->getWebsite();
+        dd($result);
+//        $result = app(WebsiteExtractionHelper::class)->simpleFetch('https://www.khoslaventures.com/wp-content/uploads/Good-Group-Product-Manager.pdf');
+        $result = app(WebsiteExtractionHelper::class)->downloadAndExtract('https://d9db56472fd41226d193-1e5e0d4b7948acaf6080b0dce0b35ed5.ssl.cf1.rackcdn.com/spectools/docs/wd-spectools-word-sample-04.doc');
+        dd($result);
+//        Queue::fake();
+//        $this->refreshDb();
+//        $card = app(CardRepository::class)->updateOrInsert([
+//            'title'        => 'hello',
+//            'url'          => 'https://www.khoslaventures.com/wp-content/uploads/Good-Group-Product-Manager.pdf',
+//            'user_id'      => 1,
+//            'card_type_id' => 1,
+//        ]);
+//        $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards('link');
+//        $result = $syncCardsIntegration->saveCardData($card);
+//        dd(Card::find($card->id));
     }
 }

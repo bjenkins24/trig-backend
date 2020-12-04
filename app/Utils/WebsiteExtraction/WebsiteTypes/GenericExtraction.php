@@ -2,6 +2,7 @@
 
 namespace App\Utils\WebsiteExtraction\WebsiteTypes;
 
+use andreskrey\Readability\ParseException as ReadabilityParseException;
 use App\Utils\WebsiteExtraction\WebsiteExtractionInterface;
 use Exception;
 use Illuminate\Support\Collection;
@@ -11,17 +12,35 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
     /**
      * @throws Exception
      */
-    public function getWebsite(int $currentRetryAttempt): Collection
+    public function getWebsite(int $currentRetryAttempt = 0): Collection
     {
+        $html = '';
+        // Full fetch will intermittently timeout. So let's try it twice.
         if ($currentRetryAttempt < 2) {
-            $html = $this->websiteExtractionHelper->fullFetch($this->url);
-        } else {
-            // We're going to try a simple fetch if the full fetch failed twice
-            // A simple fetch will also get the application/type of a url in the case
-            // that it's a file like a pdf - which we can then download and send to tika
+            try {
+                $html = $this->websiteExtractionHelper->fullFetch($this->url);
+            } catch (Exception $exception) {
+                $html = '';
+            }
+        }
+        if (3 === $currentRetryAttempt) {
             $html = $this->websiteExtractionHelper->simpleFetch($this->url);
         }
+        if (4 === $currentRetryAttempt) {
+            return $this->websiteExtractionHelper->downloadAndExtract($this->url);
+        }
 
-        return $this->websiteExtractionHelper->parseHtml($html);
+        try {
+            return $this->websiteExtractionHelper->parseHtml($html);
+        } catch (ReadabilityParseException $e) {
+            if (! $this->url) {
+                return collect([]);
+            }
+            // If readability didn't work, let's try to download the file
+            // and then parse it with Tika. Maybe we'll have better luck
+            // This could be when full or simple fetch did NOT fail, but readability
+            // didn't have enough context for whatever reason to parse the string
+            return $this->websiteExtractionHelper->downloadAndExtract($this->url);
+        }
     }
 }

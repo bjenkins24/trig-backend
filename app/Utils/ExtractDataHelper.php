@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use DOMDocument;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,30 @@ class ExtractDataHelper
         $this->fileHelper = $fileHelper;
     }
 
+    public function getTitleFromHeadingTag(string $html): string
+    {
+        $doc = new DOMDocument();
+        $doc->loadHTML($html);
+
+        $acceptedTags = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6, p',
+        ];
+
+        foreach ($acceptedTags as $tag) {
+            $tags = $doc->getElementsByTagName($tag);
+            if ($tags->length > 0) {
+                $value = $tags->item(0)->nodeValue;
+                if ('p' === $tag) {
+                    $value = Str::truncateOnWord($value, 60);
+                }
+
+                return trim($value);
+            }
+        }
+
+        return '';
+    }
+
     /**
      * @throws JsonException
      * @throws Exception
@@ -35,10 +60,17 @@ class ExtractDataHelper
             true, 512, JSON_THROW_ON_ERROR)
         );
         $meta = collect($data->get('meta'));
-        $content = $this->client->getText($file);
+
+        $content = Str::purifyHtml($this->client->getHtml($file));
+        $excerpt = $content ? Str::truncateOnWord(Str::removeLineBreaks(Str::htmlToText($content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'ul', 'ol'])), 200) : '';
+
+        $title = trim($meta->get('dc:title'));
+        if (! $title) {
+            $title = $this->getTitleFromHeadingTag($content);
+        }
 
         return [
-            'title'                       => $meta->get('dc:title'),
+            'title'                       => $title,
             'keyword'                     => $meta->get('meta:keyword'),
             'author'                      => $meta->get('meta:author'),
             'last_author'                 => $meta->get('meta:last-author'),
@@ -60,6 +92,7 @@ class ExtractDataHelper
             'width'                       => $data->get('width'),
             'height'                      => $data->get('height'),
             'copyright'                   => $data->get('Copyright'),
+            'excerpt'                     => $excerpt,
             'content'                     => $content,
         ];
     }

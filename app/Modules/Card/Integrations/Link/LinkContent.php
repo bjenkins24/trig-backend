@@ -7,12 +7,11 @@ use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
-use Exception;
 use Illuminate\Support\Collection;
 
 class LinkContent implements ContentInterface
 {
-    public const TOTAL_ATTEMPTS = 3;
+    public const TOTAL_ATTEMPTS = 4;
     private WebsiteExtractionFactory $websiteExtractionFactory;
     private int $attempts = 0;
 
@@ -40,7 +39,7 @@ class LinkContent implements ContentInterface
             ]);
 
             return collect([]);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             ++$this->attempts;
             // Enough retrying it FAILED!
             if ($this->attempts >= self::TOTAL_ATTEMPTS) {
@@ -54,6 +53,10 @@ class LinkContent implements ContentInterface
             }
 
             return $this->getCardContentData($card, $id, $mimeType, $this->attempts);
+        }
+
+        if ($website->isEmpty()) {
+            return $website;
         }
 
         return collect([

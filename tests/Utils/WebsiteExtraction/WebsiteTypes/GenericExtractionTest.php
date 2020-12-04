@@ -32,4 +32,27 @@ class GenericExtractionTest extends TestCase
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite();
         self::assertEquals($content, $website);
     }
+
+    /**
+     * @throws BindingResolutionException
+     * @throws Exception
+     */
+    public function testGetWebsiteOnRetry(): void
+    {
+        $url = 'https://medium.com/@sachinrekhi/designing-your-products-continuous-feedback-loop-4a7bb31141fe';
+        $content = collect([
+            'image'   => 'my image',
+            'author'  => 'my author',
+            'excerpt' => 'my excerpt',
+            'title'   => 'my title',
+            'html'    => 'my html',
+        ]);
+        $mockHtml = '<div id="my_cool_id">My cool html</div>';
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $mockHtml, $content) {
+            $mock->shouldReceive('simpleFetch')->with($url);
+            $mock->shouldReceive('parseHtml');
+        });
+        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(2);
+        self::assertEquals($content, $website);
+    }
 }

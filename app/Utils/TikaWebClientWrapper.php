@@ -41,8 +41,8 @@ class TikaWebClientWrapper
      *
      * @throws Exception
      */
-    public function getText($file, $callback = null, $append = true): string
+    public function getHtml($file, $callback = null, $append = true): string
     {
-        return $this->client->getText($file, $callback, $append);
+        return $this->client->getHTML($file, $callback, $append);
     }
 }
