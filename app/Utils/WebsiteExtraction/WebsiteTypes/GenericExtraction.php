@@ -17,18 +17,12 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
         $html = '';
         // Full fetch will intermittently timeout. So let's try it twice.
         if ($currentRetryAttempt < 2) {
-            try {
-                $html = $this->websiteExtractionHelper->fullFetch($this->url);
-            } catch (Exception $exception) {
-                // TODO: I DO NOT WANT TO CATCH HERE. I want Link Content to catch errors
-                // and handle retry logic. But it's not catching any errors! ACK
-                $html = '';
-            }
+            $html = $this->websiteExtractionHelper->fullFetch($this->url);
         }
-        if (3 === $currentRetryAttempt) {
+        if (2 === $currentRetryAttempt) {
             $html = $this->websiteExtractionHelper->simpleFetch($this->url);
         }
-        if (4 === $currentRetryAttempt) {
+        if (3 === $currentRetryAttempt) {
             return $this->websiteExtractionHelper->downloadAndExtract($this->url);
         }
 

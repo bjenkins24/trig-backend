@@ -7,6 +7,7 @@ use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
+use Exception;
 use Illuminate\Support\Collection;
 
 class LinkContent implements ContentInterface
@@ -39,7 +40,7 @@ class LinkContent implements ContentInterface
             ]);
 
             return collect([]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             ++$this->attempts;
             // Enough retrying it FAILED!
             if ($this->attempts >= self::TOTAL_ATTEMPTS) {
