@@ -20,6 +20,8 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
             try {
                 $html = $this->websiteExtractionHelper->fullFetch($this->url);
             } catch (Exception $exception) {
+                // TODO: I DO NOT WANT TO CATCH HERE. I want Link Content to catch errors
+                // and handle retry logic. But it's not catching any errors! ACK
                 $html = '';
             }
         }
