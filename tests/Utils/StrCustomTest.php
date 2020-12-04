@@ -47,4 +47,19 @@ EOD;
         $result = Str::htmlToMarkdown('', ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
         self::assertEquals('', $result);
     }
+
+    public function testHasExtension(): void
+    {
+        $withExtension = Str::hasExtension('Microsoft Word - Good_Group_Product_Manager.doc');
+        self::assertTrue($withExtension);
+
+        $withExtension = Str::hasExtension('Microsoft Word - Good_Group_Product_Manager');
+        self::assertFalse($withExtension);
+    }
+
+    public function testToSingleSpace(): void
+    {
+        $result = Str::toSingleSpace('Microsoft Word - Good  Group   Product    Manager.doc');
+        self::assertEquals('Microsoft Word - Good Group Product Manager.doc', $result);
+    }
 }

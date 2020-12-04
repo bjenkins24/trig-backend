@@ -48,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
         Str::macro('removeLineBreaks', static function (string $string) {
             return StrCustom::removeLineBreaks($string);
         });
+        Str::macro('hasExtension', static function (string $string) {
+            return StrCustom::hasExtension($string);
+        });
+        Str::macro('toSingleSpace', static function (string $string) {
+            return StrCustom::toSingleSpace($string);
+        });
         Collection::macro('recursive', function () {
             return $this->map(static function ($value) {
                 if (is_array($value) || is_object($value)) {

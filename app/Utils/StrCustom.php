@@ -29,6 +29,16 @@ class StrCustom
         return trim(implode(array_slice($parts, 0, $lastPart)));
     }
 
+    public static function toSingleSpace(string $string): string
+    {
+        return preg_replace('!\s+!', ' ', $string);
+    }
+
+    public static function hasExtension(string $string): bool
+    {
+        return (bool) preg_match('/\.[a-zA-Z]{3}$/', $string);
+    }
+
     public static function removeTag(string $html, string $tag): string
     {
         $doc = new DOMDocument();

@@ -12,6 +12,8 @@ use JsonException;
 
 class ExtractDataHelper
 {
+    private const MAX_TITLE_SIZE = 60;
+    private const MAX_EXCERPT_SIZE = 200;
     private TikaWebClientWrapper $client;
     private FileHelper $fileHelper;
 
@@ -35,12 +37,17 @@ class ExtractDataHelper
         foreach ($acceptedTags as $tag) {
             $tags = $doc->getElementsByTagName($tag);
             if ($tags->length > 0) {
-                $value = $tags->item(0)->nodeValue;
-                if ('p' === $tag) {
-                    $value = Str::truncateOnWord($value, 60);
-                }
+                for ($i = 0; $i < $tags->length; ++$i) {
+                    $value = $tags->item($i)->nodeValue;
+                    if (! $value) {
+                        continue;
+                    }
+                    if ('p' === $tag) {
+                        $value = Str::truncateOnWord($value, self::MAX_TITLE_SIZE);
+                    }
 
-                return trim($value, '?!.,;/');
+                    return Str::toSingleSpace(trim($value, '?!.,;/'));
+                }
             }
         }
 
@@ -61,13 +68,15 @@ class ExtractDataHelper
         );
         $meta = collect($data->get('meta'));
 
-        $content = Str::purifyHtml($this->client->getHtml($file));
-        $excerpt = $content ? Str::truncateOnWord(Str::removeLineBreaks(Str::htmlToText($content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'ul', 'ol'])), 200) : '';
+        $content = trim(Str::purifyHtml($this->client->getHtml($file)));
 
-        $title = trim($meta->get('dc:title'));
-        if (! $title) {
+        $title = (string) Str::toSingleSpace(Str::of(trim($meta->get('dc:title')))->snake()->replace('_', ' ')->title());
+        if (! $title || Str::hasExtension($title)) {
             $title = $this->getTitleFromHeadingTag($content);
         }
+
+        $excerpt = $content ? Str::htmlToText($content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'ul', 'ol']) : '';
+        $excerpt = Str::truncateOnWord(trim(str_replace($title, '', Str::toSingleSpace(trim($excerpt)))), self::MAX_EXCERPT_SIZE);
 
         return [
             'title'                       => $title,
@@ -93,7 +102,7 @@ class ExtractDataHelper
             'height'                      => $data->get('height'),
             'copyright'                   => $data->get('Copyright'),
             'excerpt'                     => $excerpt,
-            'content'                     => $content,
+            'content'                     => trim($content),
         ];
     }
 
