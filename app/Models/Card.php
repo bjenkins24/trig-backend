@@ -13,9 +13,9 @@ use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
-use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use ElasticScoutDriverPlus\CustomSearch;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
 /**
@@ -137,7 +137,7 @@ class Card extends Model
             'organization_id'    => $organizationId,
             'title'              => $this->title,
             'doc_title'          => $docTitle,
-            'content'            => $linkTypeId === $this->card_type_id ? app(WebsiteExtractionHelper::class)->makeContentSearchable($this->content) : $this->content,
+            'content'            => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'        => $permissions,
             'actual_created_at'  => $this->actual_created_at,
             'card_duplicate_ids' => $cardDuplicateIds,

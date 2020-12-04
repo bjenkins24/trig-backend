@@ -26,7 +26,7 @@ class StrCustom
             }
         }
 
-        return implode(array_slice($parts, 0, $lastPart));
+        return trim(implode(array_slice($parts, 0, $lastPart)));
     }
 
     public static function removeTag(string $html, string $tag): string

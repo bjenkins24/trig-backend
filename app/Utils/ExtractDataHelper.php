@@ -29,7 +29,7 @@ class ExtractDataHelper
         $doc->loadHTML($html);
 
         $acceptedTags = [
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6, p',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p',
         ];
 
         foreach ($acceptedTags as $tag) {
@@ -40,7 +40,7 @@ class ExtractDataHelper
                     $value = Str::truncateOnWord($value, 60);
                 }
 
-                return trim($value);
+                return trim($value, '?!.,;/');
             }
         }
 

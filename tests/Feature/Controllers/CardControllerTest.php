@@ -196,6 +196,7 @@ class CardControllerTest extends TestCase
         ]);
 
         $now = Carbon::now();
+        $favoritedById = 1;
 
         $newData = [
             'id'                 => $newCard->get('id'),
@@ -205,7 +206,7 @@ class CardControllerTest extends TestCase
             'content'            => 'cool new content',
             'createdAt'          => $now,
             'updatedAt'          => $now,
-            'isFavorited'        => true,
+            'favoritedBy'        => $favoritedById,
         ];
 
         $response = $this->client('PATCH', 'card', $newData);
@@ -215,12 +216,12 @@ class CardControllerTest extends TestCase
         $data['actual_created_at'] = $now->toDateTimeString();
         $data['actual_updated_at'] = $now->toDateTimeString();
         $data['total_favorites'] = 1;
-        unset($data['createdAt'], $data['updatedAt'], $data['isFavorited']);
+        unset($data['createdAt'], $data['updatedAt'], $data['favoritedBy']);
 
         $this->assertDatabaseHas('cards', $data);
         $this->assertDatabaseHas('card_favorites', [
             'card_id' => $newCard->get('id'),
-            'user_id' => $newCard->get('userId'),
+            'user_id' => $favoritedById,
         ]);
         Queue::assertPushed(SaveCardData::class, 1);
     }

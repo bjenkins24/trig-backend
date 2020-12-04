@@ -10,10 +10,12 @@ use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
-    private function mockGetData(): array
+    private function mockGetData($withTitle = true): array
     {
+        $content = '<div><img alt="statue" height="240" src="https://sachin-rekhi.s3-us-west-1.amazonaws.com/blog/decision-making.jpg" width="179"><p>Product managers have to make many decisions every day, including product prioritization decisions, product design decisions, bug triage decisions, and many more. And the process by which a product manager makes such decisions can result either in an extremely well functioning team dynamic or quite the opposite. Product managers</p></div>';
+
         $correctResult = [
-            'title'                        => 'My fake title',
+            'title'                        => $withTitle ? 'My fake title' : 'Product managers have to make many decisions every day',
             'keyword'                      => 'my cool keyword',
             'author'                       => 'Brian Jenkins',
             'last_author'                  => 'Joe Rodriguez',
@@ -35,40 +37,43 @@ class ExtractDataHelperTest extends TestCase
             'width'                        => 200,
             'height'                       => 400,
             'copyright'                    => 'My cool copyright',
-            'content'                      => 'Hello this is my content',
+            'excerpt'                      => 'Product managers have to make many decisions every day, including product prioritization decisions, product design decisions, bug triage decisions, and many more. And the process by which a product',
+            'content'                      => '<p>Product managers have to make many decisions every day, including product prioritization decisions, product design decisions, bug triage decisions, and many more. And the process by which a product manager makes such decisions can result either in an extremely well functioning team dynamic or quite the opposite. Product managers</p>',
         ];
 
-        $this->mock(TikaWebClientWrapper::class, static function ($mock) use ($correctResult) {
-            $mock->shouldReceive('getMetaData')->once()->andReturn([
-                'meta' => [
-                    'dc:title'                         => $correctResult['title'],
-                    'meta:keyword'                     => $correctResult['keyword'],
-                    'meta:author'                      => $correctResult['author'],
-                    'meta:last-author'                 => $correctResult['last_author'],
-                    'encoding'                         => $correctResult['encoding'],
-                    'comment'                          => $correctResult['comment'],
-                    'language'                         => $correctResult['language'],
-                    'cp:subject'                       => $correctResult['subject'],
-                    'cp:revision'                      => $correctResult['revisions'],
-                    'meta:creation-date'               => $correctResult['created'],
-                    'Last-Modified'                    => $correctResult['modified'],
-                    'meta:print-date'                  => $correctResult['print_date'],
-                    'meta:save-date'                   => $correctResult['save_date'],
-                    'meta:line-count'                  => $correctResult['line_count'],
-                    'meta:page-count'                  => $correctResult['page_count'],
-                    'meta:paragraph-count'             => $correctResult['paragraph_count'],
-                    'meta:word-count'                  => $correctResult['word_count'],
-                    'meta:character-count'             => $correctResult['character_count'],
-                    'meta:character-count-with-spaces' => $correctResult['character_count_with_spaces'],
-                    'width'                            => $correctResult['width'],
-                    'height'                           => $correctResult['height'],
-                    'Copyright'                        => $correctResult['copyright'],
-                ],
-                'width'     => $correctResult['width'],
-                'height'    => $correctResult['height'],
-                'Copyright' => $correctResult['copyright'],
-            ]);
-            $mock->shouldReceive('getText')->once()->andReturn($correctResult['content']);
+        $fakeMeta = [
+            'meta' => [
+                'dc:title'                         => $withTitle ? $correctResult['title'] : '',
+                'meta:keyword'                     => $correctResult['keyword'],
+                'meta:author'                      => $correctResult['author'],
+                'meta:last-author'                 => $correctResult['last_author'],
+                'encoding'                         => $correctResult['encoding'],
+                'comment'                          => $correctResult['comment'],
+                'language'                         => $correctResult['language'],
+                'cp:subject'                       => $correctResult['subject'],
+                'cp:revision'                      => $correctResult['revisions'],
+                'meta:creation-date'               => $correctResult['created'],
+                'Last-Modified'                    => $correctResult['modified'],
+                'meta:print-date'                  => $correctResult['print_date'],
+                'meta:save-date'                   => $correctResult['save_date'],
+                'meta:line-count'                  => $correctResult['line_count'],
+                'meta:page-count'                  => $correctResult['page_count'],
+                'meta:paragraph-count'             => $correctResult['paragraph_count'],
+                'meta:word-count'                  => $correctResult['word_count'],
+                'meta:character-count'             => $correctResult['character_count'],
+                'meta:character-count-with-spaces' => $correctResult['character_count_with_spaces'],
+                'width'                            => $correctResult['width'],
+                'height'                           => $correctResult['height'],
+                'Copyright'                        => $correctResult['copyright'],
+            ],
+            'width'     => $correctResult['width'],
+            'height'    => $correctResult['height'],
+            'Copyright' => $correctResult['copyright'],
+        ];
+
+        $this->mock(TikaWebClientWrapper::class, static function ($mock) use ($fakeMeta, $content) {
+            $mock->shouldReceive('getMetaData')->once()->andReturn($fakeMeta);
+            $mock->shouldReceive('getHtml')->once()->andReturn($content);
         });
 
         return $correctResult;
@@ -78,6 +83,14 @@ class ExtractDataHelperTest extends TestCase
     {
         Storage::fake();
         $correctResult = $this->mockGetData();
+        $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
+        self::assertEquals($correctResult, $result->toArray());
+    }
+
+    public function testGetFileDataNoTitle(): void
+    {
+        Storage::fake();
+        $correctResult = $this->mockGetData(false);
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
         self::assertEquals($correctResult, $result->toArray());
     }

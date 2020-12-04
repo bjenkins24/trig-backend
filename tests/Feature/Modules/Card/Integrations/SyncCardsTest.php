@@ -13,6 +13,7 @@ use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
+use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -196,11 +197,12 @@ class SyncCardsTest extends TestCase
         $this->partialMock(CardSyncRepository::class, static function ($mock) {
             $mock->shouldReceive('shouldSync')->andReturn(true);
         });
-        $this->mock(GoogleContent::class, static function ($mock) {
-            $mock->shouldReceive('getCardContentData')->andThrow(new WebsiteNotFound());
+        $this->mock(GenericExtraction::class, static function ($mock) {
+            $mock->shouldReceive('setUrl');
+            $mock->shouldReceive('getWebsite')->andThrow(new WebsiteNotFound());
         });
 
-        [$syncCards, $data, $user] = $this->getSetup();
+        [$syncCards, $data, $user] = $this->getSetup(null, null, 'link');
         $syncCards->syncCards($user);
 
         $card = Card::find(1);

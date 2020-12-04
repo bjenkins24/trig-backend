@@ -47,12 +47,18 @@ class GenericExtractionTest extends TestCase
             'title'   => 'my title',
             'html'    => 'my html',
         ]);
-        $mockHtml = '<div id="my_cool_id">My cool html</div>';
-        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $mockHtml, $content) {
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $content) {
             $mock->shouldReceive('simpleFetch')->with($url);
-            $mock->shouldReceive('parseHtml');
+            $mock->shouldReceive('parseHtml')->andReturn($content);
         });
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(2);
+        self::assertEquals($content, $website);
+
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $content) {
+            $mock->shouldReceive('downloadAndExtract')->with($url)->andReturn($content);
+        });
+
+        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(3);
         self::assertEquals($content, $website);
     }
 }
