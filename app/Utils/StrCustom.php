@@ -77,7 +77,7 @@ class StrCustom
         return str_replace(["\r", "\n"], '', $string);
     }
 
-    public static function htmlToMarkdown(string $html, array $tagsToRemove = []): string
+    public static function htmlToMarkdown(?string $html = null, array $tagsToRemove = []): string
     {
         if (! $html) {
             return '';
