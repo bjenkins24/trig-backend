@@ -2,9 +2,10 @@
 
 namespace App\Utils\WebsiteExtraction\WebsiteTypes;
 
+use andreskrey\Readability\ParseException;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
+use App\Utils\WebsiteExtraction\Website;
 use App\Utils\WebsiteExtraction\WebsiteExtractionInterface;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 // Only links that are links to a google doc type of file sheet/doc/slide/form
@@ -13,23 +14,18 @@ class GoogleDocsExtraction extends BaseExtraction implements WebsiteExtractionIn
 {
     /**
      * @throws WebsiteNotFound
+     * @throws ParseException
      */
-    public function getWebsite(int $currentRetryAttempt = 0): Collection
+    public function getWebsite(int $currentRetryAttempt = 0): Website
     {
         // This will get everything but the content correctly
-        $baseDoc = $this->websiteExtractionHelper->parseHtml($this->websiteExtractionHelper->simpleFetch($this->url));
+        $website = $this->websiteExtractionHelper->simpleFetch($this->url)->parseContent();
 
         // Changing the url to the exported html will get the content correctly
         $htmlExportUrl = $this->toHtmlExport($this->url);
-        $content = $this->websiteExtractionHelper->parseHtml($this->websiteExtractionHelper->simpleFetch($htmlExportUrl));
+        $content = $this->websiteExtractionHelper->simpleFetch($htmlExportUrl)->getRawContent();
 
-        return collect([
-            'image'   => $baseDoc->get('image'),
-            'author'  => $baseDoc->get('author'),
-            'excerpt' => $baseDoc->get('excerpt'),
-            'title'   => $baseDoc->get('title'),
-            'html'    => $content->get('html'),
-        ]);
+        return $website->setContent($content);
     }
 
     /**

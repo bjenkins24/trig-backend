@@ -10,7 +10,7 @@ use Mews\Purifier\Facades\Purifier;
 class StrCustom
 {
     public const ALLOWED_TAGS = [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'em', 'strong', 'i', 'b', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'ul', 'ol', 'li', 'pre', 'br', 'blockquote',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'em', 'strong', 'i', 'b', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'ul', 'ol', 'li', 'pre', 'br', 'blockquote', 'code',
     ];
 
     public static function truncateOnWord(string $string, int $maxChars): string

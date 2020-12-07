@@ -83,6 +83,8 @@ class ExtractDataHelperTest extends TestCase
     {
         Storage::fake();
         $correctResult = $this->mockGetData();
+        // Title case
+        $correctResult['title'] = 'My Fake Title';
         $result = app(ExtractDataHelper::class)->getFileData('application/pdf', 'my name is brian');
         self::assertEquals($correctResult, $result->toArray());
     }

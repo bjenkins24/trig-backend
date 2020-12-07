@@ -11,6 +11,7 @@ use Tests\TestCase;
 
 class GoogleDocsExtractionTest extends TestCase
 {
+    use MockWebsiteTrait;
 //    /**
 //     * @throws BindingResolutionException
 //     * @group n
@@ -28,19 +29,14 @@ class GoogleDocsExtractionTest extends TestCase
     public function testGetWebsite(): void
     {
         $url = 'https://docs.google.com/document/d/1UQ8oR8EqHrOB9DCmbPIfopVeSP-I18Ot4nTDW_VSlPs/edit?usp=sharing';
-        $content = collect([
-            'image'   => 'my image',
-            'author'  => 'my author',
-            'excerpt' => 'my excerpt',
-            'title'   => 'my title',
-            'html'    => 'my html',
-        ]);
-        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($content) {
-            $mock->shouldReceive('parseHtml')->andReturn($content);
-            $mock->shouldReceive('simpleFetch');
+        $mockWebsite = $this->getMockWebsite('raw html');
+        $parseHtml = $this->getMockParseHtml($mockWebsite);
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($parseHtml, $mockWebsite) {
+            $mock->shouldReceive('parseHtml')->andReturn($parseHtml);
+            $mock->shouldReceive('simpleFetch')->andReturn($mockWebsite);
         });
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite();
-        self::assertEquals($content, $website);
+        self::assertEquals($mockWebsite, $website);
     }
 
     /**

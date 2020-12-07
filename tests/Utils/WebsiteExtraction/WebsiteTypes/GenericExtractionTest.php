@@ -10,6 +10,8 @@ use Tests\TestCase;
 
 class GenericExtractionTest extends TestCase
 {
+    use MockWebsiteTrait;
+
     /**
      * @throws BindingResolutionException
      * @throws Exception
@@ -17,20 +19,16 @@ class GenericExtractionTest extends TestCase
     public function testGetWebsite(): void
     {
         $url = 'https://medium.com/@sachinrekhi/designing-your-products-continuous-feedback-loop-4a7bb31141fe';
-        $content = collect([
-            'image'   => 'my image',
-            'author'  => 'my author',
-            'excerpt' => 'my excerpt',
-            'title'   => 'my title',
-            'html'    => 'my html',
-        ]);
         $mockHtml = '<div id="my_cool_id">My cool html</div>';
-        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $mockHtml, $content) {
-            $mock->shouldReceive('fullFetch')->with($url)->andReturn($mockHtml);
-            $mock->shouldReceive('parseHtml')->with($mockHtml)->andReturn($content);
+        $mockWebsite = $this->getMockWebsite($mockHtml);
+
+        $this->mock(WebsiteExtractionHelper::class, function ($mock) use ($url, $mockWebsite, $mockHtml) {
+            $mock->shouldReceive('fullFetch')->with($url)->andReturn($mockWebsite);
+            $mock->shouldReceive('parseHtml')->with($mockHtml)->andReturn($this->getMockParseHtml($mockWebsite));
         });
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite();
-        self::assertEquals($content, $website);
+
+        self::assertEquals($website, $mockWebsite);
     }
 
     /**
@@ -40,25 +38,20 @@ class GenericExtractionTest extends TestCase
     public function testGetWebsiteOnRetry(): void
     {
         $url = 'https://medium.com/@sachinrekhi/designing-your-products-continuous-feedback-loop-4a7bb31141fe';
-        $content = collect([
-            'image'   => 'my image',
-            'author'  => 'my author',
-            'excerpt' => 'my excerpt',
-            'title'   => 'my title',
-            'html'    => 'my html',
-        ]);
-        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $content) {
-            $mock->shouldReceive('simpleFetch')->with($url);
-            $mock->shouldReceive('parseHtml')->andReturn($content);
+        $content = 'my html';
+        $mockWebsite = $this->getMockWebsite($content);
+        $this->mock(WebsiteExtractionHelper::class, function ($mock) use ($url, $content, $mockWebsite) {
+            $mock->shouldReceive('simpleFetch')->with($url)->andReturn($mockWebsite);
+            $mock->shouldReceive('parseHtml')->with($content)->andReturn($this->getMockParseHtml($mockWebsite));
         });
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(2);
-        self::assertEquals($content, $website);
+        self::assertEquals($mockWebsite, $website);
 
-        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $content) {
-            $mock->shouldReceive('downloadAndExtract')->with($url)->andReturn($content);
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $mockWebsite) {
+            $mock->shouldReceive('downloadAndExtract')->with($url)->andReturn($mockWebsite);
         });
 
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(3);
-        self::assertEquals($content, $website);
+        self::assertEquals($mockWebsite, $website);
     }
 }

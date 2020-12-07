@@ -25,7 +25,7 @@ class ExtractDataHelper
         $this->fileHelper = $fileHelper;
     }
 
-    public function getTitleFromHeadingTag(string $html): string
+    public function getTitleFromHeadingTag(string $html): Collection
     {
         $doc = new DOMDocument();
         $doc->loadHTML($html);
@@ -46,12 +46,20 @@ class ExtractDataHelper
                         $value = Str::truncateOnWord($value, self::MAX_TITLE_SIZE);
                     }
 
-                    return Str::toSingleSpace(trim($value, '?!.,;/'));
+                    return collect([
+                        'tag'   => $tag,
+                        'value' => Str::toSingleSpace(trim($value, '?!.,;/')),
+                    ]);
                 }
             }
         }
 
-        return '';
+        return collect([]);
+    }
+
+    private function makeExcerpt(string $excerpt, string $title)
+    {
+        return Str::truncateOnWord(trim(str_replace($title, '', Str::toSingleSpace(trim($excerpt)))), self::MAX_EXCERPT_SIZE);
     }
 
     /**
@@ -71,12 +79,24 @@ class ExtractDataHelper
         $content = trim(Str::purifyHtml($this->client->getHtml($file)));
 
         $title = (string) Str::toSingleSpace(Str::of(trim($meta->get('dc:title')))->snake()->replace('_', ' ')->title());
+        $fromHeadingTitle = null;
         if (! $title || Str::hasExtension($title)) {
-            $title = $this->getTitleFromHeadingTag($content);
+            $fromHeadingTitle = $this->getTitleFromHeadingTag($content);
         }
 
         $excerpt = $content ? Str::htmlToText($content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'ul', 'ol']) : '';
-        $excerpt = Str::truncateOnWord(trim(str_replace($title, '', Str::toSingleSpace(trim($excerpt)))), self::MAX_EXCERPT_SIZE);
+
+        if ($fromHeadingTitle && ! $fromHeadingTitle->isEmpty()) {
+            $title = $fromHeadingTitle->get('value');
+
+            if ('p' === $fromHeadingTitle->get('tag')) {
+                $excerpt = Str::truncateOnWord(trim(Str::toSingleSpace(trim($excerpt))), self::MAX_EXCERPT_SIZE);
+            } else {
+                $excerpt = $this->makeExcerpt($excerpt, $title);
+            }
+        } else {
+            $excerpt = $this->makeExcerpt($excerpt, $title);
+        }
 
         return [
             'title'                       => $title,

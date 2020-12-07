@@ -9,20 +9,24 @@ use App\Utils\ExtractDataHelper;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use Campo\UserAgent;
 use Exception;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use JsonException;
-use Mews\Purifier\Facades\Purifier;
 use Nesk\Puphpeteer\Puppeteer;
 
 class WebsiteExtractionHelper
 {
     private ExtractDataHelper $extractDataHelper;
+    private WebsiteFactory $websiteFactory;
 
-    public function __construct(ExtractDataHelper $extractDataHelper)
-    {
+    public function __construct(
+        ExtractDataHelper $extractDataHelper,
+        WebsiteFactory $websiteFactory
+    ) {
         $this->extractDataHelper = $extractDataHelper;
+        $this->websiteFactory = $websiteFactory;
     }
 
     private function getHeaders(): array
@@ -46,7 +50,7 @@ class WebsiteExtractionHelper
      * @throws WebsiteNotFound
      * @throws Exception       - We're going to catch this exception later and retry
      */
-    public function simpleFetch(string $url): Response
+    public function simpleFetch(string $url): Website
     {
         $result = Http::withOptions([
             'referer' => true,
@@ -57,14 +61,14 @@ class WebsiteExtractionHelper
             throw new WebsiteNotFound("The url returned an error code of {$result->status()} for $url");
         }
 
-        return $result;
+        return $this->websiteFactory->make($result->body());
     }
 
     /**
      * @throws WebsiteNotFound
      * @throws Exception       - We're going to catch this exception later and retry
      */
-    public function fullFetch(string $url): string
+    public function fullFetch(string $url): Website
     {
         $puppeteer = new Puppeteer();
         $browser = $puppeteer->launch();
@@ -72,7 +76,13 @@ class WebsiteExtractionHelper
         $page = $browser->newPage();
         $page->setExtraHTTPHeaders($this->getHeaders());
         $response = $page->goto($url);
+        $page->setViewport([
+          'width'  => 800,
+          'height' => 800,
+        ]);
         $content = $page->content();
+        $imagePath = 'public'.Storage::url('tmp-screenshots/'.Str::random().'.jpg');
+        $page->screenshot(['path' => $imagePath]);
 
         $browser->close();
 
@@ -83,23 +93,21 @@ class WebsiteExtractionHelper
             }
         }
 
-        return $content;
+        return $this->websiteFactory->make($content)->setScreenshot($imagePath);
     }
 
     /**
      * @throws JsonException
      */
-    public function downloadAndExtract(string $url): Collection
+    public function downloadAndExtract(string $url): Website
     {
         $result = collect($this->extractDataHelper->getData($url));
 
-        return collect([
-            'image'   => null,
-            'author'  => $result->get('author'),
-            'excerpt' => $result->get('excerpt'),
-            'title'   => $result->get('title'),
-            'html'    => $result->get('content'),
-        ]);
+        return $this->websiteFactory->make($result->get('content'))
+            ->setTitle($result->get('title'))
+            ->setContent($result->get('content'))
+            ->setExcerpt($result->get('excerpt'))
+            ->setAuthor($result->get('author'));
     }
 
     /**
@@ -112,7 +120,7 @@ class WebsiteExtractionHelper
 
         $parsedHtml = $readability->getContent();
         if ($parsedHtml) {
-            $parsedHtml = Purifier::clean($parsedHtml);
+            $parsedHtml = Str::purifyHtml($parsedHtml);
         }
 
         return collect([

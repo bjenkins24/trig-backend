@@ -8,12 +8,14 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
+use Exception;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -188,6 +190,28 @@ class SyncCardsTest extends TestCase
             'typeable_type' => Person::class,
         ]);
     }
+
+//    /**
+//     * @throws OauthIntegrationNotFound
+//     * @throws Exception
+//     * @group n
+//     */
+//    public function testSave(): void
+//    {
+//        $this->refreshDb();
+//        $initialData = $this->getMockData();
+//        $initialData['data']['url'] = 'https://github.com/rialto-php/puphpeteer';
+//        $initialData['data']['title'] = 'Hello there';
+//        [$syncCards, $data, $user] = $this->getSetup(null, $initialData, 'link');
+//        $card = app(CardRepository::class)->updateOrInsert([
+//            'title'        => $initialData['data']['url'],
+//            'url'          => $initialData['data']['url'],
+//            'user_id'      => $user->id,
+//            'card_type_id' => 1,
+//        ]);
+//
+//        $syncCards->saveCardData($card);
+//    }
 
     /**
      * @throws OauthIntegrationNotFound

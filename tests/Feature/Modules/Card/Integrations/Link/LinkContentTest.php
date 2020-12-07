@@ -4,6 +4,7 @@ namespace Tests\Feature\Modules\Card\Integrations\Link;
 
 use App\Models\Card;
 use App\Modules\Card\Integrations\Link\LinkContent;
+use App\Utils\WebsiteExtraction\WebsiteFactory;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
 use Exception;
 use Tests\TestCase;
@@ -37,13 +38,14 @@ class LinkContentTest extends TestCase
     public function testGetCardDataContent(): void
     {
         $this->refreshDb();
-        $mockWebsite = collect([
-            'title'       => 'hello',
-            'text'        => 'cool text',
-            'author'      => 'my author',
-            'excerpt'     => 'descipriton',
-            'image'       => 'cool image',
-        ]);
+        $mockWebsite = app(WebsiteFactory::class)
+            ->make('cool')
+            ->setContent('cool 2')
+            ->setTitle('hello')
+            ->setAuthor('my author')
+            ->setExcerpt('description')
+            ->setImage('cool image');
+
         $this->mock(GenericExtraction::class, static function ($mock) use ($mockWebsite) {
             $mock->shouldReceive('getWebsite')->andReturn($mockWebsite);
             $mock->shouldReceive('setUrl');
@@ -53,11 +55,11 @@ class LinkContentTest extends TestCase
         $cardData = app(LinkContent::class)->getCardContentData($card);
 
         self::assertEquals(collect([
-            'title'       => $mockWebsite->get('title'),
-            'content'     => $mockWebsite->get('html'),
-            'author'      => $mockWebsite->get('author'),
-            'description' => $mockWebsite->get('excerpt'),
-            'image'       => $mockWebsite->get('image'),
+            'title'       => $mockWebsite->getTitle(),
+            'content'     => $mockWebsite->getContent(),
+            'author'      => $mockWebsite->getAuthor(),
+            'description' => $mockWebsite->getExcerpt(),
+            'image'       => $mockWebsite->getImage(),
         ]), $cardData);
     }
 }

@@ -169,7 +169,9 @@ class CardRepositoryTest extends TestCase
         self::assertEquals([
             'totalPages'   => (int) ceil(4026 / CardRepository::DEFAULT_SEARCH_LIMIT),
             'page'         => 0,
-            'totalResults' => 4026,
+            // This is one less than above because one of the results is in elastic search, but not in the DB
+            // So we change the total results
+            'totalResults' => 4026 - 1,
         ], $result->get('meta'));
 
         // Reverse the order - sort by score check

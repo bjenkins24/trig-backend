@@ -30,7 +30,7 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
-    public const DEFAULT_SEARCH_LIMIT = 20;
+    public const DEFAULT_SEARCH_LIMIT = 90;
 
     public function __construct(
         OauthIntegrationRepository $oauthIntegration,
@@ -508,6 +508,10 @@ class CardRepository
             $this->saveView($fields, $card);
 
             return $card;
+        }
+
+        if (! $newFields->get('user_id')) {
+            throw new Exception('You must include a user_id for a new card');
         }
 
         if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {

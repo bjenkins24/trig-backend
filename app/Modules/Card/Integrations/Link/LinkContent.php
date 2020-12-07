@@ -42,7 +42,7 @@ class LinkContent implements ContentInterface
             return collect([]);
         } catch (Exception $exception) {
             ++$this->attempts;
-            // Enough retrying it FAILED!
+            // Enough retrying IT FAILED!
             if ($this->attempts >= self::TOTAL_ATTEMPTS) {
                 $this->cardSyncRepository->create([
                     'card_id' => $card->id,
@@ -56,16 +56,16 @@ class LinkContent implements ContentInterface
             return $this->getCardContentData($card, $id, $mimeType, $this->attempts);
         }
 
-        if ($website->isEmpty()) {
-            return $website;
+        if (! $website || ! $website->getRawContent()) {
+            return collect([]);
         }
 
         return collect([
-            'title'        => $website->get('title'),
-            'content'      => $website->get('html'),
-            'author'       => $website->get('author'),
-            'description'  => $website->get('excerpt'),
-            'image'        => $website->get('image'),
+            'title'        => $website->getTitle(),
+            'content'      => $website->getContent(),
+            'author'       => $website->getAuthor(),
+            'description'  => $website->getExcerpt(),
+            'image'        => $website->getImage() ?? $website->getScreenshot(),
         ]);
     }
 }

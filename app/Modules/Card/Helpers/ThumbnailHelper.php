@@ -59,6 +59,11 @@ class ThumbnailHelper
             $constraint->aspectRatio();
         });
         $result = Storage::put($thumbnailPathWithExtension, $resizedImage->encode($thumbnail->get('extension'))->__toString());
+
+        $thumbnailUri = str_replace('storage/', '', $thumbnailUri);
+        // If we have it locally it should get deleted because we moved it to the thumbnail and image path folders
+        Storage::delete($thumbnailUri);
+
         if ($result) {
             $card->image = Config::get('app.url').Storage::url($thumbnailPathWithExtension);
             $card->image_width = $resizedImage->width();
