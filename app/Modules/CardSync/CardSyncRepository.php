@@ -44,8 +44,12 @@ class CardSyncRepository
     {
         $cardType = CardType::find($card->card_type_id)->name;
         $secondsSinceLastAttempt = $this->secondsSinceLastAttempt($card->id);
+        $successfullySyncedBefore = CardSync::where('card_id', $card->id)->where('status', 1)->exists();
 
-        return $this->oauthIntegrationService->isIntegrationValid($cardType) &&
-            (null === $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS);
+        return ! $successfullySyncedBefore ||
+            (
+                $this->oauthIntegrationService->isIntegrationValid($cardType) &&
+                (null === $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS)
+            );
     }
 }

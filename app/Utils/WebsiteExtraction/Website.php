@@ -7,7 +7,7 @@ use andreskrey\Readability\ParseException;
 class Website
 {
     private string $rawContent;
-    private ?string $image;
+    private ?string $image = null;
     private ?string $screenshot = null;
     private ?string $author;
     private ?string $excerpt;

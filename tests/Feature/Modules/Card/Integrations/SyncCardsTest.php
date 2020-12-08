@@ -200,7 +200,7 @@ class SyncCardsTest extends TestCase
 //    {
 //        $this->refreshDb();
 //        $initialData = $this->getMockData();
-//        $initialData['data']['url'] = 'https://github.com/rialto-php/puphpeteer';
+//        $initialData['data']['url'] = 'https://www.khoslaventures.com/wp-content/uploads/Good-Group-Product-Manager.pdf';
 //        $initialData['data']['title'] = 'Hello there';
 //        [$syncCards, $data, $user] = $this->getSetup(null, $initialData, 'link');
 //        $card = app(CardRepository::class)->updateOrInsert([
