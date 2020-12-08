@@ -5,6 +5,7 @@ namespace App\Modules\Card\Helpers;
 use App\Models\Person;
 use App\Models\User;
 use App\Modules\Person\PersonRepository;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class ElasticQueryBuilderHelper
@@ -235,12 +236,38 @@ class ElasticQueryBuilderHelper
         ];
     }
 
+    private function makeDateConditions(Collection $constraints): array
+    {
+        if (! $constraints->get('s') && ! $constraints->get('e')) {
+            return ['must' => []];
+        }
+
+        $base = [
+            'must' => [
+                'range' => [
+                    'actual_created_at' => [],
+                ],
+            ],
+        ];
+
+        if ($constraints->get('s')) {
+            $base['must']['range']['actual_created_at']['gte'] = Carbon::createFromTimestamp($constraints->get('s'))->toIso8601String();
+        }
+
+        if ($constraints->get('e')) {
+            $base['must']['range']['actual_created_at']['lte'] = Carbon::createFromTimestamp($constraints->get('e'))->toIso8601String();
+        }
+
+        return $base;
+    }
+
     public function baseQuery(User $user, Collection $constraints): array
     {
         return [
             'bool' => [
                 'must'   => $this->buildSearchCondition($constraints),
                 'filter' => [
+                    ['bool' => $this->makeDateConditions($constraints)],
                     $this->makePermissionsConditions($user),
                 ],
             ],
