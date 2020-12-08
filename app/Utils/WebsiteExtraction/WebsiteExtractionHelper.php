@@ -78,8 +78,8 @@ class WebsiteExtractionHelper
         $response = $page->goto($url);
         $content = $page->content();
         $page->setViewport([
-            'width'    => 300,
-            'height'   => 200,
+            'width'    => 251,
+            'height'   => 251,
             'isMobile' => true,
         ]);
         $imagePath = 'public'.Storage::url('tmp-screenshots/'.Str::random().'.png');
