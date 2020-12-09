@@ -119,10 +119,6 @@ class Card extends Model
         $permissions = $cardRepo->denormalizePermissions($this)->toArray();
         $cardDuplicateIds = $cardRepo->getDuplicateIds($this);
 
-        $docTitle = null;
-        if ($this->properties) {
-            $docTitle = $this->properties->get('title');
-        }
         $organization = $this->user()->first()->organizations()->first();
         $organizationId = null;
         if ($organization) {
@@ -133,10 +129,10 @@ class Card extends Model
 
         return [
             'user_id'            => $this->user_id,
-            'card_type_id'       => $this->card_type_id,
+            'card_type'          => app(CardTypeRepository::class)->mapCardTypeToWords($this),
+            'url'                => $this->url ?? '',
             'organization_id'    => $organizationId,
             'title'              => $this->title,
-            'doc_title'          => $docTitle,
             'content'            => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'        => $permissions,
             'actual_created_at'  => $this->actual_created_at,
