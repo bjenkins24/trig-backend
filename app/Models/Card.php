@@ -130,17 +130,17 @@ class Card extends Model
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
         return [
-            'user_id'            => $this->user_id,
-            'card_type'          => app(CardTypeRepository::class)->mapCardTypeToWords($this),
-            'url'                => $this->url ?? '',
-            'organization_id'    => $organizationId,
-            'title'              => $this->title,
-            'content'            => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
-            'permissions'        => $permissions,
-            'favoritesByUserId'  => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
-            'views'              => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
-            'actual_created_at'  => $this->actual_created_at,
-            'card_duplicate_ids' => $cardDuplicateIds,
+            'user_id'               => $this->user_id,
+            'card_type'             => app(CardTypeRepository::class)->mapCardTypeToWords($this),
+            'url'                   => $this->url ?? '',
+            'organization_id'       => $organizationId,
+            'title'                 => $this->title,
+            'content'               => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
+            'permissions'           => $permissions,
+            'favorites_by_user_id'  => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
+            'views'                 => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
+            'actual_created_at'     => $this->actual_created_at,
+            'card_duplicate_ids'    => $cardDuplicateIds,
         ];
     }
 }

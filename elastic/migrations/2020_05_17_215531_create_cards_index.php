@@ -42,7 +42,7 @@ final class CreateCardsIndex implements MigrationInterface
                     ],
                 ],
             ]);
-            $mapping->long('favoritesByUserId');
+            $mapping->long('favorites_by_user_id');
             $mapping->nested('permissions', [
                 'properties' => [
                     'id' => [
