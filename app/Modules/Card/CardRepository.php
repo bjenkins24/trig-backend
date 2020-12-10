@@ -413,7 +413,7 @@ class CardRepository
     /**
      * @throws Exception
      */
-    private function saveView(array $fields, Card $card): void
+    public function saveView(array $fields, Card $card): void
     {
         if (! isset($fields['viewedBy'])) {
             return;

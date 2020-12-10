@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Modules\Card\CardRepository;
+use App\Modules\CardFavorite\CardFavoriteRepository;
 use App\Modules\CardType\CardTypeRepository;
+use App\Modules\CardView\CardViewRepository;
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\HasCardDuplicates;
@@ -135,6 +137,8 @@ class Card extends Model
             'title'              => $this->title,
             'content'            => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'        => $permissions,
+            'favoritesByUserId'  => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
+            'views'              => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
             'actual_created_at'  => $this->actual_created_at,
             'card_duplicate_ids' => $cardDuplicateIds,
         ];

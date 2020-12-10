@@ -108,14 +108,10 @@ class ElasticQueryBuilderHelperTest extends TestCase
         self::assertEquals($expected, $result);
     }
 
-    /**
-     * @group n
-     */
     public function testCondition(): void
     {
         $constraints = collect([]);
         $result = app(ElasticQueryBuilderHelper::class)->baseQuery(User::find(1), $constraints);
-        dd(json_encode($result));
     }
 
 //    public function testBuildSearchCondition(): void

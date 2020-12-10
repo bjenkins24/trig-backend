@@ -30,6 +30,19 @@ final class CreateCardsIndex implements MigrationInterface
                 'term_vector' => 'with_positions_offsets',
             ]);
             $mapping->keyword('card_duplicate_ids');
+            $mapping->nested('views', [
+                'properties' => [
+                    'user_id' => [
+                        'type'       => 'long',
+                        'null_value' => 0,
+                    ],
+                    'created' => [
+                        'type'       => 'date',
+                        'null_value' => 'NULL',
+                    ],
+                ],
+            ]);
+            $mapping->long('favoritesByUserId');
             $mapping->nested('permissions', [
                 'properties' => [
                     'id' => [

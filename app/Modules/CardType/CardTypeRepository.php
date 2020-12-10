@@ -23,7 +23,7 @@ class CardTypeRepository
 
     public function mapCardTypeToWords(Card $card): string
     {
-        $cardTypeName = CardType::where('id', $card->card_type_id)->get()->name;
+        $cardTypeName = CardType::find($card->card_type_id)->name;
         if ('link' === $cardTypeName && ! empty($card->url)) {
             return $this->mapLinkToType($card->url);
         }
