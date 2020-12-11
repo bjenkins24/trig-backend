@@ -16,8 +16,8 @@ final class CreateCardsIndex implements MigrationInterface
     {
         Index::create('cards', static function (Mapping $mapping, Settings $settings) {
             $mapping->long('user_id');
-            $mapping->long('card_type');
-            $mapping->long('url');
+            $mapping->keyword('card_type');
+            $mapping->keyword('url');
             $mapping->long('organization_id');
             $mapping->text('title', [
                 'fields' => [
@@ -36,7 +36,7 @@ final class CreateCardsIndex implements MigrationInterface
                         'type'       => 'long',
                         'null_value' => 0,
                     ],
-                    'created' => [
+                    'created_at' => [
                         'type'       => 'date',
                         'null_value' => 'NULL',
                     ],
