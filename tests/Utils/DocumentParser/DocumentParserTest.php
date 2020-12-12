@@ -74,6 +74,13 @@ DOCUMENT_TEXT;
         self::assertEquals($expectedTags, $results);
     }
 
+    public function testGtpNoInput(): void
+    {
+        $results = app(DocumentParser::class)->getTags('');
+        $expectedTags = collect([]);
+        self::assertEquals($expectedTags, $results);
+    }
+
     public function testIncreasingEngine(): void
     {
         $this->mock(Gtp3::class, static function ($mock) {

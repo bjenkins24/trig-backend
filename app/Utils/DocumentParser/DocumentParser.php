@@ -19,6 +19,10 @@ class DocumentParser
 
     public function getTags(string $documentText, $engineId = 1): Collection
     {
+        if (! $documentText) {
+            return collect([]);
+        }
+
         $truncatedDocumentText = Str::truncateOnWord(Str::removeLineBreaks($documentText), 1600);
         $exampleTags = ['drip irrigation', 'sprinkler system', 'water waste', 'water runoff'];
         $table = implode(' | ', $exampleTags);
