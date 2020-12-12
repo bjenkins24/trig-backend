@@ -4,13 +4,15 @@ namespace Tests\Utils\DocumentParser;
 
 use App\Utils\DocumentParser\DocumentParser;
 use App\Utils\Gtp3;
+use Exception;
 use Tests\TestCase;
 
 class DocumentParserTest extends TestCase
 {
-    public function testGetTags(): void
+    public function testGetTagsSuccess(): void
     {
         $this->mock(Gtp3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
             $mock->shouldReceive('complete')->andReturn([
                 'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
                 'object'  => 'text_completion',
@@ -45,6 +47,60 @@ DOCUMENT_TEXT;
 
         $results = app(DocumentParser::class)->getTags($documentText);
         $expectedTags = collect(['NLP', 'meta model', 'cognitive processes']);
+        self::assertEquals($expectedTags, $results);
+    }
+
+    public function testGtpFail(): void
+    {
+        $this->mock(Gtp3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('complete')->andThrow(new Exception('Fail!'));
+        });
+
+        $results = app(DocumentParser::class)->getTags('my text');
+        $expectedTags = collect([]);
+        self::assertEquals($expectedTags, $results);
+    }
+
+    public function testGtpNoResults(): void
+    {
+        $this->mock(Gtp3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('complete')->andReturn(['no results']);
+        });
+
+        $results = app(DocumentParser::class)->getTags('my text');
+        $expectedTags = collect([]);
+        self::assertEquals($expectedTags, $results);
+    }
+
+    public function testIncreasingEngine(): void
+    {
+        $this->mock(Gtp3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('complete')->andReturn([
+                'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
+                'object'  => 'text_completion',
+                'created' => 1607731847,
+                'model'   => 'babbage:2020-05-03',
+                'choices' => [
+                    [
+                        'text' => <<<COMPLETION
+drip irrigation | sprinkler system | water waste |\n
+\n
+\n
+Neuro-linguistic programming (NLP) is a
+COMPLETION,
+                        'index'         => 0,
+                        'logprobs'      => null,
+                        'finish_reason' => 'max_tokens',
+                    ],
+                ],
+            ])->times(3);
+        });
+
+        $results = app(DocumentParser::class)->getTags('my text');
+        $expectedTags = collect([]);
         self::assertEquals($expectedTags, $results);
     }
 }
