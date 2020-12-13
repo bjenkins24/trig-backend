@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Modules\Card\CardRepository;
 use App\Modules\CardFavorite\CardFavoriteRepository;
+use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\CardView\CardViewRepository;
 use App\Support\Traits\Relationships\BelongsToCardType;
@@ -132,6 +133,7 @@ class Card extends Model
             'card_type'             => app(CardTypeRepository::class)->mapCardTypeToWords($this),
             'url'                   => $this->url ?? '',
             'organization_id'       => $this->organization_id,
+            'tags'                  => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
             'title'                 => $this->title,
             'content'               => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'           => $permissions,

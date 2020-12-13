@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\CardTagRepository;
+namespace Tests\Feature\Modules\CardTag;
 
 use App\Models\Card;
 use App\Models\Tag;
@@ -77,6 +77,20 @@ class CardTagRepositoryTest extends TestCase
             'tag_id'             => $secondTagId,
         ]);
 
+        $this->refreshDb();
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testDenormalizeTags(): void
+    {
+        $card = Card::find(1);
+        $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
+        app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
+        $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
+
+        self::assertEquals(collect($firstSetTags), $denormalized);
         $this->refreshDb();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Modules\CardTag;
 use App\Models\Card;
 use App\Models\CardTag;
 use App\Models\Tag;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -49,5 +50,16 @@ class CardTagRepository
         });
 
         return $card;
+    }
+
+    public function denormalizeTags(Card $card): Collection
+    {
+        $cardTags = $card->cardTags()->get();
+
+        return $cardTags->reduce(static function ($carry, $cardTag) {
+            $carry->push($cardTag->tag()->first()->tag);
+
+            return $carry;
+        }, collect([]));
     }
 }
