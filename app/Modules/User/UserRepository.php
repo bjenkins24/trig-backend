@@ -71,7 +71,7 @@ class UserRepository
         ]));
 
         $user->organizations()->firstOrCreate([
-            'name' => 'Squarespace',
+            'name' => 'default',
         ]);
 
         return $user;

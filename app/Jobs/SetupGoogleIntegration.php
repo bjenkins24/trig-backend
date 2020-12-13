@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
@@ -21,15 +22,17 @@ class SetupGoogleIntegration implements ShouldQueue
     use SerializesModels;
 
     private User $user;
+    private Organization $organization;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(User $user)
+    public function __construct(User $user, Organization $organization)
     {
         $this->user = $user;
+        $this->organization = $organization;
     }
 
     /**
@@ -40,6 +43,6 @@ class SetupGoogleIntegration implements ShouldQueue
     public function handle(): void
     {
         app(GoogleDomains::class)->syncDomains($this->user);
-        SyncCards::dispatch($this->user->id, 'google')->onQueue('sync-cards');
+        SyncCards::dispatch($this->user->id, $this->organization->id, 'google')->onQueue('sync-cards');
     }
 }

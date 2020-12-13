@@ -13,6 +13,7 @@ use App\Support\Traits\Relationships\HasCardDuplicates;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
+use App\Support\Traits\Relationships\HasCardTags;
 use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
@@ -80,6 +81,7 @@ class Card extends Model
     use HasCardIntegration;
     use HasCardDuplicates;
     use HasCardSyncs;
+    use HasCardTags;
     use Permissionables;
     use LinkShareable;
     use Searchable;
@@ -123,13 +125,6 @@ class Card extends Model
         $cardRepo = app(CardRepository::class);
         $permissions = $cardRepo->denormalizePermissions($this)->toArray();
         $cardDuplicateIds = $cardRepo->getDuplicateIds($this);
-
-        $organization = $this->user()->first()->organizations()->first();
-        $organizationId = null;
-        if ($organization) {
-            $organizationId = $organization->id;
-        }
-
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
         return [

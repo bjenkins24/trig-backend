@@ -60,9 +60,10 @@ class UserService
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
+        $organization = $user->organizations()->first();
         $this->oauthConnectionRepo->create($user, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
 
-        SetupGoogleIntegration::dispatch($user);
+        SetupGoogleIntegration::dispatch($user, $organization);
 
         return $user;
     }
