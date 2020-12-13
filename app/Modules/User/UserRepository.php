@@ -35,6 +35,11 @@ class UserRepository
         ]);
     }
 
+    public function getAllOrganizations(User $user): Collection
+    {
+        return $user->organizations()->get();
+    }
+
     /**
      * Given a domain name is it an active google drive domain integration? Individual
      * domains can be enabled and disabled from within Trig.

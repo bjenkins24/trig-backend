@@ -64,4 +64,10 @@ class CardSyncRepositoryTest extends TestCase
         $result = $cardSyncRepository->secondsSinceLastAttempt(2000);
         self::assertNull($result);
     }
+
+    public function testShouldGetTags(): void
+    {
+        $cardSyncRepository = app(CardSyncRepository::class);
+        $cardSyncRepository->shouldGetTags();
+    }
 }

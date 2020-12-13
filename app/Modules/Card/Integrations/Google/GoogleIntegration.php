@@ -140,7 +140,7 @@ class GoogleIntegration implements IntegrationInterface
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
-    public function getCardData(User $user, $file): array
+    public function getCardData(User $user, int $organizationId, $file): array
     {
         if ('application/vnd.google-apps.folder' === $file->mimeType) {
             return [];
@@ -148,6 +148,7 @@ class GoogleIntegration implements IntegrationInterface
 
         $cardData = [
             'user_id'            => $user->id,
+            'organization_id'    => $organizationId,
             'delete'             => $file->trashed,
             'card_type'          => $file->mimeType,
             'url'                => $file->webViewLink,
@@ -171,12 +172,12 @@ class GoogleIntegration implements IntegrationInterface
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
-    public function getAllCardData(User $user, ?int $since): array
+    public function getAllCardData(User $user, int $organizationId, ?int $since): array
     {
         $files = $this->getFiles($user, $since);
 
         return $files->reduce(function ($carry, $file) use ($user) {
-            $carry[] = $this->getCardData($user, $file);
+            $carry[] = $this->getCardData($user, $organizationId, $file);
 
             return $carry;
         }, []);

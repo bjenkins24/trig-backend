@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToManyUsers;
+use App\Support\Traits\Relationships\HasCards;
+use App\Support\Traits\Relationships\HasTags;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -27,6 +29,8 @@ use Illuminate\Database\Eloquent\Model;
 class Organization extends Model
 {
     use BelongsToManyUsers;
+    use HasTags;
+    use HasCards;
 
     /**
      * The attributes that are mass assignable.

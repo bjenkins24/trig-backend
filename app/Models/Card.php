@@ -7,6 +7,7 @@ use App\Modules\CardFavorite\CardFavoriteRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\CardView\CardViewRepository;
 use App\Support\Traits\Relationships\BelongsToCardType;
+use App\Support\Traits\Relationships\BelongsToOrganization;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\HasCardDuplicates;
 use App\Support\Traits\Relationships\HasCardFavorite;
@@ -72,6 +73,7 @@ use Laravel\Scout\Searchable;
 class Card extends Model
 {
     use BelongsToUser;
+    use BelongsToOrganization;
     use BelongsToCardType;
     use HasCardFavorite;
     use HasCardView;
@@ -90,6 +92,7 @@ class Card extends Model
      */
     protected $fillable = [
         'user_id',
+        'organization_id',
         'card_type_id',
         'title',
         'description',
@@ -133,7 +136,7 @@ class Card extends Model
             'user_id'               => $this->user_id,
             'card_type'             => app(CardTypeRepository::class)->mapCardTypeToWords($this),
             'url'                   => $this->url ?? '',
-            'organization_id'       => $organizationId,
+            'organization_id'       => $this->organization_id,
             'title'                 => $this->title,
             'content'               => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'           => $permissions,

@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
-use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Illuminate\Bus\Queueable;
@@ -22,6 +21,7 @@ class SyncCards implements ShouldQueue
 
     public int $timeout = 360;
     public int $userId;
+    public int $organizationId;
     public string $integration;
     public ?int $since;
 
@@ -32,10 +32,12 @@ class SyncCards implements ShouldQueue
      */
     public function __construct(
         int $userId,
+        int $organizationId,
         string $integration,
         ?int $since = null
     ) {
         $this->userId = $userId;
+        $this->organizationId = $organizationId;
         $this->integration = $integration;
         $this->since = $since;
     }
@@ -43,12 +45,11 @@ class SyncCards implements ShouldQueue
     /**
      * @throws CardIntegrationCreationValidate
      * @throws OauthIntegrationNotFound
-     * @throws OauthKeyInvalid
      */
     public function handle(): void
     {
         $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
 
-        $syncCardsIntegration->syncCards(User::find($this->userId), $this->since);
+        $syncCardsIntegration->syncCards(User::find($this->userId), $this->organizationId, $this->since);
     }
 }

@@ -8,6 +8,5 @@ interface IntegrationInterface
 {
     public static function getIntegrationKey(): string;
 
-    public function getAllCardData(User $user, ?int $since): array;
-
+    public function getAllCardData(User $user, int $organizationId, ?int $since): array;
 }

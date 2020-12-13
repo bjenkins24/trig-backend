@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 trait BelongsToManyUsers
@@ -11,6 +12,6 @@ trait BelongsToManyUsers
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\User');
+        return $this->belongsToMany(User::class);
     }
 }

@@ -119,6 +119,7 @@ class SyncCards
                 return;
             }
         }
+
         // The card hasn't been created, but we will want to delete it, that means lets not create it to begin with
         if ($data->get('delete')) {
             return;
@@ -233,9 +234,9 @@ class SyncCards
     /**
      * @throws CardIntegrationCreationValidate
      */
-    public function syncCards(User $user, ?int $since = null): bool
+    public function syncCards(User $user, int $organizationId, ?int $since = null): bool
     {
-        $cardData = collect($this->integration->getAllCardData($user, $since))->recursive();
+        $cardData = collect($this->integration->getAllCardData($user, $organizationId, $since))->recursive();
         if (0 === $cardData->count()) {
             return false;
         }

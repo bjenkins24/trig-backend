@@ -2,16 +2,16 @@
 
 namespace App\Support\Traits\Relationships;
 
-use App\Models\Card;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-trait BelongsToCard
+trait BelongsToTag
 {
     /**
      * Belongs to Card.
      */
-    public function card(): BelongsTo
+    public function tag(): BelongsTo
     {
-        return $this->belongsTo(Card::class);
+        return $this->belongsTo(Tag::class);
     }
 }

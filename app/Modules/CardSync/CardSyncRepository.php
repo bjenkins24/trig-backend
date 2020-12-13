@@ -52,4 +52,9 @@ class CardSyncRepository
                 (null === $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS)
             );
     }
+
+    public function shouldGetTags(Card $card, string $newContent): bool
+    {
+        return false;
+    }
 }

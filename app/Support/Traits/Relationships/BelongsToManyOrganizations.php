@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 trait BelongsToManyOrganizations
@@ -11,6 +12,6 @@ trait BelongsToManyOrganizations
      */
     public function organizations(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\Organization');
+        return $this->belongsToMany(Organization::class);
     }
 }

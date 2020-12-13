@@ -12,7 +12,7 @@ class LinkIntegration implements IntegrationInterface
         return 'link';
     }
 
-    public function getAllCardData(User $user, ?int $since): array
+    public function getAllCardData(User $user, int $organizationId, ?int $since): array
     {
         return [];
     }

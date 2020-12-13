@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\CardOrganizationIdMustExist;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
@@ -573,6 +574,22 @@ class CardRepositoryTest extends TestCase
             'card_type_id' => 2,
         ]);
         self::assertEquals($newCard->title, $newCardTitle);
+
+        // Try a user with more than one organization, it should throw an error
+        User::find(1)->organizations()->create([
+            'name' => 'test org',
+        ]);
+        try {
+            app(CardRepository::class)->updateOrInsert([
+                'user_id' => 1,
+                'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+                'title'   => $newCardTitle,
+            ], null);
+            self::assertFalse(true);
+        } catch (CardOrganizationIdMustExist $exception) {
+            self::assertTrue(true);
+        }
+
         $this->refreshDb();
     }
 
