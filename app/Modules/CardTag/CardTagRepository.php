@@ -31,6 +31,9 @@ class CardTagRepository
 
             $organizationId = $card->organization_id;
             foreach ($tags as $tagString) {
+                if (! $tagString) {
+                    continue;
+                }
                 $tag = Tag::where('tag', $tagString)->where('organization_id', $organizationId)->first();
                 if (! $tag) {
                     // Add a card_tag

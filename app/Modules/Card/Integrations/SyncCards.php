@@ -14,14 +14,17 @@ use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardSync\CardSyncRepository;
+use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
+use App\Utils\DocumentParser\DocumentParser;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Support\Collection;
+use Throwable;
 
 class SyncCards
 {
@@ -36,6 +39,8 @@ class SyncCards
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
     private ThumbnailHelper $thumbnailHelper;
+    private DocumentParser $documentParser;
+    private CardTagRepository $cardTagRepository;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
@@ -45,7 +50,9 @@ class SyncCards
         OauthIntegrationService $oauthIntegrationService,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
-        ThumbnailHelper $thumbnailHelper
+        ThumbnailHelper $thumbnailHelper,
+        DocumentParser $documentParser,
+        CardTagRepository $cardTagRepository
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->oauthIntegrationService = $oauthIntegrationService;
@@ -55,6 +62,8 @@ class SyncCards
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
         $this->thumbnailHelper = $thumbnailHelper;
+        $this->documentParser = $documentParser;
+        $this->cardTagRepository = $cardTagRepository;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -155,6 +164,9 @@ class SyncCards
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     public function saveCardData(Card $card): bool
     {
         if (! $this->cardSyncRepository->shouldSync($card)) {
@@ -181,6 +193,11 @@ class SyncCards
         if ($data->get('image')) {
             $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
             $data->forget('image');
+        }
+
+        if ($this->cardSyncRepository->shouldGetTags($card, $data->get('content'))) {
+            $tags = $this->documentParser->getTags($data->get('title').' - '.$data->get('content'));
+            $this->cardTagRepository->replaceTags($card, $tags->toArray());
         }
 
         // If we return any of these fields, we want to save them in full fledged columns not in properties
