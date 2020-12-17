@@ -21,7 +21,7 @@ class CreateCardsTable extends Migration
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
             $table->string('image')->nullable();
-            $table->string('url');
+            $table->text('url');
             $table->integer('total_favorites')->default(0);
             $table->integer('total_views')->default(0);
             $table->dateTime('actual_created_at')->index();

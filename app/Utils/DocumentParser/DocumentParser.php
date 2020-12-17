@@ -2,7 +2,7 @@
 
 namespace App\Utils\DocumentParser;
 
-use App\Utils\Gtp3;
+use App\Utils\Gpt3;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +15,25 @@ class DocumentParser
      */
     private const BANNED_CHARS = [
         '#', '~',
+    ];
+
+    /**
+     * These are words that BY THEMSELVES make horrible tags. If any tag matches
+     * these tags exactly (all these words much be all lower case), we're just going to remove them outright.
+     */
+    private const BANNED_TAGS = [
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency',
+    ];
+
+    /**
+     * If the content or the title contain a certain string let's just auto tag it. This is how a human
+     * would do it.
+     */
+    private const HUERISTICS = [
+        [
+            'title' => 'Amazon.com: Books',
+            'tag'   => 'Book',
+        ],
     ];
 
     /**
@@ -34,30 +53,34 @@ class DocumentParser
         [['accountant', 'accounting', '~accountant'], 'Accounting'],
         ['sale', 'Sales'],
         ['marketing', 'Marketing'],
-        ['culture', 'Culture'],
+        [['culture', '~cultures'], 'Culture'],
         ['customer support', 'Customer Support'],
-        ['customer service', 'Customer Service'],
+        [['customer service', '~customer services'], 'Customer Service'],
+        [[' MVP', 'MVP '], 'MVP'],
         [[' ML', 'ML ', 'machine learning'], 'Machine Learning'],
         [[' AI', 'AI ', 'artificial intelligence'], 'Artificial Intelligence'],
         [['risk manag', '~risk manager', '~risk managers'], 'Risk Management'],
-        [['data scien', '~data scientist'], 'Data Science'],
+        [['data scien', '~data scientist', '~data scientists'], 'Data Science'],
         [['software engineer', 'software develop', '~software engineer', '~software engineers', '~software developer', '~software developers', '~software developing'], 'Software Engineering'],
         [['hardware engineer', 'hardware develop', '~hardware engineer', '~hardware engineers', '~hardware developer', '~hardware developers', '~hardware developing'], 'Hardware Engineering'],
         [['design', '~designer', '~designing'], 'Design'],
-        [['manag', '-product', '~managers', '~manager', '~managing'], 'Management'],
+        [['product', '-manag', '~products'], 'Product'],
+        [['product manag', '~product manager', '~product managers'], 'Product Management'],
+        [['manag', '-risk', '-product', '~managers', '~manager', '~managing'], 'Management'],
         [['lead', '~leader'], 'Leadership'],
         [['strateg', '~strategize'], 'Strategy'],
-        [['entrepreneur', '~entrepreneur'], 'Entrepreneurship'],
+        [['entrepreneur', '~entrepreneur', '~entrepreneurial'], 'Entrepreneurship'],
         [['HR ', ' HR', 'human resource manag', '~HR'], 'Human Resource Management'],
         [['producti', '~productive'], 'Productivity'],
         [['economic', '~economic'], 'Economics'],
+        [['coach', '~coach', '~coaches', '~coachable'], 'Coaching'],
         [['brand', '-brands', '~brand'], 'Branding'],
         [['budget', '~budget'], 'Budgeting'],
         [['divers', '~diverse'], 'Diversity'],
         [['educat', '~educator'], 'Education'],
         ['health', 'Health'],
         [['hiring', 'hire', '~hire'], 'Hiring'],
-        [['meeting', '~meet'], 'Meetings'],
+        [['meeting', '~meet', '~meeting'], 'Meetings'],
         [['ethic', '~ethical'], 'Ethics'],
         [['pric', '~prices'], 'Pricing'],
         [['real estate, realtor'], 'Real Estate'],
@@ -67,13 +90,14 @@ class DocumentParser
         [['diy', 'do it yourself', '~do it yourself'], 'DIY'],
         // No parent - could be Parent Company for example
         [['parenting', '~parent'], 'Parenting'],
-        [['romance', 'romancing', '~romancing', 'romantic', '~romantic'], 'Romance'],
+        [['romance', '~romance', 'romancing', '~romancing', 'romantic', '~romantic'], 'Romance'],
+        ['self-', 'Self-Help'],
     ];
-    private Gtp3 $gtp3;
+    private Gpt3 $gpt3;
 
-    public function __construct(Gtp3 $gtp3)
+    public function __construct(Gpt3 $gpt3)
     {
-        $this->gtp3 = $gtp3;
+        $this->gpt3 = $gpt3;
     }
 
     private function tableToArray(string $completion): array
@@ -83,6 +107,23 @@ class DocumentParser
         foreach ($potentialTags as $tag) {
             if (trim($tag)) {
                 $tags[] = trim($tag);
+            }
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Add tags based off of just simple string matching in the title or content.
+     */
+    private function addHeuristicTags(array $tags, ?string $title = '', ?string $content = ''): array
+    {
+        foreach (self::HUERISTICS as $hueristic) {
+            if (! empty($hueristic['title']) && false !== stripos($title, $hueristic['title'])) {
+                $tags[] = $hueristic['tag'];
+            }
+            if (! empty($hueristic['content']) && false !== stripos($content, $hueristic['content'])) {
+                $tags[] = $hueristic['tag'];
             }
         }
 
@@ -158,7 +199,7 @@ class DocumentParser
             }
         }
 
-        return array_values(array_unique($newTags));
+        return array_values($newTags);
     }
 
     public function cleanTags(array $tags, int $engineId = 2): array
@@ -196,7 +237,7 @@ Clean up the keywords above:
 PROMPT;
 
         try {
-            $response = $this->gtp3->complete($prompt, [
+            $response = $this->gpt3->complete($prompt, [
                 'max_tokens'        => 20,
                 'temperature'       => 0.2,
                 'top_p'             => 0,
@@ -226,7 +267,7 @@ PROMPT;
         return $cleanedTags;
     }
 
-    private function removeBannedChars($tags): array
+    private function removeBanned($tags): array
     {
         $newTags = [];
         foreach ($tags as $tag) {
@@ -237,34 +278,56 @@ PROMPT;
             $newTags[] = $newTag;
         }
 
+        foreach ($tags as $tagKey => $tag) {
+            foreach (self::BANNED_TAGS as $bannedTag) {
+                if ($bannedTag === strtolower(trim($tag))) {
+                    unset($newTags[$tagKey]);
+                }
+            }
+        }
+
         return $newTags;
     }
 
-    public function getTags(string $documentText, $engineId = 1): Collection
+    public function getTags(string $title, string $documentText, $engineId = 1): Collection
     {
-        if (! $documentText) {
+        if (! $documentText || ! $title) {
             return collect([]);
         }
 
         $truncatedDocumentText = Str::truncateOnWord(Str::removeLineBreaks($documentText), 1600);
-        $exampleTags = ['Drip Irrigation', 'Covid 19', 'Sprinkler System', 'Water Waste'];
+        $exampleTags = ['Aliens', 'UFO'];
+        $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Covid 19', 'Water Waste'];
+        $exampleTags3 = ['Laundry', 'Dryer Sheet', 'Toxic Chemicals'];
         $list = implode(', ', $exampleTags);
+        $list2 = implode(', ', $exampleTags2);
+        $list3 = implode(', ', $exampleTags3);
 
         $prompt = <<<PROMPT
-Text: **Drip irrigation** is a system of tubing that directs __small quantities__ of water precisely where it’s needed, preventing the water waste associated with sprinkler systems. Drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
+Title: UFOs Among Us
+Markdown: In the 1940s and 50s reports of __"flying saucers"__ became an American cultural **phenomena**. Sightings of strange objects in the sky became the raw materials for Hollywood to present visions of potential threats. Amy Franko wanted to verify that there were extraterrestrials.
 Tags: $list
 ###
-Text: $truncatedDocumentText
+Title: How to Use Drip Irrigation to Water Your Garden
+Markdown: **Drip irrigation** is a system of tubing that directs __small quantities__ of water precisely where it’s needed says Brian Jenkins, preventing the water waste associated with sprinkler systems. Since Covid 19, Joseph Goldberg mentions that drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
+Tags: $list2
+###
+Title: "Greener" Laundry by the Load: Fabric Softener versus Dryer Sheets
+Markdown: If you’re concerned about the health and safety of your family members, you might want to stay away from both conventional dryer sheets and liquid fabric softeners altogether. While it may be nice to have clothes that feel soft, smell fresh and are free of static cling, both types of products contain chemicals known to be toxic to people after sustained exposure. According to the health and wellness website Sixwise.com, some of the most harmful ingredients in dryer sheets and liquid fabric softener alike include benzyl acetate (linked to pancreatic cancer), benzyl alcohol (an upper respiratory tract irritant), ethanol (linked to central nervous system disorders), limonene (a known carcinogen) and chloroform (a neurotoxin and carcinogen), among others.
+Tags: $list3
+###
+Title: $title
+Markdown: $truncatedDocumentText
 Tags:
 PROMPT;
 
         try {
-            $response = $this->gtp3->complete($prompt, [
+            $response = $this->gpt3->complete($prompt, [
                 'max_tokens'        => 24,
                 'temperature'       => 0.2,
-                'top_p'             => 0.5,
+                'top_p'             => 0.2,
                 'frequency_penalty' => 0.8,
-                'presence_penalty'  => 0.1,
+                'presence_penalty'  => 0.2,
                 'stop'              => '###',
             ], $engineId);
         } catch (Exception $exception) {
@@ -284,18 +347,17 @@ PROMPT;
 
         $nextEngineNoticeMessage = '';
         if ($engineId < 3) {
-            $nextEngineNoticeMessage = "Trying {$this->gtp3->getEngine($engineId + 1)} engine for tag generation. Got $completion from $truncatedDocumentText";
+            $nextEngineNoticeMessage = "Trying {$this->gpt3->getEngine($engineId + 1)} engine for tag generation. Got $completion from $truncatedDocumentText";
         }
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
         foreach ($tags as $tagKey => $tag) {
-            // Bad results tend to have 4 words or more in tags - but let's only go up to curie for this
-            // since it _is_ possible to get 4 words legitimately
-            if ($engineId < 2 && str_word_count($tag) > 3) {
+            // Bad results tend to have 4 words or more
+            if ($engineId < 1 && str_word_count($tag) > 3) {
                 Log::notice($nextEngineNoticeMessage);
 
                 return $this->getTags($documentText, $engineId + 1);
             }
-            if (in_array($tag, $exampleTags, true)) {
+            if (in_array($tag, $exampleTags3, true)) {
                 if (3 !== $engineId) {
                     Log::notice($nextEngineNoticeMessage);
 
@@ -308,13 +370,23 @@ PROMPT;
                 // articles tagged as sprinkler system. I can live with that
                 unset($tags[$tagKey]);
             }
-            // Never have a string longer than 4 words - it's not improbbable to get a sentence in here on accident
-            if (str_word_count($tag) > 4) {
+            // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK
+            if (str_word_count($tag) > 3) {
                 unset($tags[$tagKey]);
             }
         }
 
         // Only get three tags - anything more could get weird
-        return collect($this->addHighLevelTags($this->removeBannedChars(array_slice($tags, 0, 3))));
+        return collect(
+            array_unique(
+                $this->addHeuristicTags(
+                    $this->addHighLevelTags(
+                        $this->removeBanned(
+                            array_slice($tags, 0, 3)
+                        )
+                    ), $title, $documentText
+                )
+            )
+        );
     }
 }

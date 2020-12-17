@@ -24,6 +24,7 @@ use App\Utils\DocumentParser\DocumentParser;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Throwable;
 
 class SyncCards
@@ -196,7 +197,7 @@ class SyncCards
         }
 
         if ($this->cardSyncRepository->shouldGetTags($card, $data->get('content'))) {
-            $tags = $this->documentParser->getTags($data->get('title').' - '.$data->get('content'));
+            $tags = $this->documentParser->getTags($data->get('title'), Str::htmlToMarkdown($data->get('content')));
             $this->cardTagRepository->replaceTags($card, $tags->toArray());
         }
 

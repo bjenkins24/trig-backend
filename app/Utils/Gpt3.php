@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use JsonException;
 use RuntimeException;
 
-class Gtp3
+class Gpt3
 {
     public function getEngine(int $id): string
     {

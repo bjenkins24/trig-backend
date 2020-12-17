@@ -108,6 +108,10 @@ class CardTypeRepository
         if (Str::contains($url, 'docs.google') && Str::contains($url, 'forms')) {
             return 'Google Form';
         }
+        // Needs icon
+        if (Str::contains($host, 'amazon')) {
+            return 'Amazon';
+        }
         if (Str::contains($host, 'amplitude')) {
             return 'Amplitude';
         }
@@ -116,6 +120,10 @@ class CardTypeRepository
         }
         if (Str::contains($host, 'asana')) {
             return 'Asana';
+        }
+        // Needs icon
+        if (Str::contains($host, 'audible')) {
+            return 'Audible';
         }
         // Needs icon
         if (Str::contains($host, 'basecamp.com')) {
