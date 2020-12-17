@@ -19,7 +19,7 @@ class DocumentParser
 
     /**
      * These are words that BY THEMSELVES make horrible tags. If any tag matches
-     * these tags exactly (all these words much be all lower case), we're just going to remove them outright.
+     * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
         'cash', 'business', 'flexibility', 'time', 'PM', 'consistency',
@@ -54,6 +54,7 @@ class DocumentParser
         ['sale', 'Sales'],
         ['marketing', 'Marketing'],
         [['culture', '~cultures'], 'Culture'],
+        [['book', '~books'], 'Book'],
         ['customer support', 'Customer Support'],
         [['customer service', '~customer services'], 'Customer Service'],
         [[' MVP', 'MVP '], 'MVP'],
@@ -61,8 +62,8 @@ class DocumentParser
         [[' AI', 'AI ', 'artificial intelligence'], 'Artificial Intelligence'],
         [['risk manag', '~risk manager', '~risk managers'], 'Risk Management'],
         [['data scien', '~data scientist', '~data scientists'], 'Data Science'],
-        [['software engineer', 'software develop', '~software engineer', '~software engineers', '~software developer', '~software developers', '~software developing'], 'Software Engineering'],
-        [['hardware engineer', 'hardware develop', '~hardware engineer', '~hardware engineers', '~hardware developer', '~hardware developers', '~hardware developing'], 'Hardware Engineering'],
+        [['software engineer', 'software develop', '~software engineer', '~software engineers', '~software developer', '~software developers', '~software developing', '~software development'], 'Software Engineering'],
+        [['hardware engineer', 'hardware develop', '~hardware engineer', '~hardware engineers', '~hardware developer', '~hardware developers', '~hardware developing', '~hardware development'], 'Hardware Engineering'],
         [['design', '~designer', '~designing'], 'Design'],
         [['product', '-manag', '~products'], 'Product'],
         [['product manag', '~product manager', '~product managers'], 'Product Management'],
