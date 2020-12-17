@@ -17,7 +17,7 @@ class CreateCardsTable extends Migration
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('card_type_id')->constrained();
             $table->string('token')->unique()->index();
-            $table->text('title')->index();
+            $table->string('title')->index();
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
             $table->string('image')->nullable();

@@ -13,8 +13,8 @@ class DocumentParser
     /**
      * These characters are _not_ allowed in any tags and will be removed.
      */
-    private const BANNED_CHARS = [
-        '#', '~',
+    private const BANNED_STRINGS = [
+        '#', '~', '.com',
     ];
 
     /**
@@ -22,7 +22,7 @@ class DocumentParser
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency',
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat',
     ];
 
     /**
@@ -99,6 +99,31 @@ class DocumentParser
     public function __construct(Gpt3 $gpt3)
     {
         $this->gpt3 = $gpt3;
+    }
+
+    /**
+     * Sometimes GPT3 will get away with itself and start counting like this:
+     * Audible, Audible2, Audible3
+     * These are _horrible_ tags and should be removed.
+     */
+    public function removeConsecutiveNumbers(array $tags): array
+    {
+        $newTags = $tags;
+        $lastNumber = false;
+        foreach ($tags as $tagKey => $tag) {
+            if (preg_match('/(\d+)$/', $tag, $matches)) {
+                if ($lastNumber + 1 === (int) $matches[1]) {
+                    unset($newTags[$tagKey], $newTags[$tagKey - 1]);
+                }
+                if (false === $lastNumber) {
+                    $lastNumber = (int) $matches[1];
+                } else {
+                    ++$lastNumber;
+                }
+            }
+        }
+
+        return $newTags;
     }
 
     private function tableToArray(string $completion): array
@@ -273,8 +298,8 @@ PROMPT;
         $newTags = [];
         foreach ($tags as $tag) {
             $newTag = $tag;
-            foreach (self::BANNED_CHARS as $bannedChar) {
-                $newTag = str_replace($bannedChar, '', $newTag);
+            foreach (self::BANNED_STRINGS as $bannedStrings) {
+                $newTag = str_replace($bannedStrings, '', $newTag);
             }
             $newTags[] = $newTag;
         }
@@ -350,10 +375,20 @@ PROMPT;
         if ($engineId < 3) {
             $nextEngineNoticeMessage = "Trying {$this->gpt3->getEngine($engineId + 1)} engine for tag generation. Got $completion from $truncatedDocumentText";
         }
+        $isCounting = count($this->removeConsecutiveNumbers($tags)) !== count($tags);
+
+        // If there are consecutive numbers - let's try a new engine - that means it stunk
+        if (3 !== $engineId && $isCounting) {
+            Log::notice($nextEngineNoticeMessage);
+
+            return $this->getTags($documentText, $engineId + 1);
+        }
+
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
         foreach ($tags as $tagKey => $tag) {
-            // Bad results tend to have 4 words or more
-            if ($engineId < 1 && str_word_count($tag) > 3) {
+            // Bad results tend to have 4 words or more - let's just go to currie here as davinci will often
+            // get 4 words too - and this is fairly common. Save on cost
+            if ($engineId < 2 && str_word_count($tag) > 3) {
                 Log::notice($nextEngineNoticeMessage);
 
                 return $this->getTags($documentText, $engineId + 1);
@@ -380,12 +415,14 @@ PROMPT;
         // Only get three tags - anything more could get weird
         return collect(
             array_unique(
-                $this->addHeuristicTags(
-                    $this->addHighLevelTags(
-                        $this->removeBanned(
-                            array_slice($tags, 0, 3)
-                        )
-                    ), $title, $documentText
+                $this->removeConsecutiveNumbers(
+                    $this->addHeuristicTags(
+                        $this->addHighLevelTags(
+                            $this->removeBanned(
+                                array_slice($tags, 0, 3)
+                            )
+                        ), $title, $documentText
+                    )
                 )
             )
         );

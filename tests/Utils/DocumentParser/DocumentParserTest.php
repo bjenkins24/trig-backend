@@ -12,6 +12,12 @@ class DocumentParserTest extends TestCase
     /**
      * @group n
      */
+    public function testRemoveConsecutive(): void
+    {
+        $tags = app(DocumentParser::class)->removeConsecutiveNumbers(['Audible', 'Audible2', 'Audible3']);
+        self::assertEquals(['Audible'], $tags);
+    }
+
     public function testGetTagsSuccess(): void
     {
 //        $this->mock(Gpt3::class, static function ($mock) {
