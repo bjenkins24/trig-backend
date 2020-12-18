@@ -4,6 +4,7 @@ namespace App\Utils\DocumentParser;
 
 use App\Utils\Gpt3;
 use Exception;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -22,7 +23,7 @@ class DocumentParser
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat',
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice',
     ];
 
     /**
@@ -128,11 +129,16 @@ class DocumentParser
 
     private function tableToArray(string $completion): array
     {
+        $completion = trim(preg_replace("/[\r|\n].*/", '', $completion));
         $potentialTags = explode(',', $completion);
         $tags = [];
+
         foreach ($potentialTags as $tag) {
-            if (trim($tag)) {
-                $tags[] = trim($tag);
+            $cleanedTag = trim($tag);
+            if ($cleanedTag) {
+                $tags[] = $cleanedTag;
+            } else {
+                break;
             }
         }
 
@@ -315,13 +321,8 @@ PROMPT;
         return $newTags;
     }
 
-    public function getTags(string $title, string $documentText, $engineId = 1): Collection
+    public function oldPrompt(string $title, string $text): string
     {
-        if (! $documentText || ! $title) {
-            return collect([]);
-        }
-
-        $truncatedDocumentText = Str::truncateOnWord(Str::removeLineBreaks($documentText), 1600);
         $exampleTags = ['Aliens', 'UFO'];
         $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Covid 19', 'Water Waste'];
         $exampleTags3 = ['Laundry', 'Dryer Sheet', 'Toxic Chemicals'];
@@ -329,7 +330,7 @@ PROMPT;
         $list2 = implode(', ', $exampleTags2);
         $list3 = implode(', ', $exampleTags3);
 
-        $prompt = <<<PROMPT
+        $oldPrompt = <<<PROMPT
 Title: UFOs Among Us
 Markdown: In the 1940s and 50s reports of __"flying saucers"__ became an American cultural **phenomena**. Sightings of strange objects in the sky became the raw materials for Hollywood to present visions of potential threats. Amy Franko wanted to verify that there were extraterrestrials.
 Tags: $list
@@ -343,25 +344,64 @@ Markdown: If you’re concerned about the health and safety of your family membe
 Tags: $list3
 ###
 Title: $title
-Markdown: $truncatedDocumentText
+Markdown: $text
+Tags:
+PROMPT;
+
+        return $oldPrompt;
+    }
+
+    private function increaseEngine(int $engineId, string $completion, string $input, string $title, $documentText): Collection
+    {
+        $nextEngineNoticeMessage = '';
+        if ($engineId < 3) {
+            $shortInputForLog = Str::truncateOnWord($input, 200);
+            $nextEngineNoticeMessage = "Trying {$this->gpt3->getEngine($engineId + 1)} engine for tag generation. Got $completion from $shortInputForLog";
+        }
+
+        Log::notice($nextEngineNoticeMessage);
+
+        return $this->getTags($title, $documentText, $engineId + 1);
+    }
+
+    public function getTags(string $title, string $documentText, $engineId = 1): Collection
+    {
+        if (! $documentText || ! $title) {
+            return collect([]);
+        }
+
+        // Make it a block of text
+        $truncatedDocumentText = Str::truncateOnWord(Str::removeLineBreaks($documentText), 2500);
+        // Babbage can't handle colons so let's replace them with periods
+        // Also replace double spaces after periods. Babbage also does that poorly
+        $truncatedDocumentText = str_replace([':', '.  '], ['.', '. '], $truncatedDocumentText);
+        // Replace periods with no space with a period WITH a space. Babbage does _not_ do well with weird text
+        $truncatedDocumentText = preg_replace('/([.!?])([^ !?\d])/si', '$1 $2', $truncatedDocumentText);
+
+        $prompt = <<<PROMPT
+$truncatedDocumentText
+
 Tags:
 PROMPT;
 
         try {
             $response = $this->gpt3->complete($prompt, [
                 'max_tokens'        => 24,
-                'temperature'       => 0.2,
+                'temperature'       => 0,
                 'top_p'             => 0.2,
                 'frequency_penalty' => 0.8,
                 'presence_penalty'  => 0.2,
-                'stop'              => '###',
+                'stop'              => '\n',
             ], $engineId);
+        } catch (RequestException $exception) {
+            Log::notice('GPT was failed: '.$exception->getMessage());
+
+            return collect([]);
         } catch (Exception $exception) {
-            Log::notice('There was a problem with the response from GTP3: '.$exception->getMessage());
+            Log::notice('There was unexpected problem with the response from GTP3: '.$exception->getMessage());
 
             return collect([]);
         }
-
         if (empty($response['choices']) || empty($response['choices'][0]) || empty($response['choices'][0]['text'])) {
             Log::notice('There was a problem with the response from GTP3: '.json_encode($response));
 
@@ -371,40 +411,22 @@ PROMPT;
         $completion = $response['choices'][0]['text'];
         $tags = $this->tableToArray($completion);
 
-        $nextEngineNoticeMessage = '';
-        if ($engineId < 3) {
-            $nextEngineNoticeMessage = "Trying {$this->gpt3->getEngine($engineId + 1)} engine for tag generation. Got $completion from $truncatedDocumentText";
-        }
         $isCounting = count($this->removeConsecutiveNumbers($tags)) !== count($tags);
 
         // If there are consecutive numbers - let's try a new engine - that means it stunk
         if (3 !== $engineId && $isCounting) {
-            Log::notice($nextEngineNoticeMessage);
-
-            return $this->getTags($documentText, $engineId + 1);
+            return $this->increaseEngine($engineId, $completion, $truncatedDocumentText, $title, $documentText);
         }
 
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
         foreach ($tags as $tagKey => $tag) {
+            // Title case each tag:
+            $tags[$tagKey] = Str::title($tag);
+
             // Bad results tend to have 4 words or more - let's just go to currie here as davinci will often
             // get 4 words too - and this is fairly common. Save on cost
             if ($engineId < 2 && str_word_count($tag) > 3) {
-                Log::notice($nextEngineNoticeMessage);
-
-                return $this->getTags($documentText, $engineId + 1);
-            }
-            if (in_array($tag, $exampleTags3, true)) {
-                if (3 !== $engineId) {
-                    Log::notice($nextEngineNoticeMessage);
-
-                    return $this->getTags($documentText, $engineId + 1);
-                }
-
-                // We tried davinci and _still_ got the example tags. Let's just remove them. We tried our best
-                // This also means nothing will _ever_ be tagged as our example tags. For now I think that's ok. I mean
-                // What are the odds that we get sprinkler system in here? Even if we do, worst case is no one gets
-                // articles tagged as sprinkler system. I can live with that
-                unset($tags[$tagKey]);
+                return $this->increaseEngine($engineId, $completion, $truncatedDocumentText, $title, $documentText);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK
             if (str_word_count($tag) > 3) {
@@ -412,16 +434,15 @@ PROMPT;
             }
         }
 
-        // Only get three tags - anything more could get weird
         return collect(
-            array_unique(
-                $this->removeConsecutiveNumbers(
-                    $this->addHeuristicTags(
-                        $this->addHighLevelTags(
-                            $this->removeBanned(
-                                array_slice($tags, 0, 3)
-                            )
-                        ), $title, $documentText
+            array_values(
+                array_unique(
+                    $this->removeConsecutiveNumbers(
+                        $this->addHeuristicTags(
+                            $this->addHighLevelTags(
+                                $this->removeBanned($tags)
+                            ), $title, $documentText
+                        )
                     )
                 )
             )

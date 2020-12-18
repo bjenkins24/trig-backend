@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use JsonException;
 use RuntimeException;
@@ -26,10 +27,12 @@ class Gpt3
         $options['prompt'] = $prompt;
 
         $engine = $this->getEngine($engineId);
-        $response = Http::withOptions([
-            'headers' => [
+        $response = Http::retry(3, 1000)->withOptions([
+            'connect_timeout' => 5,
+            'timeout'         => 10,
+            'headers'         => [
                 'Content-Type'  => 'application/json',
-                'Authorization' => 'Bearer sk-tgCc9cW33t9UTPIZzplRZNNC2xfXkuS8f6tnId9h',
+                'Authorization' => 'Bearer '.Config::get('app.gpt3_api_key'),
             ],
         ])->post("https://api.openai.com/v1/engines/$engine/completions", $options);
 

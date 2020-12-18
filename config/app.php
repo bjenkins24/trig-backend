@@ -70,6 +70,11 @@ return [
     'data_processing_api_key' => env('DATA_PROCESSING_API_KEY', ''),
 
     /*
+     * GPT3 api key
+     */
+    'gpt3_api_key'     => env('GPT3_API_KEY', ''),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
