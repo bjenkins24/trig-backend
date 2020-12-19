@@ -20,26 +20,26 @@ class DocumentParserTest extends TestCase
      */
     public function testGetTagsSuccess(): void
     {
-//        $this->mock(Gpt3::class, static function ($mock) {
-//            $mock->shouldReceive('getEngine')->andReturn('babbage');
-//            $mock->shouldReceive('complete')->andReturn([
-//                'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
-//                'object'  => 'text_completion',
-//                'created' => 1607731847,
-//                'model'   => 'babbage:2020-05-03',
-//                'choices' => [
-//                    [
-//                        'text' => <<<COMPLETION
-        // Accountant, #Sales Enablement, Product Management
-//
-        //COMPLETION,
-//                        'index'         => 0,
-//                        'logprobs'      => null,
-//                        'finish_reason' => 'max_tokens',
-//                    ],
-//                ],
-//            ]);
-//        });
+        $this->mock(Gpt3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('complete')->andReturn([
+                'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
+                'object'  => 'text_completion',
+                'created' => 1607731847,
+                'model'   => 'babbage:2020-05-03',
+                'choices' => [
+                    [
+                        'text' => <<<COMPLETION
+         Accountant, #Sales Enablement, Product Management
+
+        COMPLETION,
+                        'index'         => 0,
+                        'logprobs'      => null,
+                        'finish_reason' => 'max_tokens',
+                    ],
+                ],
+            ]);
+        });
 
         $documentText = <<<DOCUMENT_TEXT
 Product managers have to make many decisions every day, including product prioritization decisions, product design decisions, bug triage decisions, and many more. And the process by which a product manager makes such decisions can result either in an extremely well functioning team dynamic or... quite the opposite.
@@ -71,8 +71,7 @@ DOCUMENT_TEXT;
         $title = 'What does it mean to be an entrepreneur';
 
         $results = app(DocumentParser::class)->getTags($title, $documentText);
-        dd($results);
-        $expectedTags = collect(['Accounting', 'Sales', 'Sales Enablement', 'Product Management']);
+        $expectedTags = collect(['Accounting', 'Sales', 'Product Management', 'Sales Enablement']);
         self::assertEquals($expectedTags, $results);
     }
 

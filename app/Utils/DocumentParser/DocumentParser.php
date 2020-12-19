@@ -19,6 +19,14 @@ class DocumentParser
     ];
 
     /**
+     * These are tags that if they exist by themselves indicate that GPT-3 did a poor job and to increase the engine size.
+     * If they keep showing up by themselves, they will be removed.
+     */
+    private const BAD_TAGS = [
+        'a', 'an', 'and', 'are', 'as', 'at', 'be', 'but', 'by', 'for', 'if', 'in', 'into', 'is', 'it', 'no', 'not', 'of', 'on', 'or', 'such', 'that', 'the', 'their', 'then', 'there', 'these', 'they', 'this', 'to', 'was', 'will', 'with',
+    ];
+
+    /**
      * These are words that BY THEMSELVES make horrible tags. If any tag matches
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
@@ -68,7 +76,7 @@ class DocumentParser
         [['design', '~designer', '~designing'], 'Design'],
         [['product', '-manag', '~products'], 'Product'],
         [['product manag', '~product manager', '~product managers'], 'Product Management'],
-        [['manag', '-risk', '-product', '~managers', '~manager', '~managing'], 'Management'],
+        [['manag', '-risk', '-product', '-sale', '~managers', '~manager', '~managing'], 'Management'],
         [['lead', '~leader'], 'Leadership'],
         [['strateg', '~strategize'], 'Strategy'],
         [['entrepreneur', '~entrepreneur', '~entrepreneurial'], 'Entrepreneurship'],
@@ -102,6 +110,18 @@ class DocumentParser
         $this->gpt3 = $gpt3;
     }
 
+    public function removeBadWords(array $tags): array
+    {
+        $newTags = $tags;
+        foreach ($tags as $tagKey => $tag) {
+            if (in_array($tag, self::BAD_TAGS, true)) {
+                unset($newTags[$tagKey]);
+            }
+        }
+
+        return $newTags;
+    }
+
     /**
      * Sometimes GPT3 will get away with itself and start counting like this:
      * Audible, Audible2, Audible3
@@ -131,6 +151,10 @@ class DocumentParser
     {
         $completion = trim(preg_replace("/[\r|\n].*/", '', $completion));
         $potentialTags = explode(',', $completion);
+        // It wasn't able to explode it correctly let's try spaces
+        if (1 === count($potentialTags)) {
+            $potentialTags = explode(' ', $completion);
+        }
         $tags = [];
 
         foreach ($potentialTags as $tag) {
@@ -364,22 +388,38 @@ PROMPT;
         return $this->getTags($title, $documentText, $engineId + 1);
     }
 
+    /**
+     * This will take a formatted string with lists, random line breaks, or just a poorly written document and clean
+     * it up to a single raw block of text.
+     */
+    private function docToBlock(string $rawText, int $totalCharacters = 2500): string
+    {
+        // Replace line breaks that don't have a `period` with a period, but only if they don't have a period preceding
+        // them and they aren't followed by another line break
+        $formatted = preg_replace('/(?<![?!.\r\n])[\r\n]/', '.', $rawText);
+        // Truncate on a word and remove left over line breaks
+        $formatted = Str::truncateOnWord(Str::removeLineBreaks($formatted), $totalCharacters);
+        // Remove lists from the string.
+        $formatted = preg_replace('/(\d+)\.(?=\D)/', '', $formatted);
+        // Replace colons with periods
+        // Also replace double spaces after periods. Babbage also does that poorly
+        $formatted = str_replace([':', '.  ', '?  ', '!  '], ['.', '. ', '? ', '! '], $formatted);
+        // Replace periods with no space with a period WITH a space. Babbage does _not_ do well with weird text
+        $formatted = preg_replace('/([.!?])([^ !?\d])/', '$1 $2', $formatted);
+
+        return $formatted;
+    }
+
     public function getTags(string $title, string $documentText, $engineId = 1): Collection
     {
         if (! $documentText || ! $title) {
             return collect([]);
         }
 
-        // Make it a block of text
-        $truncatedDocumentText = Str::truncateOnWord(Str::removeLineBreaks($documentText), 2500);
-        // Babbage can't handle colons so let's replace them with periods
-        // Also replace double spaces after periods. Babbage also does that poorly
-        $truncatedDocumentText = str_replace([':', '.  '], ['.', '. '], $truncatedDocumentText);
-        // Replace periods with no space with a period WITH a space. Babbage does _not_ do well with weird text
-        $truncatedDocumentText = preg_replace('/([.!?])([^ !?\d])/si', '$1 $2', $truncatedDocumentText);
+        $blockText = $this->docToBlock($documentText);
 
         $prompt = <<<PROMPT
-$truncatedDocumentText
+$blockText
 
 Tags:
 PROMPT;
@@ -394,7 +434,7 @@ PROMPT;
                 'stop'              => '\n',
             ], $engineId);
         } catch (RequestException $exception) {
-            Log::notice('GPT was failed: '.$exception->getMessage());
+            Log::notice('GPT has failed to load: '.$exception->getMessage());
 
             return collect([]);
         } catch (Exception $exception) {
@@ -402,6 +442,7 @@ PROMPT;
 
             return collect([]);
         }
+
         if (empty($response['choices']) || empty($response['choices'][0]) || empty($response['choices'][0]['text'])) {
             Log::notice('There was a problem with the response from GTP3: '.json_encode($response));
 
@@ -412,10 +453,11 @@ PROMPT;
         $tags = $this->tableToArray($completion);
 
         $isCounting = count($this->removeConsecutiveNumbers($tags)) !== count($tags);
+        $hasBadWords = count($this->removeBadWords($tags)) !== count($tags);
 
-        // If there are consecutive numbers - let's try a new engine - that means it stunk
-        if (3 !== $engineId && $isCounting) {
-            return $this->increaseEngine($engineId, $completion, $truncatedDocumentText, $title, $documentText);
+        // If there are consecutive numbers or we words on that bad list - let's try a new engine - that means it stunk
+        if (3 !== $engineId && ($isCounting || $hasBadWords)) {
+            return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText);
         }
 
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
@@ -426,7 +468,7 @@ PROMPT;
             // Bad results tend to have 4 words or more - let's just go to currie here as davinci will often
             // get 4 words too - and this is fairly common. Save on cost
             if ($engineId < 2 && str_word_count($tag) > 3) {
-                return $this->increaseEngine($engineId, $completion, $truncatedDocumentText, $title, $documentText);
+                return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK
             if (str_word_count($tag) > 3) {
@@ -437,11 +479,13 @@ PROMPT;
         return collect(
             array_values(
                 array_unique(
-                    $this->removeConsecutiveNumbers(
-                        $this->addHeuristicTags(
-                            $this->addHighLevelTags(
-                                $this->removeBanned($tags)
-                            ), $title, $documentText
+                    $this->removeBadWords(
+                        $this->removeConsecutiveNumbers(
+                            $this->addHeuristicTags(
+                                $this->addHighLevelTags(
+                                    $this->removeBanned($tags)
+                                ), $title, $documentText
+                            )
                         )
                     )
                 )
