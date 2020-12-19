@@ -3,6 +3,7 @@
 namespace App\Modules\Card\Integrations;
 
 use App\Jobs\CardDedupe;
+use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
@@ -14,17 +15,14 @@ use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Interfaces\ContentInterface;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\CardSync\CardSyncRepository;
-use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\Permission\PermissionRepository;
-use App\Utils\DocumentParser\DocumentParser;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Throwable;
 
 class SyncCards
@@ -40,8 +38,6 @@ class SyncCards
     private LinkShareSettingRepository $linkShareSettingRepository;
     private PermissionRepository $permissionRepository;
     private ThumbnailHelper $thumbnailHelper;
-    private DocumentParser $documentParser;
-    private CardTagRepository $cardTagRepository;
 
     public function __construct(
         OauthConnectionRepository $oauthConnectionRepository,
@@ -51,9 +47,7 @@ class SyncCards
         OauthIntegrationService $oauthIntegrationService,
         LinkShareSettingRepository $linkShareSettingRepository,
         PermissionRepository $permissionRepository,
-        ThumbnailHelper $thumbnailHelper,
-        DocumentParser $documentParser,
-        CardTagRepository $cardTagRepository
+        ThumbnailHelper $thumbnailHelper
     ) {
         $this->oauthConnectionRepository = $oauthConnectionRepository;
         $this->oauthIntegrationService = $oauthIntegrationService;
@@ -63,8 +57,6 @@ class SyncCards
         $this->linkShareSettingRepository = $linkShareSettingRepository;
         $this->permissionRepository = $permissionRepository;
         $this->thumbnailHelper = $thumbnailHelper;
-        $this->documentParser = $documentParser;
-        $this->cardTagRepository = $cardTagRepository;
     }
 
     public function setIntegration(IntegrationInterface $integration, ContentInterface $contentIntegration): void
@@ -196,10 +188,9 @@ class SyncCards
             $data->forget('image');
         }
 
-        if ($this->cardSyncRepository->shouldGetTags($card, $data->get('content'))) {
-            $tags = $this->documentParser->getTags($data->get('title'), Str::htmlToMarkdown($data->get('content')), 'tag', 1);
-            $this->cardTagRepository->replaceTags($card, $tags->toArray());
-        }
+        // We need to know if it's synced in the PAST for deciding if we should get the tags for this card
+        // We have to do this _before_ saving the card
+        $shouldGetTags = $this->cardSyncRepository->shouldGetTags($card, $data->get('content'));
 
         // If we return any of these fields, we want to save them in full fledged columns not in properties
         $saveableFields = collect([
@@ -225,6 +216,10 @@ class SyncCards
                 // Successful sync
                 'status'  => 1,
             ]);
+        }
+
+        if ($shouldGetTags) {
+            GetTags::dispatch($card)->onQueue('get-tags');
         }
 
         if ($card->content) {
