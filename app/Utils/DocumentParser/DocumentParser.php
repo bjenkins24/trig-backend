@@ -345,7 +345,7 @@ PROMPT;
         return $newTags;
     }
 
-    public function oldPrompt(string $title, string $text): string
+    public function examplePrompt(string $title, string $text): array
     {
         $exampleTags = ['Aliens', 'UFO'];
         $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Covid 19', 'Water Waste'];
@@ -354,28 +354,29 @@ PROMPT;
         $list2 = implode(', ', $exampleTags2);
         $list3 = implode(', ', $exampleTags3);
 
-        $oldPrompt = <<<PROMPT
+        return [
+            <<<PROMPT
 Title: UFOs Among Us
-Markdown: In the 1940s and 50s reports of __"flying saucers"__ became an American cultural **phenomena**. Sightings of strange objects in the sky became the raw materials for Hollywood to present visions of potential threats. Amy Franko wanted to verify that there were extraterrestrials.
+Text: In the 1940s and 50s reports of "flying saucers" became an American cultural phenomena. Sightings of strange objects in the sky became the raw materials for Hollywood to present visions of potential threats. Amy Franko wanted to verify that there were extraterrestrials.
 Tags: $list
 ###
 Title: How to Use Drip Irrigation to Water Your Garden
-Markdown: **Drip irrigation** is a system of tubing that directs __small quantities__ of water precisely where it’s needed says Brian Jenkins, preventing the water waste associated with sprinkler systems. Since Covid 19, Joseph Goldberg mentions that drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
+Text: Drip irrigation is a system of tubing that directs small quantities of water precisely where it’s needed says Brian Jenkins, preventing the water waste associated with sprinkler systems. Since Covid 19, Joseph Goldberg mentions that drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
 Tags: $list2
 ###
 Title: "Greener" Laundry by the Load: Fabric Softener versus Dryer Sheets
-Markdown: If you’re concerned about the health and safety of your family members, you might want to stay away from both conventional dryer sheets and liquid fabric softeners altogether. While it may be nice to have clothes that feel soft, smell fresh and are free of static cling, both types of products contain chemicals known to be toxic to people after sustained exposure. According to the health and wellness website Sixwise.com, some of the most harmful ingredients in dryer sheets and liquid fabric softener alike include benzyl acetate (linked to pancreatic cancer), benzyl alcohol (an upper respiratory tract irritant), ethanol (linked to central nervous system disorders), limonene (a known carcinogen) and chloroform (a neurotoxin and carcinogen), among others.
+Text: If you’re concerned about the health and safety of your family members, you might want to stay away from both conventional dryer sheets and liquid fabric softeners altogether. While it may be nice to have clothes that feel soft, smell fresh and are free of static cling, both types of products contain chemicals known to be toxic to people after sustained exposure. According to the health and wellness website Sixwise.com, some of the most harmful ingredients in dryer sheets and liquid fabric softener alike include benzyl acetate (linked to pancreatic cancer), benzyl alcohol (an upper respiratory tract irritant), ethanol (linked to central nervous system disorders), limonene (a known carcinogen) and chloroform (a neurotoxin and carcinogen), among others.
 Tags: $list3
 ###
 Title: $title
 Markdown: $text
 Tags:
-PROMPT;
-
-        return $oldPrompt;
+PROMPT,
+            $exampleTags3,
+        ];
     }
 
-    private function increaseEngine(int $engineId, string $completion, string $input, string $title, $documentText): Collection
+    private function increaseEngine(int $engineId, string $completion, string $input, string $title, string $documentText, string $promptType): Collection
     {
         $nextEngineNoticeMessage = '';
         if ($engineId < 3) {
@@ -385,7 +386,7 @@ PROMPT;
 
         Log::notice($nextEngineNoticeMessage);
 
-        return $this->getTags($title, $documentText, $engineId + 1);
+        return $this->getTags($title, $documentText, $promptType, $engineId + 1);
     }
 
     /**
@@ -410,19 +411,37 @@ PROMPT;
         return $formatted;
     }
 
-    public function getTags(string $title, string $documentText, $engineId = 1): Collection
+    public function tagPrompt(string $text): string
+    {
+        return <<<PROMPT
+$text
+
+Tags:
+PROMPT;
+    }
+
+    /**
+     * If the promptType is 'example' it will give examples to GPT-3 which act more like keywords. GPT-3 inheritantly
+     * knows what tags are. There are some times that the prompt type 'tag' may work better. But there are too many
+     * inconsitincies currently. I'm keeping it here because it was difficult to get working at all, and it seems
+     * like there is a lot of potential there. So we may come back and use it in the future, or test the differences.
+     */
+    public function getTags(string $title, string $documentText, string $promptType = 'example', int $engineId = 1): Collection
     {
         if (! $documentText || ! $title) {
             return collect([]);
         }
 
+        $exampleTags = [];
         $blockText = $this->docToBlock($documentText);
-
-        $prompt = <<<PROMPT
-$blockText
-
-Tags:
-PROMPT;
+        switch ($promptType) {
+            case 'tag':
+                $prompt = $this->tagPrompt($blockText);
+                break;
+            case 'example':
+            default:
+                [$prompt, $exampleTags] = $this->examplePrompt($title, $blockText);
+        }
 
         try {
             $response = $this->gpt3->complete($prompt, [
@@ -444,7 +463,10 @@ PROMPT;
         }
 
         if (empty($response['choices']) || empty($response['choices'][0]) || empty($response['choices'][0]['text'])) {
-            Log::notice('There was a problem with the response from GTP3: '.json_encode($response));
+            Log::notice('There was an empty response from GTP3: '.json_encode($response));
+            if (3 !== $engineId) {
+                return $this->increaseEngine($engineId, '', $blockText, $title, $documentText, $promptType);
+            }
 
             return collect([]);
         }
@@ -457,7 +479,7 @@ PROMPT;
 
         // If there are consecutive numbers or we words on that bad list - let's try a new engine - that means it stunk
         if (3 !== $engineId && ($isCounting || $hasBadWords)) {
-            return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText);
+            return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
         }
 
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
@@ -467,8 +489,10 @@ PROMPT;
 
             // Bad results tend to have 4 words or more - let's just go to currie here as davinci will often
             // get 4 words too - and this is fairly common. Save on cost
-            if ($engineId < 2 && str_word_count($tag) > 3) {
-                return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText);
+            // If the 'example' prompt type is used, we know if it was a bad completion if they just repeated the
+            // last tags. In that case we're gonna increase the engine here (only to currie)
+            if ($engineId < 2 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
+                return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK
             if (str_word_count($tag) > 3) {

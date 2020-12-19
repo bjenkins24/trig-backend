@@ -197,7 +197,7 @@ class SyncCards
         }
 
         if ($this->cardSyncRepository->shouldGetTags($card, $data->get('content'))) {
-            $tags = $this->documentParser->getTags($data->get('title'), Str::htmlToMarkdown($data->get('content')));
+            $tags = $this->documentParser->getTags($data->get('title'), Str::htmlToMarkdown($data->get('content')), 'tag', 1);
             $this->cardTagRepository->replaceTags($card, $tags->toArray());
         }
 
