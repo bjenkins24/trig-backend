@@ -66,7 +66,7 @@ class OauthConnectionRepository
 
         return OauthConnection::firstOrCreate([
             'user_id'              => $user->id,
-            'organization_id'      => $organization,
+            'organization_id'      => $organization->id,
             'oauth_integration_id' => $oauthIntegration->id,
             'access_token'         => $authConnection->get('access_token'),
             'refresh_token'        => $authConnection->get('refresh_token'),

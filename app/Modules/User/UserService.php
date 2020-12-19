@@ -61,7 +61,7 @@ class UserService
     {
         $user = $this->create($authParams);
         $organization = $user->organizations()->first();
-        $this->oauthConnectionRepo->create($user, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
+        $this->oauthConnectionRepo->create($user, $organization, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
 
         SetupGoogleIntegration::dispatch($user, $organization);
 

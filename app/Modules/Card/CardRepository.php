@@ -292,7 +292,7 @@ class CardRepository
 
     public function getOrganization(Card $card): Organization
     {
-        return $card->organization()->get();
+        return $card->organization()->first();
     }
 
     public function getDuplicates(Card $card): Collection

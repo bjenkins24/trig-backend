@@ -248,9 +248,9 @@ class SyncCards
     /**
      * @throws CardIntegrationCreationValidate
      */
-    public function syncCards(User $user, int $organizationId, ?int $since = null): bool
+    public function syncCards(User $user, Organization $organization, ?int $since = null): bool
     {
-        $cardData = collect($this->integration->getAllCardData($user, $organizationId, $since))->recursive();
+        $cardData = collect($this->integration->getAllCardData($user, $organization, $since))->recursive();
         if (0 === $cardData->count()) {
             return false;
         }
@@ -259,7 +259,7 @@ class SyncCards
             $this->upsertCard($card);
         });
 
-        $this->syncNextPage($user, Organization::find($organizationId));
+        $this->syncNextPage($user, $organization);
 
         return true;
     }

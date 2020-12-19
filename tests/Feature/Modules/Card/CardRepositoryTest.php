@@ -251,7 +251,7 @@ class CardRepositoryTest extends TestCase
     public function testGetOrganization(): void
     {
         $organization = app(CardRepository::class)->getOrganization(Card::find(1));
-        self::assertEquals(1, $organization->id);
+        self::assertEquals(2, $organization->id);
     }
 
     public function testGetCardIntegration(): void
