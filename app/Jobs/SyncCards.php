@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -50,6 +51,6 @@ class SyncCards implements ShouldQueue
     {
         $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
 
-        $syncCardsIntegration->syncCards(User::find($this->userId), $this->organizationId, $this->since);
+        $syncCardsIntegration->syncCards(User::find($this->userId), Organization::find($this->organizationId), $this->since);
     }
 }

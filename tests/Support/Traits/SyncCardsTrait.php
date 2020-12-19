@@ -2,7 +2,9 @@
 
 namespace Tests\Support\Traits;
 
+use App\Models\Organization;
 use App\Models\User;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
@@ -25,16 +27,21 @@ trait SyncCardsTrait
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
-    private function getSetup(?User $user = null, ?array $data = null, ?string $service = 'google', ?bool $refreshDb = true): array
+    private function getSetup(?User $user = null, ?Organization $organization = null, ?array $data = null, ?string $service = 'google', ?bool $refreshDb = true): array
     {
         Queue::fake();
         if ($refreshDb) {
             $this->refreshDb();
         }
+
+        if (! $organization) {
+            $organization = Organization::find(1);
+        }
         if (! $user) {
             $user = User::find(1);
-            $this->createOauthConnection($user);
+            $this->createOauthConnection($user, $organization);
         }
         if (null === $data) {
             $data = $this->getMockData();
@@ -44,7 +51,7 @@ trait SyncCardsTrait
         }
         $syncCards = $this->getBase($data, $service);
 
-        return [$syncCards, $data, $user];
+        return [$syncCards, $data, $user, $organization];
     }
 
     private function getMockData(): array
