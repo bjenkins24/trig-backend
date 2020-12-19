@@ -3,7 +3,9 @@
 namespace App\Modules\OauthConnection;
 
 use App\Models\OauthConnection;
+use App\Models\Organization;
 use App\Models\User;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
@@ -28,14 +30,14 @@ class OauthConnectionService
     /**
      * Get an access token either from the DB or from a refresh token.
      *
-     * @throws Exceptions\OauthMissingTokens
-     * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
      */
-    public function getAccessToken(User $user, string $integration): string
+    public function getAccessToken(User $user, Organization $organization, string $integration): string
     {
         $integrationInstance = $this->oauthIntegrationService->makeConnectionIntegration($integration);
-        $oauthConnection = $this->oauthConnectionRepo->findUserConnection($user, $integration);
+        $oauthConnection = $this->oauthConnectionRepo->findUserConnection($user, $organization, $integration);
 
         if (! $oauthConnection) {
             throw new OauthUnauthorizedRequest('A '.$integration.' integration has not been authorized for user '.$user->id.'. Cannot get client for user.');
@@ -45,7 +47,7 @@ class OauthConnectionService
 
         if ($this->oauthConnectionRepo->isExpired($oauthConnection)) {
             $authConnection = $integrationInstance->retrieveAccessTokenWithRefreshToken($oauthConnection->refresh_token);
-            $this->oauthConnectionRepo->create($user, $integration, $authConnection);
+            $this->oauthConnectionRepo->create($user, $organization, $integration, $authConnection);
             $accessToken = $authConnection->get('access_token');
         }
 
@@ -55,13 +57,15 @@ class OauthConnectionService
     /**
      * Get a client (an authenticated integration service).
      *
-     * @throws Exceptions\OauthMissingTokens
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
+     *
+     * @return mixed
      */
-    public function getClient(User $user, string $integration)
+    public function getClient(User $user, Organization $organization, string $integration)
     {
-        $accessToken = $this->getAccessToken($user, $integration);
+        $accessToken = $this->getAccessToken($user, $organization, $integration);
         $integrationInstance = $this->oauthIntegrationService->makeConnectionIntegration($integration);
 
         return $integrationInstance->getClient($accessToken);
@@ -70,17 +74,20 @@ class OauthConnectionService
     /**
      * Get the access token and store the connection.
      *
-     * @throws Exceptions\OauthMissingTokens
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
-    public function createConnection(User $user, string $integration, string $authToken): OauthConnection
+    public function createConnection(User $user, Organization $organization, string $integration, string $authToken): OauthConnection
     {
         $authConnection = $this->getAccessTokenWithCode($integration, $authToken);
 
-        return $this->oauthConnectionRepo->create($user, $integration, $authConnection);
+        return $this->oauthConnectionRepo->create($user, $organization, $integration, $authConnection);
     }
 
     /**
      * Get the access token from an oauth request.
+     *
+     * @throws OauthIntegrationNotFound
      */
     public function getAccessTokenWithCode(string $integration, string $authToken): Collection
     {

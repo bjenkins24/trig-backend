@@ -8,6 +8,7 @@ use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\CardType;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
@@ -233,9 +234,9 @@ class SyncCards
      * If syncing is paginated then there will be a key in "service_next_page" token for the oauth connection
      * and we should continue.
      */
-    private function syncNextPage(User $user): bool
+    private function syncNextPage(User $user, Organization $organization): bool
     {
-        $nextPageToken = $this->oauthConnectionRepository->getNextPageToken($user, $this->integrationKey);
+        $nextPageToken = $this->oauthConnectionRepository->getNextPageToken($user, $organization, $this->integrationKey);
         if (! $nextPageToken) {
             return false;
         }
@@ -258,7 +259,7 @@ class SyncCards
             $this->upsertCard($card);
         });
 
-        $this->syncNextPage($user);
+        $this->syncNextPage($user, Organization::find($organizationId));
 
         return true;
     }

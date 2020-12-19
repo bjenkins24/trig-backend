@@ -4,6 +4,7 @@ namespace Tests\Feature\Jobs;
 
 use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
 use Illuminate\Support\Facades\Queue;
@@ -21,7 +22,8 @@ class SetupGoogleIntegrationTest extends TestCase
             $mock->shouldReceive('syncDomains')->once();
         });
 
-        (new SetupGoogleIntegration(User::find(1)))->handle();
+        $organization = Organization::find(1);
+        (new SetupGoogleIntegration(User::find(1), $organization))->handle();
 
         Queue::assertPushed(SyncCards::class, 1);
     }

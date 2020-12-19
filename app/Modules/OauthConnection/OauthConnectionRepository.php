@@ -4,6 +4,7 @@ namespace App\Modules\OauthConnection;
 
 use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
@@ -23,14 +24,17 @@ class OauthConnectionRepository
     /**
      * Find a connection for a user.
      */
-    public function findUserConnection(User $user, string $integration): ?OauthConnection
+    public function findUserConnection(User $user, Organization $organization, string $integration): ?OauthConnection
     {
         $oauthIntegrationRepo = $this->oauthIntegrationRepo->findByName($integration);
         if (! $oauthIntegrationRepo) {
             return null;
         }
 
-        return $oauthIntegrationRepo->oauthConnections()->where('user_id', $user->id)->first();
+        return $oauthIntegrationRepo->oauthConnections()
+            ->where('user_id', $user->id)
+            ->where('organization_id', $organization->id)
+            ->first();
     }
 
     /**
@@ -46,7 +50,7 @@ class OauthConnectionRepository
      *
      * @throws OauthMissingTokens
      */
-    public function create(User $user, string $integration, Collection $authConnection): OauthConnection
+    public function create(User $user, Organization $organization, string $integration, Collection $authConnection): OauthConnection
     {
         if (! $authConnection->has(['access_token', 'refresh_token', 'expires_in'])) {
             $message = 'A token from the oauth authentication process was not present. The oauth connection failed.';
@@ -62,6 +66,7 @@ class OauthConnectionRepository
 
         return OauthConnection::firstOrCreate([
             'user_id'              => $user->id,
+            'organization_id'      => $organization,
             'oauth_integration_id' => $oauthIntegration->id,
             'access_token'         => $authConnection->get('access_token'),
             'refresh_token'        => $authConnection->get('refresh_token'),
@@ -77,9 +82,9 @@ class OauthConnectionRepository
         return $oauthConnection->expires->isBefore(Carbon::now());
     }
 
-    public function getNextPageToken(User $user, string $integrationKey)
+    public function getNextPageToken(User $user, Organization $organization, string $integrationKey)
     {
-        $oauthConnection = $this->findUserConnection($user, $integrationKey);
+        $oauthConnection = $this->findUserConnection($user, $organization, $integrationKey);
         if (null === $oauthConnection) {
             throw new RuntimeException('The oauth connection was not found');
         }
@@ -91,9 +96,9 @@ class OauthConnectionRepository
         return $pageToken;
     }
 
-    public function saveNextPageToken(User $user, string $integrationKey, string $nextPageToken): bool
+    public function saveNextPageToken(User $user, Organization $organization, string $integrationKey, string $nextPageToken): bool
     {
-        $oauthConnection = $this->findUserConnection($user, $integrationKey);
+        $oauthConnection = $this->findUserConnection($user, $organization, $integrationKey);
         if (null === $oauthConnection) {
             throw new RuntimeException('The oauth connection to '.$integrationKey.' has not been made for the user with id '.$user->id);
         }
@@ -109,7 +114,7 @@ class OauthConnectionRepository
 
     public function getAllActiveConnections(): Collection
     {
-        $connections = OauthConnection::select('user_id', 'oauth_integration_id')->get();
+        $connections = OauthConnection::select('user_id', 'organization_id', 'oauth_integration_id')->get();
         $integrations = OauthIntegration::select('id', 'name')->get();
 
         $integrations = $integrations->reduce(static function ($carry, $integration) {
@@ -119,7 +124,11 @@ class OauthConnectionRepository
         });
 
         return collect($connections->map(static function ($connection) use ($integrations) {
-            return ['user_id' => $connection->user_id, 'key' => $integrations[$connection->oauth_integration_id]];
+            return [
+                'user_id'         => $connection->user_id,
+                'organization_id' => $connection->organization_id,
+                'key'             => $integrations[$connection->oauth_integration_id],
+            ];
         }));
     }
 }

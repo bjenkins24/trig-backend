@@ -40,7 +40,7 @@ class CardSync extends Command
     public function handle()
     {
         app(OauthConnectionRepository::class)->getAllActiveConnections()->each(static function ($connection) {
-            SyncCards::dispatch($connection['user_id'], $connection['key'], strtotime('-2 hours'));
+            SyncCards::dispatch($connection['user_id'], $connection['organization_id'], $connection['key'], strtotime('-2 hours'));
         });
     }
 }
