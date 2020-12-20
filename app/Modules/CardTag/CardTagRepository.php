@@ -29,16 +29,16 @@ class CardTagRepository
                 }
             });
 
-            $organizationId = $card->organization_id;
+            $workspaceId = $card->workspace_id;
             foreach ($tags as $tagString) {
                 if (! $tagString) {
                     continue;
                 }
-                $tag = Tag::where('tag', $tagString)->where('organization_id', $organizationId)->first();
+                $tag = Tag::where('tag', $tagString)->where('workspace_id', $workspaceId)->first();
                 if (! $tag) {
                     // Add a card_tag
                     $tag = Tag::create([
-                        'organization_id' => $card->organization_id,
+                        'workspace_id'    => $card->workspace_id,
                         'tag'             => $tagString,
                     ]);
                 }

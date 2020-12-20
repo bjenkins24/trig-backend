@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Modules\Card\Integrations\Link;
 
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Integrations\Link\LinkIntegration;
 use Tests\TestCase;
 
@@ -17,6 +17,6 @@ class LinkIntegrationTest extends TestCase
 
     public function testGetAllCardData(): void
     {
-        self::assertEquals([], app(LinkIntegration::class)->getAllCardData(User::find(1), Organization::find(1), 123));
+        self::assertEquals([], app(LinkIntegration::class)->getAllCardData(User::find(1), Workspace::find(1), 123));
     }
 }

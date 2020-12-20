@@ -14,7 +14,7 @@ class CreateCardsTable extends Migration
         Schema::create('cards', static function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('organization_id')->constrained()->onDelete('cascade');
+            $table->foreignId('workspace_id')->constrained()->onDelete('cascade');
             $table->foreignId('card_type_id')->constrained();
             $table->string('token')->unique()->index();
             $table->string('title')->index();

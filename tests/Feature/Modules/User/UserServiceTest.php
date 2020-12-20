@@ -3,8 +3,8 @@
 namespace Tests\Feature\Modules\User;
 
 use App\Jobs\SyncCards;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
@@ -62,10 +62,10 @@ class UserServiceTest extends TestCase
         Queue::fake();
 
         $user = User::find(1);
-        $organization = Organization::find(1);
-        $this->createOauthConnection($user, $organization);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
 
-        $this->userService->syncAllIntegrations($user, $organization);
+        $this->userService->syncAllIntegrations($user, $workspace);
 
         Queue::assertPushed(SyncCards::class, 1);
     }

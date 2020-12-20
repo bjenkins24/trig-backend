@@ -3,8 +3,8 @@
 namespace Tests\Feature\Modules\Card\Integrations\Google;
 
 use App\Models\Card;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
@@ -27,21 +27,21 @@ class GoogleIntegrationTest extends TestCase
     /**
      * @throws OauthMissingTokens
      */
-    private function getSetup(?User $user = null, ?Organization $organization = null): array
+    private function getSetup(?User $user = null, ?Workspace $workspace = null): array
     {
-        if (! $organization) {
-            $organization = Organization::find(1);
+        if (! $workspace) {
+            $workspace = Workspace::find(1);
         }
         if (! $user) {
             $user = User::find(1);
-            $this->createOauthConnection($user, $organization);
+            $this->createOauthConnection($user, $workspace);
         }
         $card = factory(Card::class)->create([
             'user_id' => $user->id,
         ]);
         $file = new FileFake();
 
-        return [$user, $organization, $card, $file];
+        return [$user, $workspace, $card, $file];
     }
 
     /**
@@ -64,15 +64,15 @@ class GoogleIntegrationTest extends TestCase
         }
 
         $user = User::find(1);
-        $organization = Organization::find(1);
-        $this->createOauthConnection($user, $organization);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $this->partialMock(GoogleDomains::class, static function ($mock) use ($fakeDomains) {
             $mock->shouldReceive('getDomains')->andReturn($fakeDomains)->once();
         });
 
         app(GoogleDomains::class)->syncDomains($user);
 
-        return [$user, $organization];
+        return [$user, $workspace];
     }
 
     /**
@@ -82,14 +82,14 @@ class GoogleIntegrationTest extends TestCase
      */
     public function testDeleteTrashedCard(): void
     {
-        [$user, $organization] = $this->getSetup();
+        [$user, $workspace] = $this->getSetup();
         $file = new FileFake();
         $file->name = 'My cool title';
         $foreign_id = Card::find(1)->cardIntegration()->first()->foreign_id;
         $file->id = $foreign_id;
         $file->trashed = true;
 
-        $data = app(GoogleIntegration::class)->getCardData($user, $organization, $file);
+        $data = app(GoogleIntegration::class)->getCardData($user, $workspace, $file);
 
         self::assertTrue($data['data']['delete']);
     }
@@ -101,10 +101,10 @@ class GoogleIntegrationTest extends TestCase
      */
     public function testNoFolderSync(): void
     {
-        [$user, $organization] = $this->getSetup();
+        [$user, $workspace] = $this->getSetup();
         $file = new FileFake();
         $file->mimeType = 'application/vnd.google-apps.folder';
-        $cardData = app(GoogleIntegration::class)->getCardData($user, $organization, $file);
+        $cardData = app(GoogleIntegration::class)->getCardData($user, $workspace, $file);
         self::assertEmpty($cardData);
     }
 
@@ -115,14 +115,14 @@ class GoogleIntegrationTest extends TestCase
      */
     public function testGetCardData(): void
     {
-        [$user, $organization] = $this->getSetup();
+        [$user, $workspace] = $this->getSetup();
         $file = new FileFake();
         $googleIntegration = app(GoogleIntegration::class);
-        $thumbnailLink = $googleIntegration->getThumbnailLink($user, $organization, $file);
-        $cardData = $googleIntegration->getCardData($user, $organization, $file);
+        $thumbnailLink = $googleIntegration->getThumbnailLink($user, $workspace, $file);
+        $cardData = $googleIntegration->getCardData($user, $workspace, $file);
         self::assertEquals([
             'user_id'            => $user->id,
-            'organization_id'    => $organization->id,
+            'workspace_id'       => $workspace->id,
             'delete'             => $file->trashed,
             'card_type'          => $file->mimeType,
             'url'                => $file->webViewLink,
@@ -147,7 +147,7 @@ class GoogleIntegrationTest extends TestCase
         });
 
         $googleIntegration = app(GoogleIntegration::class);
-        $cardData = $googleIntegration->getAllCardData(User::find(1), Organization::find(1), time());
+        $cardData = $googleIntegration->getAllCardData(User::find(1), Workspace::find(1), time());
         self::assertCount(2, $cardData);
     }
 
@@ -159,7 +159,7 @@ class GoogleIntegrationTest extends TestCase
      */
     public function testGetPermissions(): void
     {
-        [$user, $organization] = $this->syncDomains();
+        [$user, $workspace] = $this->syncDomains();
         $file = new FileFake();
         $file->setPermissions([
             ['type' => 'user', 'role' => 'commenter'],
@@ -173,7 +173,7 @@ class GoogleIntegrationTest extends TestCase
             ['type' => 'domain', 'domain' => 'nowheresville.com', 'role' => 'writer'],
         ]);
         $googleIntegration = app(GoogleIntegration::class);
-        $cardData = $googleIntegration->getCardData($user, $organization, $file);
+        $cardData = $googleIntegration->getCardData($user, $workspace, $file);
         self::assertEquals([
            'users' => [
                [
@@ -203,7 +203,7 @@ class GoogleIntegrationTest extends TestCase
                     'capability' => 'writer',
                 ],
                 [
-                    'type'       => 'anyone_organization',
+                    'type'       => 'anyone_workspace',
                     'capability' => 'writer',
                 ],
             ],
@@ -220,20 +220,20 @@ class GoogleIntegrationTest extends TestCase
     {
         $nextPageToken = 'is_next_page';
         $user = User::find(1);
-        $organization = Organization::find(1);
-        $this->createOauthConnection($user, $organization);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $this->mock(GoogleConnection::class, static function ($mock) {
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
 
-        app(GoogleIntegration::class)->getFiles($user, $organization);
+        app(GoogleIntegration::class)->getFiles($user, $workspace);
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'    => $user->id,
             'properties' => json_encode(['google_next_page' => $nextPageToken], JSON_THROW_ON_ERROR),
         ]);
 
-        app(GoogleIntegration::class)->getFiles($user, $organization, time());
+        app(GoogleIntegration::class)->getFiles($user, $workspace, time());
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'    => $user->id,

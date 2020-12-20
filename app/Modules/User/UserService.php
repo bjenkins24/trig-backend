@@ -5,8 +5,8 @@ namespace App\Modules\User;
 use App\Events\User\AccountCreated;
 use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\OauthConnection\OauthConnectionRepository;
@@ -61,10 +61,10 @@ class UserService
     public function createFromGoogle(array $authParams, Collection $oauthCredentials): User
     {
         $user = $this->create($authParams);
-        $organization = $user->organizations()->first();
-        $this->oauthConnectionRepo->create($user, $organization, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
+        $workspace = $user->workspaces()->first();
+        $this->oauthConnectionRepo->create($user, $workspace, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
 
-        SetupGoogleIntegration::dispatch($user, $organization);
+        SetupGoogleIntegration::dispatch($user, $workspace);
 
         return $user;
     }
@@ -90,12 +90,12 @@ class UserService
     /**
      * Sync cards for all integrations.
      */
-    public function syncAllIntegrations(User $user, Organization $organization): void
+    public function syncAllIntegrations(User $user, Workspace $workspace): void
     {
         $connections = $this->userRepo->getAllOauthConnections($user);
         foreach ($connections as $connection) {
             $integration = $this->oauthConnectionRepo->getIntegration($connection)->name;
-            SyncCards::dispatch($user->id, $organization->id, $integration)->onQueue('sync-cards');
+            SyncCards::dispatch($user->id, $workspace->id, $integration)->onQueue('sync-cards');
         }
     }
 }

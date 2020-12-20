@@ -3,8 +3,8 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 use App\Models\Card;
 use App\Models\CardType;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use Faker\Generator as Faker;
 
@@ -13,7 +13,7 @@ $factory->define(Card::class, static function (Faker $faker) {
 
     return [
         'user_id'            => factory(User::class)->create()->id,
-        'organization_id'    => factory(Organization::class)->create()->id,
+        'workspace_id'       => factory(Workspace::class)->create()->id,
         'token'              => $token,
         'card_type_id'       => factory(CardType::class)->create()->id,
         'title'              => $faker->realText(random_int(10, 50)),

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Modules\OauthConnection;
 
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
@@ -27,9 +27,9 @@ class OauthConnectionServiceTest extends TestCase
     {
         $this->refreshDb();
         $user = User::find(1);
-        $organization = Organization::find(1);
-        $this->createOauthConnection($user, $organization);
-        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $organization, 'google');
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
+        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
         self::assertEquals($accessToken, self::$ACCESS_TOKEN);
         $this->refreshDb();
     }
@@ -45,8 +45,8 @@ class OauthConnectionServiceTest extends TestCase
     {
         $this->expectException(OauthUnauthorizedRequest::class);
         $user = User::find(1);
-        $organization = Organization::find(1);
-        app(OauthConnectionService::class)->getAccessToken($user, $organization, 'google');
+        $workspace = Workspace::find(1);
+        app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
     }
 
     /**
@@ -72,10 +72,10 @@ class OauthConnectionServiceTest extends TestCase
         });
 
         $user = User::find($userId);
-        $organization = Organization::find($userId);
-        $this->createOauthConnection($user, $organization, 0);
+        $workspace = Workspace::find($userId);
+        $this->createOauthConnection($user, $workspace, 0);
         sleep(1); // let's make sure the access token is expired
-        $newAccessToken = app(OauthConnectionService::class)->getAccessToken($user, $organization, 'google');
+        $newAccessToken = app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'       => $userId,

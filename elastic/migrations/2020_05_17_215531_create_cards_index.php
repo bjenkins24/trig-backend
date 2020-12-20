@@ -18,7 +18,7 @@ final class CreateCardsIndex implements MigrationInterface
             $mapping->long('user_id');
             $mapping->keyword('card_type');
             $mapping->keyword('url');
-            $mapping->long('organization_id');
+            $mapping->long('workspace_id');
             $mapping->text('title', [
                 'fields' => [
                     'keyword' => [

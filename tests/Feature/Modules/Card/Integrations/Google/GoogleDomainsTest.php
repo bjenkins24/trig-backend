@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Modules\Card\Integrations\Google;
 
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
@@ -42,8 +42,8 @@ class GoogleDomainsTest extends TestCase
         }
 
         $user = User::find(1);
-        $organization = Organization::find(1);
-        $this->createOauthConnection($user, $organization);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $this->partialMock(GoogleDomains::class, static function ($mock) use ($fakeDomains) {
             $mock->shouldReceive('getDomains')->andReturn($fakeDomains)->once();
         });

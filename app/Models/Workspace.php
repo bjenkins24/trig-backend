@@ -8,7 +8,7 @@ use App\Support\Traits\Relationships\HasTags;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\Models\Organization.
+ * App\Models\Workspace.
  *
  * @property int                                                         $id
  * @property string|null                                                 $name
@@ -17,16 +17,16 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $users
  * @property int|null                                                    $users_count
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization query()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Organization whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Workspace whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class Organization extends Model
+class Workspace extends Model
 {
     use BelongsToManyUsers;
     use HasTags;

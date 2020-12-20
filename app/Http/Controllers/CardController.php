@@ -9,8 +9,8 @@ use App\Models\Card;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
-use App\Modules\Card\Exceptions\CardOrganizationIdMustExist;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
+use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
@@ -66,7 +66,7 @@ class CardController extends Controller
                 'error'   => 'exists',
                 'message' => $exception->getMessage(),
             ], 409);
-        } catch (CardUserIdMustExist | CardOrganizationIdMustExist $exception) {
+        } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {
             return response()->json([
                 'error'   => 'bad_request',
                 'message' => $exception->getMessage(),

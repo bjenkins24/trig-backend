@@ -16,7 +16,7 @@ class CardSyncTest extends TestCase
 
         OauthConnection::create([
             'user_id'              => 1,
-            'organization_id'      => 1,
+            'workspace_id'         => 1,
             'oauth_integration_id' => 1,
             'access_token'         => '123',
             'refresh_token'        => '123',

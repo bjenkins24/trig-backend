@@ -77,10 +77,10 @@ class CardControllerTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function testCreateCardNoOrganization(): void
+    public function testCreateCardNoWorkspace(): void
     {
         $userId = 1;
-        User::find($userId)->organizations()->create([
+        User::find($userId)->workspaces()->create([
             'name' => 'second 1',
         ]);
         $response = $this->client('POST', 'card', ['url' => 'http://google.com', 'user_id' => $userId]);

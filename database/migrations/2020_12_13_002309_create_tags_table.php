@@ -13,7 +13,7 @@ class CreateTagsTable extends Migration
     {
         Schema::create('tags', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organization_id')->constrained()->onDelete('cascade');
+            $table->foreignId('workspace_id')->constrained()->onDelete('cascade');
             $table->string('tag');
             $table->timestamps();
         });

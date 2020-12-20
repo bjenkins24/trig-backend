@@ -2,8 +2,8 @@
 
 namespace Tests\Support\Traits;
 
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 
@@ -17,11 +17,11 @@ trait CreateOauthConnection
      *
      * @throws OauthMissingTokens
      */
-    private function createOauthConnection(User $user, Organization $organization, int $expiresIn = 3600000): void
+    private function createOauthConnection(User $user, Workspace $workspace, int $expiresIn = 3600000): void
     {
         app(OauthConnectionRepository::class)->create(
             $user,
-            $organization,
+            $workspace,
             'google',
             collect([
                 'access_token'  => self::$ACCESS_TOKEN,

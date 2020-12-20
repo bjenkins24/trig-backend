@@ -22,7 +22,7 @@ class CardTest extends TestCase
              'favorites_by_user_id'           => [],
              'views'                          => [],
              'tags'                           => [],
-             'organization_id'                => '2',
+             'workspace_id'                   => '2',
              'content'                        => Config::get('constants.seed.card.content'),
              'permissions'                    => [],
              'card_duplicate_ids'             => '1',

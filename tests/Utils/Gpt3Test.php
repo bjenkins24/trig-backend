@@ -52,5 +52,11 @@ COMPLETION,
 
     public function testEngineDoesntExist(): void
     {
+        try {
+            app(Gpt3::class)->getEngine(4);
+            self::assertTrue(false);
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
     }
 }

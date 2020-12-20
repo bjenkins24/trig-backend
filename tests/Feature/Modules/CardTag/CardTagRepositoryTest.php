@@ -6,8 +6,8 @@ use App\Models\Card;
 use App\Models\Tag;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
-use App\Modules\Card\Exceptions\CardOrganizationIdMustExist;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
+use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardTag\CardTagRepository;
 use Tests\TestCase;
 use Throwable;
@@ -16,7 +16,7 @@ class CardTagRepositoryTest extends TestCase
 {
     /**
      * @throws CardExists
-     * @throws CardOrganizationIdMustExist
+     * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      * @throws Throwable
      */
@@ -29,7 +29,7 @@ class CardTagRepositoryTest extends TestCase
         app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
 
         $card2 = app(CardRepository::class)->updateOrInsert([
-            'organization_id' => $card->organization_id,
+            'workspace_id'    => $card->workspace_id,
             'user_id'         => $card->user_id,
             'title'           => 'cool title',
             'url'             => 'hello',
@@ -40,7 +40,7 @@ class CardTagRepositoryTest extends TestCase
         app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]]);
         foreach ($firstSetTags as $tag) {
             $this->assertDatabaseHas('tags', [
-                'organization_id' => $card->organization_id,
+                'workspace_id'    => $card->workspace_id,
                 'tag'             => $tag,
             ]);
             $tagModel = Tag::where('tag', $tag)->first();
@@ -58,12 +58,12 @@ class CardTagRepositoryTest extends TestCase
         app(CardTagRepository::class)->replaceTags($card, $secondSetTags);
 
         $this->assertDatabaseMissing('tags', [
-            'organization_id' => $card->organization_id,
+            'workspace_id'    => $card->workspace_id,
             'tag'             => $firstSetTags[0],
         ]);
 
         $this->assertDatabaseHas('tags', [
-            'organization_id' => $card->organization_id,
+            'workspace_id'    => $card->workspace_id,
             'tag'             => $firstSetTags[1],
         ]);
 
@@ -73,7 +73,7 @@ class CardTagRepositoryTest extends TestCase
         ]);
 
         $this->assertDatabaseMissing('card_tags', [
-            'organization_id'    => $cardId,
+            'workspace_id'       => $cardId,
             'tag_id'             => $secondTagId,
         ]);
 

@@ -35,9 +35,9 @@ class UserRepository
         ]);
     }
 
-    public function getAllOrganizations(User $user): Collection
+    public function getAllWorkspaces(User $user): Collection
     {
-        return $user->organizations()->get();
+        return $user->workspaces()->get();
     }
 
     /**
@@ -70,7 +70,7 @@ class UserRepository
             'terms_of_service_accepted_at' => now(),
         ]));
 
-        $user->organizations()->firstOrCreate([
+        $user->workspaces()->firstOrCreate([
             'name' => 'default',
         ]);
 

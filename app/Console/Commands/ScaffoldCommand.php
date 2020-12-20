@@ -58,8 +58,8 @@ class ScaffoldCommand extends Command
             'password'   => bcrypt($password),
         ]);
 
-        $user->organizations()->create([
-            'name' => Config::get('constants.seed.organization'),
+        $user->workspaces()->create([
+            'name' => Config::get('constants.seed.workspace'),
         ]);
 
         $this->call('db:seed', ['--class' => 'ScaffoldSeeder']);

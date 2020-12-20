@@ -4,8 +4,8 @@ namespace Tests\Feature\Modules\OauthConnection;
 
 use App\Models\OauthConnection;
 use App\Models\OauthIntegration;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
 use Tests\TestCase;
@@ -18,7 +18,7 @@ class OauthConnectionRepositoryTest extends TestCase
     public function testMissingTokens(): void
     {
         $this->expectException(OauthMissingTokens::class);
-        app(OauthConnectionRepository::class)->create(User::find(1), Organization::find(1), 'google', collect([]));
+        app(OauthConnectionRepository::class)->create(User::find(1), Workspace::find(1), 'google', collect([]));
     }
 
     public function testGetAllActiveConnections(): void
@@ -30,7 +30,7 @@ class OauthConnectionRepositoryTest extends TestCase
         ])->id;
         OauthConnection::create([
             'user_id'              => 1,
-            'organization_id'      => 1,
+            'workspace_id'         => 1,
             'oauth_integration_id' => 1,
             'access_token'         => '123',
             'refresh_token'        => '123',
@@ -38,7 +38,7 @@ class OauthConnectionRepositoryTest extends TestCase
         ]);
         OauthConnection::create([
             'user_id'              => 1,
-            'organization_id'      => 1,
+            'workspace_id'         => 1,
             'oauth_integration_id' => $confluenceId,
             'access_token'         => '123',
             'refresh_token'        => '123',
@@ -48,8 +48,8 @@ class OauthConnectionRepositoryTest extends TestCase
         $activeConnections = app(OauthConnectionRepository::class)->getAllActiveConnections();
 
         self::assertEquals(collect([
-            ['user_id' => '1', 'organization_id' => '1', 'key' => 'google'],
-            ['user_id' => '1', 'organization_id' => '1', 'key' => 'confluence'],
+            ['user_id' => '1', 'workspace_id' => '1', 'key' => 'google'],
+            ['user_id' => '1', 'workspace_id' => '1', 'key' => 'confluence'],
         ]), $activeConnections);
     }
 }
