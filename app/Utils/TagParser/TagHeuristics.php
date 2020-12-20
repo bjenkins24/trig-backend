@@ -29,9 +29,6 @@ class TagHeuristics
             if (! empty($heuristic['title']) && false !== stripos($title, $heuristic['title'])) {
                 $newTags[] = $heuristic['tag'];
             }
-            if (! empty($heuristic['content']) && false !== stripos($content, $heuristic['content'])) {
-                $newTags[] = $heuristic['tag'];
-            }
         }
 
         return $newTags;

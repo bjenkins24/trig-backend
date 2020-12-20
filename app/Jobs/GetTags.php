@@ -37,13 +37,17 @@ class GetTags implements ShouldQueue
     /**
      * @throws Throwable
      */
-    public function handle(): void
+    public function handle(): bool
     {
         try {
             $tags = app(TagParser::class)->getTags($this->card->title, Str::htmlToMarkdown($this->card->content));
             app(CardTagRepository::class)->replaceTags($this->card, $tags->toArray());
+
+            return true;
         } catch (Exception $e) {
             Log::error('The GetTags job failed: '.$e->getMessage());
+
+            return false;
         }
     }
 }

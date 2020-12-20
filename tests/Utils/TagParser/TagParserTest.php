@@ -178,7 +178,7 @@ COMPLETION,
             ])->times(2);
         });
 
-        $results = app(TagParser::class)->getTags('my text', 'document text');
+        $results = app(TagParser::class)->getTags('my text', 'document text', 'tag');
         $expectedTags = collect(['drip irrigation', 'water waste']);
         self::assertEquals($expectedTags, $results);
     }

@@ -9,9 +9,9 @@ use Tests\TestCase;
 
 class CardDedupeTest extends TestCase
 {
-    public function testCardDedupe()
+    public function testCardDedupe(): void
     {
-        $this->partialMock(CardRepository::class, function ($mock) {
+        $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('dedupe')->once();
         });
 
