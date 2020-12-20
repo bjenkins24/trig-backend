@@ -48,8 +48,8 @@ class OauthConnectionRepositoryTest extends TestCase
         $activeConnections = app(OauthConnectionRepository::class)->getAllActiveConnections();
 
         self::assertEquals(collect([
-            ['user_id' => 1, 'key' => 'google'],
-            ['user_id' => 1, 'key' => 'confluence'],
+            ['user_id' => '1', 'organization_id' => '1', 'key' => 'google'],
+            ['user_id' => '1', 'organization_id' => '1', 'key' => 'confluence'],
         ]), $activeConnections);
     }
 }

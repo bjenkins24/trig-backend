@@ -48,6 +48,7 @@ class CardSyncRepositoryTest extends TestCase
 
     public function testSecondsSinceLastAttempt(): void
     {
+        $this->refreshDb();
         $cardId = 1;
         $cardSyncRepository = app(CardSyncRepository::class);
         $testCreate = '2020-11-20 00:00:00';
@@ -58,16 +59,17 @@ class CardSyncRepositoryTest extends TestCase
             'status'     => 1,
             'created_at' => $testCreate,
         ]);
+
         $result = $cardSyncRepository->secondsSinceLastAttempt($cardId);
         self::assertEquals(20, $result);
 
         $result = $cardSyncRepository->secondsSinceLastAttempt(2000);
         self::assertNull($result);
-        $this->refreshDb();
     }
 
     public function testShouldGetTags(): void
     {
+        $this->refreshDb();
         $cardSyncRepository = app(CardSyncRepository::class);
         $card = Card::find(1);
 

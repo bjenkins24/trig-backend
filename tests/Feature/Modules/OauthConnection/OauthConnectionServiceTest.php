@@ -28,7 +28,7 @@ class OauthConnectionServiceTest extends TestCase
         $this->refreshDb();
         $user = User::find(1);
         $organization = Organization::find(1);
-        $this->createOauthConnection($user);
+        $this->createOauthConnection($user, $organization);
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $organization, 'google');
         self::assertEquals($accessToken, self::$ACCESS_TOKEN);
         $this->refreshDb();
@@ -73,7 +73,7 @@ class OauthConnectionServiceTest extends TestCase
 
         $user = User::find($userId);
         $organization = Organization::find($userId);
-        $this->createOauthConnection($user, 0);
+        $this->createOauthConnection($user, $organization, 0);
         sleep(1); // let's make sure the access token is expired
         $newAccessToken = app(OauthConnectionService::class)->getAccessToken($user, $organization, 'google');
 

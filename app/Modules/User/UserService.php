@@ -5,6 +5,7 @@ namespace App\Modules\User;
 use App\Events\User\AccountCreated;
 use App\Jobs\SetupGoogleIntegration;
 use App\Jobs\SyncCards;
+use App\Models\Organization;
 use App\Models\User;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
@@ -89,12 +90,12 @@ class UserService
     /**
      * Sync cards for all integrations.
      */
-    public function syncAllIntegrations(User $user): void
+    public function syncAllIntegrations(User $user, Organization $organization): void
     {
         $connections = $this->userRepo->getAllOauthConnections($user);
         foreach ($connections as $connection) {
             $integration = $this->oauthConnectionRepo->getIntegration($connection)->name;
-            SyncCards::dispatch($user->id, $integration)->onQueue('sync-cards');
+            SyncCards::dispatch($user->id, $organization->id, $integration)->onQueue('sync-cards');
         }
     }
 }

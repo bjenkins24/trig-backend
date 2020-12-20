@@ -3,7 +3,9 @@
 namespace Tests\Feature\Modules\User;
 
 use App\Jobs\SyncCards;
+use App\Models\Organization;
 use App\Models\User;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use Config;
@@ -51,6 +53,8 @@ class UserServiceTest extends TestCase
 
     /**
      * Test syncing all integrations.
+     *
+     * @throws OauthMissingTokens
      */
     public function testSyncAll(): void
     {
@@ -58,9 +62,10 @@ class UserServiceTest extends TestCase
         Queue::fake();
 
         $user = User::find(1);
-        $this->createOauthConnection($user);
+        $organization = Organization::find(1);
+        $this->createOauthConnection($user, $organization);
 
-        $this->userService->syncAllIntegrations($user);
+        $this->userService->syncAllIntegrations($user, $organization);
 
         Queue::assertPushed(SyncCards::class, 1);
     }
