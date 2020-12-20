@@ -4,6 +4,7 @@ namespace Tests\Feature\Controllers;
 
 use App\Jobs\SaveCardData;
 use App\Models\CardType;
+use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\CardSync\CardSyncRepository;
 use Illuminate\Support\Carbon;
@@ -71,6 +72,22 @@ class CardControllerTest extends TestCase
         $response = $this->client('POST', 'card', ['url' => 'http://google.com']);
 
         self::assertEquals('unexpected', $this->getResponseData($response, 'error')->get('error'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testCreateCardNoWorkspace(): void
+    {
+        $userId = 1;
+        User::find($userId)->workspaces()->create([
+            'name' => 'second 1',
+        ]);
+        $response = $this->client('POST', 'card', ['url' => 'http://google.com', 'user_id' => $userId]);
+
+        self::assertEquals('bad_request', $this->getResponseData($response, 'error')->get('error'));
+        self::assertEquals(422, $response->getStatusCode());
+        $this->refreshDb();
     }
 
     public function testCreateCardDifferentCardType(): void

@@ -8,14 +8,17 @@ use App\Models\CardFavorite;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\CardView;
-use App\Models\Organization;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\CardUserIdMustExist;
+use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ElasticQueryBuilderHelper;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
+use App\Modules\User\UserRepository;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -30,9 +33,11 @@ class CardRepository
     private OauthIntegrationRepository $oauthIntegration;
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
+    private UserRepository $userRepository;
     public const DEFAULT_SEARCH_LIMIT = 90;
 
     public function __construct(
+        UserRepository $userRepository,
         OauthIntegrationRepository $oauthIntegration,
         ElasticQueryBuilderHelper $elasticQueryBuilderHelper,
         ThumbnailHelper $thumbnailHelper
@@ -40,6 +45,7 @@ class CardRepository
         $this->elasticQueryBuilderHelper = $elasticQueryBuilderHelper;
         $this->oauthIntegration = $oauthIntegration;
         $this->thumbnailHelper = $thumbnailHelper;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -284,9 +290,9 @@ class CardRepository
         return $card->user()->first();
     }
 
-    public function getOrganization(Card $card): Organization
+    public function getWorkspace(Card $card): Workspace
     {
-        return $card->user()->first()->organizations()->first();
+        return $card->workspace()->first();
     }
 
     public function getDuplicates(Card $card): Collection
@@ -294,7 +300,7 @@ class CardRepository
         $response = Http::post(Config::get('app.data_processing_url').'/dedupe', [
             'id'              => $card->id,
             'content'         => $card->content,
-            'organization_id' => $this->getOrganization($card)->id,
+            'workspace_id'    => $card->workspace_id,
             'key'             => Config::get('app.data_processing_api_key'),
         ]);
         $statusCode = $response->getStatusCode();
@@ -490,6 +496,9 @@ class CardRepository
     }
 
     /**
+     * @throws CardExists
+     * @throws CardWorkspaceIdMustExist
+     * @throws CardUserIdMustExist
      * @throws Exception
      */
     public function updateOrInsert(array $fields, ?Card $card = null): ?Card
@@ -511,7 +520,16 @@ class CardRepository
         }
 
         if (! $newFields->get('user_id')) {
-            throw new Exception('You must include a user_id for a new card');
+            throw new CardUserIdMustExist('You must include the user_id field when creating a new card.');
+        }
+
+        if (! $newFields->get('workspace_id')) {
+            $workspaces = $this->userRepository->getAllWorkspaces(User::find($newFields->get('user_id')));
+            if (1 === $workspaces->count()) {
+                $newFields->put('workspace_id', $workspaces->get(0)->id);
+            } else {
+                throw new CardWorkspaceIdMustExist('This user belongs to more than one workspace. You must include the workspace_id field.');
+            }
         }
 
         if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {

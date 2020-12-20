@@ -3,11 +3,13 @@
 namespace App\Modules\Card\Integrations;
 
 use App\Jobs\CardDedupe;
+use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Helpers\ThumbnailHelper;
@@ -22,6 +24,7 @@ use App\Modules\Permission\PermissionRepository;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Support\Collection;
+use Throwable;
 
 class SyncCards
 {
@@ -91,8 +94,8 @@ class SyncCards
                     case 'anyone':
                         $this->linkShareSettingRepository->createAnyoneIfNew($card, $linkShare->get('capability'));
                         break;
-                    case 'anyone_organization':
-                        $this->linkShareSettingRepository->createAnyoneOrganizationIfNew($card, $linkShare->get('capability'));
+                    case 'anyone_workspace':
+                        $this->linkShareSettingRepository->createAnyoneWorkspaceIfNew($card, $linkShare->get('capability'));
                         break;
                 }
         });
@@ -119,6 +122,7 @@ class SyncCards
                 return;
             }
         }
+
         // The card hasn't been created, but we will want to delete it, that means lets not create it to begin with
         if ($data->get('delete')) {
             return;
@@ -154,6 +158,9 @@ class SyncCards
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     public function saveCardData(Card $card): bool
     {
         if (! $this->cardSyncRepository->shouldSync($card)) {
@@ -182,6 +189,10 @@ class SyncCards
             $data->forget('image');
         }
 
+        // We need to know if it's synced in the PAST for deciding if we should get the tags for this card
+        // We have to do this _before_ saving the card
+        $shouldGetTags = $this->cardSyncRepository->shouldGetTags($card, $data->get('content'));
+
         // If we return any of these fields, we want to save them in full fledged columns not in properties
         $saveableFields = collect([
             'content',
@@ -208,6 +219,10 @@ class SyncCards
             ]);
         }
 
+        if ($shouldGetTags) {
+            GetTags::dispatch($card)->onQueue('get-tags');
+        }
+
         if ($card->content) {
             CardDedupe::dispatch($card)->onQueue('card-dedupe');
         }
@@ -219,9 +234,9 @@ class SyncCards
      * If syncing is paginated then there will be a key in "service_next_page" token for the oauth connection
      * and we should continue.
      */
-    private function syncNextPage(User $user): bool
+    private function syncNextPage(User $user, Workspace $workspace): bool
     {
-        $nextPageToken = $this->oauthConnectionRepository->getNextPageToken($user, $this->integrationKey);
+        $nextPageToken = $this->oauthConnectionRepository->getNextPageToken($user, $workspace, $this->integrationKey);
         if (! $nextPageToken) {
             return false;
         }
@@ -233,9 +248,9 @@ class SyncCards
     /**
      * @throws CardIntegrationCreationValidate
      */
-    public function syncCards(User $user, ?int $since = null): bool
+    public function syncCards(User $user, Workspace $workspace, ?int $since = null): bool
     {
-        $cardData = collect($this->integration->getAllCardData($user, $since))->recursive();
+        $cardData = collect($this->integration->getAllCardData($user, $workspace, $since))->recursive();
         if (0 === $cardData->count()) {
             return false;
         }
@@ -244,7 +259,7 @@ class SyncCards
             $this->upsertCard($card);
         });
 
-        $this->syncNextPage($user);
+        $this->syncNextPage($user, $workspace);
 
         return true;
     }

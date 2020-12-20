@@ -35,6 +35,11 @@ class UserRepository
         ]);
     }
 
+    public function getAllWorkspaces(User $user): Collection
+    {
+        return $user->workspaces()->get();
+    }
+
     /**
      * Given a domain name is it an active google drive domain integration? Individual
      * domains can be enabled and disabled from within Trig.
@@ -65,8 +70,8 @@ class UserRepository
             'terms_of_service_accepted_at' => now(),
         ]));
 
-        $user->organizations()->firstOrCreate([
-            'name' => 'Squarespace',
+        $user->workspaces()->firstOrCreate([
+            'name' => 'default',
         ]);
 
         return $user;

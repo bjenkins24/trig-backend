@@ -3,6 +3,8 @@
 namespace Tests\Feature\Modules\Card\Integrations\Google;
 
 use App\Models\User;
+use App\Models\Workspace;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -24,6 +26,7 @@ class GoogleDomainsTest extends TestCase
      * @throws JsonException
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
      *
      * @return User|User[]|Collection|Model|null
      */
@@ -39,7 +42,8 @@ class GoogleDomainsTest extends TestCase
         }
 
         $user = User::find(1);
-        $this->createOauthConnection($user);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $this->partialMock(GoogleDomains::class, static function ($mock) use ($fakeDomains) {
             $mock->shouldReceive('getDomains')->andReturn($fakeDomains)->once();
         });
@@ -52,6 +56,7 @@ class GoogleDomainsTest extends TestCase
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testSyncDomains(): void
@@ -71,6 +76,7 @@ class GoogleDomainsTest extends TestCase
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testSyncDomainsNoDomains(): void

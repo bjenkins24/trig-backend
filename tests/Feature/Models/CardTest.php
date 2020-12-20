@@ -15,16 +15,17 @@ class CardTest extends TestCase
         // Remove stuff that's hard to test for
         unset($result['title'], $result['actual_created_at']);
 
-        self::assertEquals($result, [
+        self::assertEquals([
              'user_id'                        => '1',
              'url'                            => $card->url,
              'card_type'                      => 'Document',
              'favorites_by_user_id'           => [],
              'views'                          => [],
-             'organization_id'                => 1,
+             'tags'                           => [],
+             'workspace_id'                   => '2',
              'content'                        => Config::get('constants.seed.card.content'),
              'permissions'                    => [],
              'card_duplicate_ids'             => '1',
-        ]);
+        ], $result);
     }
 }

@@ -8,14 +8,13 @@ use App\Models\Card;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
-use App\Modules\Card\CardRepository;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
-use Exception;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -29,6 +28,7 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testNoSyncWhenUpToDate(): void
     {
@@ -36,13 +36,13 @@ class SyncCardsTest extends TestCase
         $title = 'My super cool title';
         $initialData[0]['data']['title'] = $title;
         $initialData[0]['data']['actual_updated_at'] = '1701-01-01 10:35:00';
-        [$syncCards, $data, $user] = $this->getSetup(null, $initialData);
+        [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, $initialData);
 
         $cardIntegration = CardIntegration::find(1);
         $cardIntegration->foreign_id = $data[0]['data']['foreign_id'];
         $cardIntegration->save();
 
-        $syncCards->syncCards($user, time());
+        $syncCards->syncCards($user, $workspace, time());
 
         $this->assertDatabaseMissing('cards', [
             'title' => $title,
@@ -51,24 +51,26 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSyncCardsEmpty(): void
     {
-        [$syncCards, $data, $user] = $this->getSetup(null, []);
-        $result = $syncCards->syncCards($user, time());
+        [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, []);
+        $result = $syncCards->syncCards($user, $workspace, time());
         self::assertFalse($result);
     }
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSyncCards(): void
     {
-        [$syncCards, $data, $user] = $this->getSetup();
+        [$syncCards, $data, $user, $workspace] = $this->getSetup();
 
         $card = $data[0]['data'];
 
-        $syncCards->syncCards($user, time());
+        $syncCards->syncCards($user, $workspace, time());
 
         $cardType = CardType::where('name', '=', $card['card_type'])->first();
         $newCard = Card::where('title', '=', $card['title'])->first();
@@ -96,29 +98,30 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testDeleteCard(): void
     {
-        [$syncCards, $data, $user] = $this->getSetup();
+        [$syncCards, $data, $user, $workspace] = $this->getSetup();
         $cardData = $data[0]['data'];
         $card = Card::where('title', '=', $cardData['title'])->first();
         self::assertNull($card);
 
-        $syncCards->syncCards($user, time());
+        $syncCards->syncCards($user, $workspace, time());
 
         $card = Card::where('title', '=', $cardData['title'])->first();
         self::assertNotNull($card);
 
         $data[0]['data']['delete'] = true;
-        [$syncCards, $data, $user] = $this->getSetup(null, $data, 'google', false);
-        $syncCards->syncCards($user, time());
+        [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, $data, 'google', false);
+        $syncCards->syncCards($user, $workspace, time());
 
         // It was deleted!
         $this->assertDatabaseMissing('cards', [
             'id' => $card->id,
         ]);
 
-        $syncCards->syncCards($user, time());
+        $syncCards->syncCards($user, $workspace, time());
 
         // It's already been deleted, but we won't insert it again
         $card = Card::where('title', '=', $cardData['title'])->first();
@@ -127,6 +130,7 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSyncPermissions(): void
     {
@@ -152,14 +156,14 @@ class SyncCardsTest extends TestCase
                         'capability' => 'writer',
                     ],
                     [
-                        'type'       => 'anyone_organization',
+                        'type'       => 'anyone_workspace',
                         'capability' => 'reader',
                     ],
             ],
         ];
-        [$syncCards, $data, $user] = $this->getSetup(null, $initialData);
+        [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, $initialData);
 
-        $syncCards->syncCards($user, time());
+        $syncCards->syncCards($user, $workspace, time());
 
         $card = Card::where('title', '=', $initialData[0]['data']['title'])->first();
         $person1 = Person::where('email', '=', $data[0]['permissions']['users'][0]['email'])->first();
@@ -215,6 +219,7 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSaveCardDataNotFound(): void
     {
@@ -226,8 +231,8 @@ class SyncCardsTest extends TestCase
             $mock->shouldReceive('getWebsite')->andThrow(new WebsiteNotFound());
         });
 
-        [$syncCards, $data, $user] = $this->getSetup(null, null, 'link');
-        $syncCards->syncCards($user);
+        [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, null, 'link');
+        $syncCards->syncCards($user, $workspace);
 
         $card = Card::find(1);
 
@@ -241,6 +246,7 @@ class SyncCardsTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSaveCardDataNoSync(): void
     {
@@ -248,8 +254,8 @@ class SyncCardsTest extends TestCase
             $mock->shouldReceive('shouldSync')->andReturn(false);
         });
 
-        [$syncCards, $data, $user] = $this->getSetup();
-        $syncCards->syncCards($user);
+        [$syncCards, $data, $user, $workspace] = $this->getSetup();
+        $syncCards->syncCards($user, $workspace);
 
         $card = Card::find(1);
 
@@ -260,6 +266,7 @@ class SyncCardsTest extends TestCase
     /**
      * @throws JsonException
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      */
     public function testSaveCardData(): void
     {
@@ -275,8 +282,8 @@ class SyncCardsTest extends TestCase
             $mock->shouldReceive('getCardContentData')->andReturn(clone $fakeData);
         });
 
-        [$syncCards, $data, $user] = $this->getSetup();
-        $syncCards->syncCards($user);
+        [$syncCards, $data, $user, $workspace] = $this->getSetup();
+        $syncCards->syncCards($user, $workspace);
 
         $cardType = app(CardTypeRepository::class)->firstOrCreate('link');
         $card = Card::find(1);

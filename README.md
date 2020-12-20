@@ -88,11 +88,11 @@ commands below. But for reference this is what it does:
 `deck_followers`
 (id, deck_id, user_id)
 
-`organizations`
+`workspaces`
 (id, name)
 
-`organizations_users`
-(id, user_id, organization_id)
+`workspaces_users`
+(id, user_id, workspace_id)
 
 `roles` - **admin**, **manager**, or **member** 
 (id, name)
@@ -112,13 +112,13 @@ card or deck can only morph one of these not multiple like permissions
 id shareable_id shareable_type link_share_type_id capability_id 
 
 `link_share_type`
-id name  **anyoneInOrganization** **anyone** **public**
+id name  **anyoneInWorkspace** **anyone** **public**
 
 `people` - this will be unused but we need to save if in the future we allow for sharing with individuals
 id email
 
 `teams` 
-(id, organization_id, name)
+(id, workspace_id, name)
 
 `teams_users`
 (id, team_id, user_id)

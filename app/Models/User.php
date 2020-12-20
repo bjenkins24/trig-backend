@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Support\Traits\Relationships\BelongsToManyOrganizations;
 use App\Support\Traits\Relationships\BelongsToManyTeams;
+use App\Support\Traits\Relationships\BelongsToManyWorkspaces;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
@@ -35,8 +35,8 @@ use Laravel\Passport\HasApiTokens;
  * @property int|null                                                                                                  $notifications_count
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\OauthConnection[]                                    $oauthConnections
  * @property int|null                                                                                                  $oauth_connections_count
- * @property \Illuminate\Database\Eloquent\Collection|\App\Models\Organization[]                                       $organizations
- * @property int|null                                                                                                  $organizations_count
+ * @property \Illuminate\Database\Eloquent\Collection|\App\Models\Workspace[]                                          $workspaces
+ * @property int|null                                                                                                  $workspaces_count
  * @property \App\Models\PermissionType|null                                                                           $permissionType
  * @property \Illuminate\Database\Eloquent\Collection|\App\Models\Team[]                                               $teams
  * @property int|null                                                                                                  $teams_count
@@ -61,7 +61,7 @@ use Laravel\Passport\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use BelongsToManyOrganizations;
+    use BelongsToManyWorkspaces;
     use Notifiable;
     use HasApiTokens;
     use HasOauthConnections;

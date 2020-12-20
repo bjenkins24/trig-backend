@@ -3,7 +3,6 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
-use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Exception;
@@ -29,7 +28,7 @@ class GoogleDomains
      *
      * One G Suite account CAN have multiple domains: https://support.google.com/a/answer/7502379
      * Each time a connection is made we will also check their accessible domains. If there is a domain
-     * that we don't recognize, we'll add it to the organizations google domains. By default _all_
+     * that we don't recognize, we'll add it to the workspaces google domains. By default _all_
      * domains will be accessible from within Trig.
      *
      * A Trig admin will be able to select or deselect which domains their Trig account should be

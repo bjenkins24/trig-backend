@@ -30,18 +30,18 @@ class ElasticQueryBuilderHelper
     }
 
     /**
-     * Check if the card belongs to the organization. It also must be shared with
-     * the whole organization (by null permissions) or it shouldn't be accessible with
+     * Check if the card belongs to the workspace. It also must be shared with
+     * the whole workspace (by null permissions) or it shouldn't be accessible with
      * this condition.
      */
-    private function makeOrganizationCondition(User $user): array
+    private function makeWorkspaceCondition(User $user): array
     {
         return [
             'bool' => [
                 'filter' => [
                     [
                         'match' => [
-                            'organization_id' => $user->organizations()->first()->id,
+                            'workspace_id' => $user->workspaces()->first()->id,
                         ],
                     ],
                     [
@@ -174,7 +174,7 @@ class ElasticQueryBuilderHelper
             'bool' => [
                 'should' => [
                     $this->makeUserCondition($user),
-                    $this->makeOrganizationCondition($user),
+                    $this->makeWorkspaceCondition($user),
 //                    $this->makeTeamCondition($user),
                     $this->makeSpecificPermissionsCondition($user),
                 ],

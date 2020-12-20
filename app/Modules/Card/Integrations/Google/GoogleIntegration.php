@@ -3,6 +3,8 @@
 namespace App\Modules\Card\Integrations\Google;
 
 use App\Models\User;
+use App\Models\Workspace;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 use App\Modules\OauthConnection\OauthConnectionRepository;
@@ -55,9 +57,9 @@ class GoogleIntegration implements IntegrationInterface
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
-    public function getFiles(User $user, ?int $since = null)
+    public function getFiles(User $user, Workspace $workspace, ?int $since = null)
     {
-        $pageToken = $this->oauthConnectionRepository->getNextPageToken($user, self::getIntegrationKey());
+        $pageToken = $this->oauthConnectionRepository->getNextPageToken($user, $workspace, self::getIntegrationKey());
 
         $service = $this->googleConnection->getDriveService($user);
 
@@ -76,7 +78,7 @@ class GoogleIntegration implements IntegrationInterface
 
         if (! $since) {
             $nextPageToken = $service->files->listFiles($params)->getNextPageToken();
-            $this->oauthConnectionRepository->saveNextPageToken($user, self::getIntegrationKey(), $nextPageToken);
+            $this->oauthConnectionRepository->saveNextPageToken($user, $workspace, self::getIntegrationKey(), $nextPageToken);
         }
 
         return collect($service->files->listFiles($params));
@@ -87,10 +89,11 @@ class GoogleIntegration implements IntegrationInterface
      *
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
      */
-    public function getThumbnailLink(User $user, $file): string
+    public function getThumbnailLink(User $user, Workspace $workspace, $file): string
     {
-        $accessToken = $this->oauthConnectionService->getAccessToken($user, self::getIntegrationKey());
+        $accessToken = $this->oauthConnectionService->getAccessToken($user, $workspace, self::getIntegrationKey());
         $delimiter = '?';
         if (Str::contains($file->thumbnailLink, $delimiter)) {
             $delimiter = '&';
@@ -124,7 +127,7 @@ class GoogleIntegration implements IntegrationInterface
                 if (! $this->userRepository->isGoogleDomainActive($user, $permission->domain)) {
                     return $carry;
                 }
-                $carry['link_share'][] = ['type' => 'anyone_organization', 'capability' => $capability];
+                $carry['link_share'][] = ['type' => 'anyone_workspace', 'capability' => $capability];
             }
 
             return $carry;
@@ -138,9 +141,10 @@ class GoogleIntegration implements IntegrationInterface
      * @param $file
      *
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
-    public function getCardData(User $user, $file): array
+    public function getCardData(User $user, Workspace $workspace, $file): array
     {
         if ('application/vnd.google-apps.folder' === $file->mimeType) {
             return [];
@@ -148,6 +152,7 @@ class GoogleIntegration implements IntegrationInterface
 
         $cardData = [
             'user_id'            => $user->id,
+            'workspace_id'       => $workspace->id,
             'delete'             => $file->trashed,
             'card_type'          => $file->mimeType,
             'url'                => $file->webViewLink,
@@ -156,7 +161,7 @@ class GoogleIntegration implements IntegrationInterface
             'description'        => $file->description,
             'actual_created_at'  => $file->createdTime,
             'actual_updated_at'  => $file->modifiedTime,
-            'image'              => $this->getThumbnailLink($user, $file),
+            'image'              => $this->getThumbnailLink($user, $workspace, $file),
         ];
 
         $permissions = $this->getPermissions($user, $file);
@@ -171,12 +176,12 @@ class GoogleIntegration implements IntegrationInterface
      * @throws OauthIntegrationNotFound
      * @throws OauthUnauthorizedRequest
      */
-    public function getAllCardData(User $user, ?int $since): array
+    public function getAllCardData(User $user, Workspace $workspace, ?int $since): array
     {
-        $files = $this->getFiles($user, $since);
+        $files = $this->getFiles($user, $workspace, $since);
 
-        return $files->reduce(function ($carry, $file) use ($user) {
-            $carry[] = $this->getCardData($user, $file);
+        return $files->reduce(function ($carry, $file) use ($user, $workspace) {
+            $carry[] = $this->getCardData($user, $workspace, $file);
 
             return $carry;
         }, []);

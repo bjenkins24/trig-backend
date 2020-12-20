@@ -3,6 +3,7 @@
 namespace App\Modules\Card\Integrations\Link;
 
 use App\Models\User;
+use App\Models\Workspace;
 use App\Modules\Card\Interfaces\IntegrationInterface;
 
 class LinkIntegration implements IntegrationInterface
@@ -12,7 +13,7 @@ class LinkIntegration implements IntegrationInterface
         return 'link';
     }
 
-    public function getAllCardData(User $user, ?int $since): array
+    public function getAllCardData(User $user, Workspace $workspace, ?int $since): array
     {
         return [];
     }

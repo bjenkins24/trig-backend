@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
@@ -44,7 +45,7 @@ class CardRepositoryTest extends TestCase
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 2,
-                        'organization_id'   => 3,
+                        'workspace_id'      => 3,
                         'title'             => 'Interview with a Engineer',
                         'doc_title'         => null,
                         'content'           => '',
@@ -72,7 +73,7 @@ class CardRepositoryTest extends TestCase
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 1,
-                        'organization_id'   => 2,
+                        'workspace_id'      => 2,
                         'title'             => 'Interview with a Product Manager from FANG',
                         'doc_title'         => null,
                         'content'           => "INTERVIEW WITH A PRODUCT MANAGER FROM FANG\n\n [https:\/\/www.youtube.com\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\nHow Compelling Is Your Writing?\n\nGrammarly [\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\n",
@@ -100,7 +101,7 @@ class CardRepositoryTest extends TestCase
                     '_source' => [
                         'user_id'           => 7,
                         'card_type_id'      => 2,
-                        'organization_id'   => 3,
+                        'workspace_id'      => 3,
                         'title'             => "This one isn't in the db",
                         'doc_title'         => null,
                         'content'           => '',
@@ -247,10 +248,10 @@ class CardRepositoryTest extends TestCase
         self::assertEquals([], $permissions);
     }
 
-    public function testGetOrganization(): void
+    public function testGetWorkspace(): void
     {
-        $organization = app(CardRepository::class)->getOrganization(Card::find(1));
-        self::assertEquals(1, $organization->id);
+        $workspace = app(CardRepository::class)->getWorkspace(Card::find(1));
+        self::assertEquals(2, $workspace->id);
     }
 
     public function testGetCardIntegration(): void
@@ -357,7 +358,7 @@ class CardRepositoryTest extends TestCase
                 'http://localhost:5000/dedupe' === $request->url() &&
                 $request['id'] == $card->id &&
                 $request['content'] == $card->content &&
-                $request['organization_id'] == app(CardRepository::class)->getOrganization($card)->id;
+                $request['workspace_id'] == app(CardRepository::class)->getWorkspace($card)->id;
         });
     }
 
@@ -573,6 +574,22 @@ class CardRepositoryTest extends TestCase
             'card_type_id' => 2,
         ]);
         self::assertEquals($newCard->title, $newCardTitle);
+
+        // Try a user with more than one workspace, it should throw an error
+        User::find(1)->workspaces()->create([
+            'name' => 'test org',
+        ]);
+        try {
+            app(CardRepository::class)->updateOrInsert([
+                'user_id' => 1,
+                'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+                'title'   => $newCardTitle,
+            ], null);
+            self::assertFalse(true);
+        } catch (CardWorkspaceIdMustExist $exception) {
+            self::assertTrue(true);
+        }
+
         $this->refreshDb();
     }
 

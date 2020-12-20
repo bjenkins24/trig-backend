@@ -8,6 +8,70 @@ use Illuminate\Support\Str;
 
 class CardTypeRepository
 {
+    public const CARD_TYPE_MAP = [
+        ['display' => 'Image', 'types' => ['image', 'cdr', 'corel']],
+        ['display' => 'Video', 'types' => ['video']],
+        ['display' => 'Audio', 'types' => ['audio']],
+        ['display' => 'Audio', 'types' => ['audio']],
+        ['display' => 'Spreadsheet', 'types' => ['excel', 'xls', 'iwork-numbers', 'apple.numbers', 'officedocument.spreadsheetml', 'comma-separated-values']],
+        ['display' => 'Presentation', 'types' => ['powerpoint', 'ms-office', 'officedocument.presentationml']],
+        ['display' => 'Document', 'types' => ['wordprocessingml.document', 'msword', 'pdf', 'octet-stream', 'apple.pages', 'richtext', 'rtf', 'text/plain', 'text/vtt']],
+        ['display' => 'Zip/RARA/Tar', 'types' => ['zip', 'compressed', 'tar']],
+        ['display' => 'PHP', 'types' => ['php']],
+        ['display' => 'Javascript', 'types' => ['javascript', 'typescript']],
+        ['display' => 'JSON', 'types' => ['json']],
+        ['display' => 'SQL', 'types' => ['sql']],
+        ['display' => 'ZSH', 'types' => ['zsh']],
+        ['display' => 'XML', 'types' => ['application/xml', 'text/xml', 'xspf+xml']],
+        ['display' => 'HTML', 'types' => ['html']],
+        ['display' => 'CSS', 'types' => ['css']],
+        ['display' => 'Flash', 'types' => ['flash']],
+    ];
+
+    public const LINK_TYPE_MAP = [
+        ['display' => 'Google Analytics', 'type' => 'url', 'matches' => ['analytics.google.com']],
+        ['display' => 'Gmail', 'type' => 'url', 'matches' => ['mail.google.com']],
+        ['display' => 'Google Doc', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'document']],
+        ['display' => 'Google Sheet', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'spreadsheets']],
+        ['display' => 'Google Slide', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'presentation']],
+        ['display' => 'Google Form', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'forms']],
+        // Needs Icon
+        ['display' => 'Amazon', 'type' => 'host', 'matches' => ['amazon']],
+        ['display' => 'Amplitude', 'type' => 'host', 'matches' => ['amplitude']],
+        ['display' => 'Airtable', 'type' => 'host', 'matches' => ['airtable']],
+        ['display' => 'Audible', 'type' => 'host', 'matches' => ['audible']],
+        // Needs Icon
+        ['display' => 'Customer.io', 'type' => 'host', 'matches' => ['customer.io']],
+        ['display' => 'Figma', 'type' => 'host', 'matches' => ['figma']],
+        // Needs Icon
+        ['display' => 'Basecamp', 'type' => 'host', 'matches' => ['basecamp.com']],
+        ['display' => 'Bitbucket', 'type' => 'host', 'matches' => ['bitbucket']],
+        // Needs Icon
+        ['display' => 'Chartio', 'type' => 'host', 'matches' => ['chartio']],
+        // Needs Icon
+        ['display' => 'Clubhouse', 'type' => 'host', 'matches' => ['clubhouse.io']],
+        ['display' => 'Confluence', 'type' => 'host', 'matches' => ['confluence']],
+        ['display' => 'Github', 'type' => 'host', 'matches' => ['github']],
+        // Needs Icon
+        ['display' => 'Helpscout', 'type' => 'host', 'matches' => ['helpscout']],
+        // Needs Icon
+        ['display' => 'Hubspot', 'type' => 'host', 'matches' => ['hubspot']],
+        ['display' => 'Jira', 'type' => 'host', 'matches' => ['jira']],
+        ['display' => 'LinkedIn', 'type' => 'host', 'matches' => ['linkedin']],
+        // Needs Icon
+        ['display' => 'Mailchimp', 'type' => 'host', 'matches' => ['mailchimp']],
+        ['display' => 'Notion', 'type' => 'host', 'matches' => ['notion']],
+        ['display' => 'Quora', 'type' => 'host', 'matches' => ['quora']],
+        ['display' => 'Stack Overflow', 'type' => 'host', 'matches' => ['stackoverflow']],
+        // Needs Icon
+        ['display' => 'SurveyMonkey', 'type' => 'host', 'matches' => ['surveymonkey']],
+        ['display' => 'Reddit', 'type' => 'host', 'matches' => ['reddit']],
+        ['display' => 'Trello', 'type' => 'host', 'matches' => ['trello']],
+        ['display' => 'Typeform', 'type' => 'host', 'matches' => ['typeform']],
+        ['display' => 'YouTube', 'type' => 'host', 'conditional' => 'OR', 'matches' => ['youtube', 'youtu.be']],
+        ['display' => 'Zendesk', 'type' => 'host', 'matches' => ['zendesk']],
+    ];
+
     /**
      * Create a card type or return it.
      */
@@ -27,53 +91,10 @@ class CardTypeRepository
         if ('link' === $cardTypeName && ! empty($card->url)) {
             return $this->mapLinkToType($card->url);
         }
-        if (Str::contains($cardTypeName, ['image', 'cdr', 'corel'])) {
-            return 'Image';
-        }
-        if (Str::contains($cardTypeName, 'video')) {
-            return 'Video';
-        }
-        if (Str::contains($cardTypeName, 'audio')) {
-            return 'Audio';
-        }
-        if (Str::contains($cardTypeName, ['excel', 'xls', 'iwork-numbers', 'apple.numbers', 'officedocument.spreadsheetml', 'comma-separated-values'])) {
-            return 'Spreadsheet';
-        }
-        if (Str::contains($cardTypeName, ['powerpoint', 'ms-office', 'officedocument.presentationml'])) {
-            return 'Presentation';
-        }
-        if (Str::contains($cardTypeName, ['wordprocessingml.document', 'msword', 'pdf', 'octet-stream', 'apple.pages', 'richtext', 'rtf', 'text/plain', 'text/vtt'])) {
-            return 'Document';
-        }
-        if (Str::contains($cardTypeName, ['zip', 'compressed', 'tar'])) {
-            return 'Zip/RAR/Tar';
-        }
-        if (Str::contains($cardTypeName, ['php'])) {
-            return 'PHP';
-        }
-        if (Str::contains($cardTypeName, ['javascript', 'typescript'])) {
-            return 'Javascript';
-        }
-        if (Str::contains($cardTypeName, ['json'])) {
-            return 'JSON';
-        }
-        if (Str::contains($cardTypeName, ['sql'])) {
-            return 'SQL';
-        }
-        if (Str::contains($cardTypeName, ['zsh'])) {
-            return 'ZSH';
-        }
-        if (Str::contains($cardTypeName, ['application/xml', 'text/xml', 'xspf+xml'])) {
-            return 'XML';
-        }
-        if (Str::contains($cardTypeName, ['html'])) {
-            return 'HTML';
-        }
-        if (Str::contains($cardTypeName, ['css'])) {
-            return 'CSS';
-        }
-        if (Str::contains($cardTypeName, ['flash'])) {
-            return 'Flash';
+        foreach (self::CARD_TYPE_MAP as $map) {
+            if (Str::contains($cardTypeName, $map['types'])) {
+                return $map['display'];
+            }
         }
 
         return 'Unknown';
@@ -88,106 +109,36 @@ class CardTypeRepository
 
         $host = parse_url($url)['host'];
 
-        // Needs icon
-        if (Str::contains($url, 'analytics.google.com')) {
-            return 'Google Analytics';
-        }
-        // Needs icon
-        if (Str::contains($url, 'mail.google.com')) {
-            return 'Gmail';
-        }
-        if (Str::contains($url, 'docs.google') && Str::contains($url, 'document')) {
-            return 'Google Doc';
-        }
-        if (Str::contains($url, 'docs.google') && Str::contains($url, 'spreadsheets')) {
-            return 'Google Sheet';
-        }
-        if (Str::contains($url, 'docs.google') && Str::contains($url, 'presentation')) {
-            return 'Google Slide';
-        }
-        if (Str::contains($url, 'docs.google') && Str::contains($url, 'forms')) {
-            return 'Google Form';
-        }
-        if (Str::contains($host, 'amplitude')) {
-            return 'Amplitude';
-        }
-        if (Str::contains($host, 'airtable')) {
-            return 'Airtable';
-        }
-        if (Str::contains($host, 'asana')) {
-            return 'Asana';
-        }
-        // Needs icon
-        if (Str::contains($host, 'basecamp.com')) {
-            return 'Basecamp';
-        }
-        if (Str::contains($host, 'bitbucket')) {
-            return 'Bitbucket';
-        }
-        // Need icon
-        if (Str::contains($host, 'chartio')) {
-            return 'Chartio';
-        }
-        // Need icon
-        if (Str::contains($host, 'clubhouse.io')) {
-            return 'Clubhouse';
-        }
-        if (Str::contains($host, 'confluence')) {
-            return 'Confluence';
-        }
-        if (Str::contains($url, 'customer.io')) {
-            return 'Customer.io';
-        }
-        if (Str::contains($host, 'figma')) {
-            return 'Figma';
-        }
-        if (Str::contains($host, 'github')) {
-            return 'Github';
-        }
-        if (Str::contains($host, 'helpscout')) {
-            return 'Helpscout';
-        }
-        // Need Icon
-        if (Str::contains($host, 'hubspot')) {
-            return 'Hubspot';
-        }
-        if (Str::contains($host, 'jira')) {
-            return 'Jira';
-        }
-        if (Str::contains($host, 'linkedin')) {
-            return 'LinkedIn';
-        }
-        // Need Icon
-        if (Str::contains($host, 'mailchimp')) {
-            return 'Mailchimp';
-        }
-        if (Str::contains($host, 'notion')) {
-            return 'Notion';
-        }
-        if (Str::contains($host, 'quora')) {
-            return 'Quora';
-        }
-        if (Str::contains($host, 'stackoverflow')) {
-            return 'Stack Overflow';
-        }
-        // Need icon
-        if (Str::contains($host, 'surveymonkey')) {
-            return 'SurveyMonkey';
-        }
-        if (Str::contains($host, 'reddit')) {
-            return 'Reddit';
-        }
-        if (Str::contains($host, 'trello')) {
-            return 'Trello';
-        }
-        if (Str::contains($host, 'typeform')) {
-            return 'Typeform';
-        }
-        if (Str::contains($host, 'youtube') || Str::contains($host, 'youtu.be')) {
-            return 'YouTube';
-        }
-        if (Str::contains($host, 'zendesk')) {
-            return 'Zendesk';
+        foreach (self::LINK_TYPE_MAP as $map) {
+            $linkType = $host;
+            if ('url' === $map['type']) {
+                $linkType = $url;
+            }
+            // And conditional
+            if (isset($map['conditional']) && 'AND' === $map['conditional']) {
+                $isMatching = true;
+                foreach ($map['matches'] as $match) {
+                    if ($isMatching) {
+                        // One false will end it
+                        $isMatching = Str::contains($linkType, $match);
+                    }
+                }
+                if ($isMatching) {
+                    return $map['display'];
+                }
+            }
+            // OR conditional
+            if (isset($map['conditional']) && 'OR' === $map['conditional']) {
+                foreach ($map['matches'] as $match) {
+                    if (Str::contains($linkType, $match)) {
+                        return $map['display'];
+                    }
+                }
+            }
+            // No conditional
+            if (! isset($map['conditional']) && Str::contains($linkType, $map['matches'][0])) {
+                return $map['display'];
+            }
         }
 
         return $type;

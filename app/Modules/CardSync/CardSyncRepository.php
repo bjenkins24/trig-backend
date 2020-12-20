@@ -52,4 +52,24 @@ class CardSyncRepository
                 (null === $secondsSinceLastAttempt || $secondsSinceLastAttempt >= self::DONT_SYNC_BEFORE_SECONDS)
             );
     }
+
+    public function shouldGetTags(Card $card, ?string $newContent): bool
+    {
+        // If it hasn't synced yet we should try at least once
+        if ($newContent && ! $card->cardSync()->exists()) {
+            return true;
+        }
+
+        if (! $newContent) {
+            return false;
+        }
+
+        // If the content has changed significantly, we should do it again
+        // We're just checking string length because a fuzzy dedupe is too much effort for this
+        $oldContentLength = strlen($card->content);
+        $newContentLength = strlen($newContent);
+        $contentLengthDifference = $newContentLength - $oldContentLength;
+
+        return abs($contentLengthDifference / $oldContentLength) > 0.2;
+    }
 }

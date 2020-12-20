@@ -39,10 +39,10 @@ class AppServiceProvider extends ServiceProvider
         Str::macro('purifyHtml', static function (string $string) {
             return StrCustom::purifyHtml($string);
         });
-        Str::macro('htmlToMarkdown', static function (?string $string, array $tagsToRemove) {
+        Str::macro('htmlToMarkdown', static function (?string $string, array $tagsToRemove = []) {
             return StrCustom::htmlToMarkdown($string, $tagsToRemove);
         });
-        Str::macro('htmlToText', static function (string $string, array $tagsToRemove) {
+        Str::macro('htmlToText', static function (string $string, array $tagsToRemove = []) {
             return StrCustom::htmlToText($string, $tagsToRemove);
         });
         Str::macro('removeLineBreaks', static function (string $string) {

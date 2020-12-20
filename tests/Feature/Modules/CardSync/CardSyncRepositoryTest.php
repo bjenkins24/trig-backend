@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\CardSync;
 
+use App\Models\Card;
 use App\Models\CardSync;
 use App\Modules\CardSync\CardSyncRepository;
 use Illuminate\Support\Carbon;
@@ -58,10 +59,48 @@ class CardSyncRepositoryTest extends TestCase
             'status'     => 1,
             'created_at' => $testCreate,
         ]);
+
         $result = $cardSyncRepository->secondsSinceLastAttempt($cardId);
         self::assertEquals(20, $result);
 
         $result = $cardSyncRepository->secondsSinceLastAttempt(2000);
         self::assertNull($result);
+    }
+
+    public function testShouldGetTags(): void
+    {
+        $this->refreshDb();
+        $cardSyncRepository = app(CardSyncRepository::class);
+        $card = Card::find(1);
+
+        // Hasn't tried to sync yet = yes
+        $shouldGetTags = $cardSyncRepository->shouldGetTags($card, $card->content);
+        self::assertTrue($shouldGetTags);
+
+        $card->cardSync()->create([
+            'status'  => 1,
+            'card_id' => $card->id,
+        ]);
+
+        $card->content = '';
+        $card->save();
+
+        // No content don't get tags
+        $shouldGetTags = $cardSyncRepository->shouldGetTags($card, $card->content);
+        self::assertFalse($shouldGetTags);
+
+        $card->content = 'My first cool thing that I\'m doing today is to learn about SaaS';
+        $card->save();
+
+        // Completely different content get tags again
+        $shouldGetTags = $cardSyncRepository->shouldGetTags($card, 'Completely different content');
+        self::assertTrue($shouldGetTags);
+
+        // Almost the same content don't get tags - this is based off str length because a fuzzy dedupe is too
+        // much work for the lift here.
+        $shouldGetTags = $cardSyncRepository->shouldGetTags($card, $card->content.' that\'s it');
+        self::assertFalse($shouldGetTags);
+
+        $this->refreshDb();
     }
 }

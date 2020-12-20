@@ -12,7 +12,7 @@ class ElasticQueryBuilderHelperTest extends TestCase
     public function testMakePermissionsConditions(): void
     {
         User::find(1)->teams()->create([
-            'organization_id' => 1,
+            'workspace_id'    => 1,
             'name'            => 'my team name',
         ]);
 
@@ -31,7 +31,7 @@ class ElasticQueryBuilderHelperTest extends TestCase
                             'filter' => [
                                 [
                                     'match' => [
-                                        'organization_id' => 1,
+                                        'workspace_id' => 1,
                                     ],
                                 ],
                                 [

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Card;
 use App\Modules\Card\CardRepository;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,6 +35,10 @@ class CardDedupe implements ShouldQueue
      */
     public function handle(): void
     {
-        app(CardRepository::class)->dedupe($this->card);
+        try {
+            app(CardRepository::class)->dedupe($this->card);
+        } catch (Exception $e) {
+            // no-op
+        }
     }
 }

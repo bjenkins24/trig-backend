@@ -3,6 +3,8 @@
 namespace Tests\Feature\Modules\OauthConnection;
 
 use App\Models\User;
+use App\Models\Workspace;
+use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
@@ -17,14 +19,17 @@ class OauthConnectionServiceTest extends TestCase
     /**
      * Get access token.
      *
-     * @throws OauthIntegrationNotFound|OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     * @throws OauthUnauthorizedRequest
+     * @throws OauthMissingTokens
      */
     public function testGetAccessToken(): void
     {
         $this->refreshDb();
         $user = User::find(1);
-        $this->createOauthConnection($user);
-        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
+        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
         self::assertEquals($accessToken, self::$ACCESS_TOKEN);
         $this->refreshDb();
     }
@@ -33,18 +38,23 @@ class OauthConnectionServiceTest extends TestCase
      * If we haven't been oauthed for this service it should throw an exception.
      *
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function testGetAccessTokenNotAuthenticated(): void
     {
         $this->expectException(OauthUnauthorizedRequest::class);
         $user = User::find(1);
-        $accessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
+        $workspace = Workspace::find(1);
+        app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
     }
 
     /**
      * Get access token from refresh token.
      *
-     * @throws OauthIntegrationNotFound|OauthUnauthorizedRequest
+     * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
+     * @throws OauthUnauthorizedRequest
      */
     public function testGetAccessTokenFromRefresh(): void
     {
@@ -62,9 +72,10 @@ class OauthConnectionServiceTest extends TestCase
         });
 
         $user = User::find($userId);
-        $this->createOauthConnection($user, 0);
+        $workspace = Workspace::find($userId);
+        $this->createOauthConnection($user, $workspace, 0);
         sleep(1); // let's make sure the access token is expired
-        $newAccessToken = app(OauthConnectionService::class)->getAccessToken($user, 'google');
+        $newAccessToken = app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
 
         $this->assertDatabaseHas('oauth_connections', [
             'user_id'       => $userId,

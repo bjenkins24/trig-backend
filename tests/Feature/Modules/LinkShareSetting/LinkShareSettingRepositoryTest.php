@@ -22,14 +22,14 @@ class LinkShareSettingRepositoryTest extends TestCase
     }
 
     /**
-     * Test creating an anyone organization link share setting.
+     * Test creating an anyone workspace link share setting.
      *
      * @return void
      */
-    public function testCreateAnyoneOrganization()
+    public function testCreateAnyoneWorkspace()
     {
         $shareType = $this->linkShareTypeRepo::ANYONE_ORGANIZATION;
-        $this->linkShareSettingRepo->createAnyoneOrganizationIfNew($this->card, $this->capability);
+        $this->linkShareSettingRepo->createAnyoneWorkspaceIfNew($this->card, $this->capability);
         $linkShareType = $this->linkShareTypeRepo->get($shareType);
 
         $this->assertDatabaseHas('link_share_settings', [
@@ -40,12 +40,12 @@ class LinkShareSettingRepositoryTest extends TestCase
         ]);
 
         // Now that it exists let's make sure it's not created again
-        $result = $this->linkShareSettingRepo->createAnyoneOrganizationIfNew($this->card, $this->capability);
+        $result = $this->linkShareSettingRepo->createAnyoneWorkspaceIfNew($this->card, $this->capability);
         $this->assertFalse($result);
     }
 
     /**
-     * Test creating an anyone organization link share setting.
+     * Test creating an anyone workspace link share setting.
      *
      * @return void
      */
@@ -68,7 +68,7 @@ class LinkShareSettingRepositoryTest extends TestCase
     }
 
     /**
-     * Test creating an anyone organization link share setting.
+     * Test creating an anyone workspace link share setting.
      *
      * @return void
      */

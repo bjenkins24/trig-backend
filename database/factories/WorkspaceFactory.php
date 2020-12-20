@@ -1,10 +1,10 @@
 <?php
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
-use App\Models\Organization;
+use App\Models\Workspace;
 use Faker\Generator as Faker;
 
-$factory->define(Organization::class, function (Faker $faker) {
+$factory->define(Workspace::class, function (Faker $faker) {
     return [
         'name' => $faker->company,
     ];

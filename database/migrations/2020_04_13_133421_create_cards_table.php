@@ -14,13 +14,14 @@ class CreateCardsTable extends Migration
         Schema::create('cards', static function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('token')->unique()->index();
+            $table->foreignId('workspace_id')->constrained()->onDelete('cascade');
             $table->foreignId('card_type_id')->constrained();
+            $table->string('token')->unique()->index();
             $table->string('title')->index();
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
             $table->string('image')->nullable();
-            $table->string('url');
+            $table->text('url');
             $table->integer('total_favorites')->default(0);
             $table->integer('total_views')->default(0);
             $table->dateTime('actual_created_at')->index();

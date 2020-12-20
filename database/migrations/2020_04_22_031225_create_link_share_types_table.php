@@ -19,7 +19,7 @@ class CreateLinkShareTypesTable extends Migration
         });
 
         \DB::table('link_share_types')->insert([
-            ['name' => 'anyoneInOrganization'], // Login to org required
+            ['name' => 'anyoneInWorkspace'], // Login to org required
             ['name' => 'anyone'], // No login required
             ['name' => 'public'], // No login required and indexable
         ]);

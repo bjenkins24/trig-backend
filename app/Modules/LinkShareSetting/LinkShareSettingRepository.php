@@ -57,7 +57,7 @@ class LinkShareSettingRepository
         ]);
     }
 
-    public function createAnyoneOrganizationIfNew($type, string $capability)
+    public function createAnyoneWorkspaceIfNew($type, string $capability)
     {
         return $this->createIfNew($type, LinkShareTypeRepository::ANYONE_ORGANIZATION, $capability);
     }

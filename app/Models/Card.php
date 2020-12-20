@@ -4,14 +4,17 @@ namespace App\Models;
 
 use App\Modules\Card\CardRepository;
 use App\Modules\CardFavorite\CardFavoriteRepository;
+use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\CardView\CardViewRepository;
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
+use App\Support\Traits\Relationships\BelongsToWorkspace;
 use App\Support\Traits\Relationships\HasCardDuplicates;
 use App\Support\Traits\Relationships\HasCardFavorite;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
+use App\Support\Traits\Relationships\HasCardTags;
 use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
@@ -72,12 +75,14 @@ use Laravel\Scout\Searchable;
 class Card extends Model
 {
     use BelongsToUser;
+    use BelongsToWorkspace;
     use BelongsToCardType;
     use HasCardFavorite;
     use HasCardView;
     use HasCardIntegration;
     use HasCardDuplicates;
     use HasCardSyncs;
+    use HasCardTags;
     use Permissionables;
     use LinkShareable;
     use Searchable;
@@ -90,6 +95,7 @@ class Card extends Model
      */
     protected $fillable = [
         'user_id',
+        'workspace_id',
         'card_type_id',
         'title',
         'description',
@@ -120,20 +126,14 @@ class Card extends Model
         $cardRepo = app(CardRepository::class);
         $permissions = $cardRepo->denormalizePermissions($this)->toArray();
         $cardDuplicateIds = $cardRepo->getDuplicateIds($this);
-
-        $organization = $this->user()->first()->organizations()->first();
-        $organizationId = null;
-        if ($organization) {
-            $organizationId = $organization->id;
-        }
-
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
         return [
             'user_id'               => $this->user_id,
             'card_type'             => app(CardTypeRepository::class)->mapCardTypeToWords($this),
             'url'                   => $this->url ?? '',
-            'organization_id'       => $organizationId,
+            'workspace_id'          => $this->workspace_id,
+            'tags'                  => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
             'title'                 => $this->title,
             'content'               => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
             'permissions'           => $permissions,
