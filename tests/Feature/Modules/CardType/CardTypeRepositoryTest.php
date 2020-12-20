@@ -30,6 +30,7 @@ class CardTypeRepositoryTest extends TestCase
             ['video/3gpp2', 'Video', ''],
             ['link', 'YouTube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
             ['link', 'Google Doc', 'https://docs.google.com/document/d/2L39XrmRn5MSiokVXc4c5ipEkdhDYYZUdbHJltaasdViPT0/edit'],
+            ['link', 'Amplitude', 'https://amplitude.com/reallycoolchart'],
             ['link', 'Link', 'https://medium.com/@noah_weiss/50-articles-and-books-that-will-make-you-a-great-product-manager-aad5babee2f7'],
             ['noway', 'Unknown', ''],
         ];
