@@ -3,6 +3,7 @@
 namespace Tests\Utils;
 
 use App\Utils\Gpt3;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use JsonException;
 use Tests\TestCase;
@@ -55,7 +56,7 @@ COMPLETION,
         try {
             app(Gpt3::class)->getEngine(4);
             self::assertTrue(false);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             self::assertTrue(true);
         }
     }

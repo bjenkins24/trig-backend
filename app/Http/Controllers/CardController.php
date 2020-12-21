@@ -205,8 +205,9 @@ class CardController extends Controller
         $results = $this->cardRepository->searchCards($request->user(), collect($request->all()));
 
         return response()->json([
-            'data' => $results->get('cards'),
-            'meta' => $results->get('meta'),
+            'data'    => $results->get('cards'),
+            'meta'    => $results->get('meta'),
+            'filters' => $results->get('filters'),
         ]);
     }
 }

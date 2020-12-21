@@ -99,11 +99,15 @@ class CardRepository
     public function searchCardsRaw(User $user, Collection $constraints): array
     {
         $page = $constraints->get('p', 0);
-        $limit = $constraints->get('l', self::DEFAULT_SEARCH_LIMIT);
+        // FILTER LIMIT
+        // The limit for filter fields is 5 times the normal limit - so we can get tags/card types that aren't
+        // in the current view for filtering. It can be defined with fl instead if preferred
+        $limit = $constraints->get('fl', $constraints->get('l', self::DEFAULT_SEARCH_LIMIT) * 5);
 
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
+            ->source(['tags', 'card_type'])
             ->from($page * $limit)
             ->size($limit);
 
@@ -128,6 +132,37 @@ class CardRepository
         return $rawQuery->raw();
     }
 
+    public function buildFilterResponse(Collection $hits): array
+    {
+        $tags = [];
+        $cardTypes = [];
+        $hits->each(static function ($hit) use (&$cardTypes, &$tags) {
+            if (! empty($hit['_source']['card_type'])) {
+                $totalCardTypes = 1;
+                if (! empty($cardTypes[$hit['_source']['card_type']])) {
+                    $totalCardTypes = (int) $cardTypes[$hit['_source']['card_type']] + 1;
+                }
+                $cardTypes[$hit['_source']['card_type']] = $totalCardTypes;
+            }
+            if (! empty($hit['_source']['tags'])) {
+                foreach ($hit['_source']['tags'] as $tag) {
+                    $totalTags = 1;
+                    if (! empty($tags[$tag])) {
+                        $totalTags = (int) $tags[$tag] + 1;
+                    }
+                    $tags[$tag] = $totalTags;
+                }
+            }
+        });
+        arsort($tags);
+        arsort($cardTypes);
+
+        return [
+            'tags'  => $tags,
+            'types' => $cardTypes,
+        ];
+    }
+
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
@@ -137,7 +172,10 @@ class CardRepository
             $constraints = collect([]);
         }
         $result = $this->searchCardsRaw($user, $constraints);
-        $hits = collect($result['hits']['hits']);
+        $hits = $result['hits']['hits'];
+        $filters = $this->buildFilterResponse(collect($hits));
+        // We'll often get more results than we need from elastic search for filters, so we'll slice the array here.
+        $hits = collect(array_slice($hits, 0, $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)));
         $totalResults = $result['hits']['total']['value'];
         $ids = $hits->map(static function ($hit) {
             return $hit['_id'];
@@ -238,6 +276,7 @@ class CardRepository
                 'totalPages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
                 'totalResults' => $totalResults,
             ],
+            'filters' => $filters,
         ]);
     }
 

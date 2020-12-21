@@ -43,15 +43,8 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '2',
                     '_score'  => 1.0,
                     '_source' => [
-                        'user_id'           => 7,
-                        'card_type_id'      => 2,
-                        'workspace_id'      => 3,
-                        'title'             => 'Interview with a Engineer',
-                        'doc_title'         => null,
-                        'content'           => '',
-                        'permissions'       => [],
-                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
-                        'card_duplicate_ids'=> '10',
+                        'card_type' => 'Link',
+                        'tags'      => ['Product Management', 'Product'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -71,15 +64,8 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '1',
                     '_score'  => 0.7,
                     '_source' => [
-                        'user_id'           => 7,
-                        'card_type_id'      => 1,
-                        'workspace_id'      => 2,
-                        'title'             => 'Interview with a Product Manager from FANG',
-                        'doc_title'         => null,
-                        'content'           => "INTERVIEW WITH A PRODUCT MANAGER FROM FANG\n\n [https:\/\/www.youtube.com\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\nHow Compelling Is Your Writing?\n\nGrammarly [\/channel\/UCfmqLyr1PI3_zbwppHNEzuQ]\n\n",
-                        'permissions'       => [],
-                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
-                        'card_duplicate_ids'=> '10',
+                        'card_type' => 'Link',
+                        'tags'      => ['Sales', 'Management'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['10'],
@@ -99,15 +85,8 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '29084129',
                     '_score'  => 0.5,
                     '_source' => [
-                        'user_id'           => 7,
-                        'card_type_id'      => 2,
-                        'workspace_id'      => 3,
-                        'title'             => "This one isn't in the db",
-                        'doc_title'         => null,
-                        'content'           => '',
-                        'permissions'       => [],
-                        'actual_created_at' => '2020-11-13T22:19:36.000000Z',
-                        'card_duplicate_ids'=> '10',
+                        'card_type' => 'Google Doc',
+                        'tags'      => ['Sales', 'Friends'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -143,7 +122,7 @@ class CardRepositoryTest extends TestCase
         $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
-        $result = app(CardRepository::class)->searchCards(User::find(1), collect(['q' => 'test']));
+        $result = app(CardRepository::class)->searchCards(User::find(1), collect([]));
 
         $fields = collect([
             'id',
@@ -168,11 +147,23 @@ class CardRepositoryTest extends TestCase
         ]);
 
         self::assertEquals([
+            'tags' => [
+                'Sales'              => 2,
+                'Product Management' => 1,
+                'Product'            => 1,
+                'Management'         => 1,
+                'Friends'            => 1,
+            ],
+            'types' => [
+                'Link'       => 2,
+                'Google Doc' => 1,
+            ],
+        ], $result->get('filters'));
+
+        self::assertEquals([
             'totalPages'   => (int) ceil(4026 / CardRepository::DEFAULT_SEARCH_LIMIT),
             'page'         => 0,
-            // This is one less than above because one of the results is in elastic search, but not in the DB
-            // So we change the total results
-            'totalResults' => 4026 - 1,
+            'totalResults' => 4026,
         ], $result->get('meta'));
 
         // Reverse the order - sort by score check
