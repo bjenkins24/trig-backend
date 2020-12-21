@@ -123,7 +123,6 @@ class CardControllerTest extends TestCase
 
     /**
      * @throws JsonException
-     * @group n
      */
     public function testGetAll(): void
     {

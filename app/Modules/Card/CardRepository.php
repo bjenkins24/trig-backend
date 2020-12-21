@@ -155,11 +155,19 @@ class CardRepository
             }
         });
         arsort($tags);
+        $newTags = [];
+        foreach ($tags as $tag => $count) {
+            $newTags[] = ['tag' => $tag, 'count' => $count];
+        }
         arsort($cardTypes);
+        $newCardTypes = [];
+        foreach ($cardTypes as $type => $count) {
+            $newCardTypes[] = ['type' => $type, 'count' => $count];
+        }
 
         return [
-            'tags'  => $tags,
-            'types' => $cardTypes,
+            'tags'  => $newTags,
+            'types' => $newCardTypes,
         ];
     }
 
