@@ -2,6 +2,7 @@
 
 namespace App\Modules\User;
 
+use App\Models\Card;
 use App\Models\OauthConnection;
 use App\Models\Permission;
 use App\Models\PermissionType;
@@ -38,6 +39,13 @@ class UserRepository
     public function getAllWorkspaces(User $user): Collection
     {
         return $user->workspaces()->get();
+    }
+
+    public function getTotalCards(User $user): int
+    {
+        $workspaceId = $user->workspaces()->first()->id;
+
+        return Card::where('user_id', $user->id)->where('workspace_id', $workspaceId)->count();
     }
 
     /**

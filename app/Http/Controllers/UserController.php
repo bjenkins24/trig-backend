@@ -45,7 +45,11 @@ class UserController extends Controller
      */
     public function me(Request $request)
     {
-        return $request->user();
+        $user = $request->user();
+        $response = $user->toArray();
+        $response['total_cards'] = $this->userRepo->getTotalCards($user);
+
+        return response()->json($response);
     }
 
     /**

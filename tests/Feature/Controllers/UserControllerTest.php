@@ -97,10 +97,11 @@ class UserControllerTest extends TestCase
     {
         $response = $this->client('GET', 'me');
         $response->assertStatus(200)->assertJsonFragment([
-            'email'      => Config::get('constants.seed.email'),
-            'first_name' => Config::get('constants.seed.first_name'),
-            'last_name'  => Config::get('constants.seed.last_name'),
-            'id'         => 1,
+            'email'       => Config::get('constants.seed.email'),
+            'first_name'  => Config::get('constants.seed.first_name'),
+            'last_name'   => Config::get('constants.seed.last_name'),
+            'id'          => 1,
+            'total_cards' => 0,
         ]);
     }
 
