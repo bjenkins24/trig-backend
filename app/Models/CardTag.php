@@ -12,6 +12,11 @@ class CardTag extends Model
     use BelongsToTag;
 
     /**
+     * @var string[]
+     */
+    protected $touches = ['card'];
+
+    /**
      * @var array
      */
     protected $fillable = ['card_id', 'tag_id'];

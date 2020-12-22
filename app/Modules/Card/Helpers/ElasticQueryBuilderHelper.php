@@ -134,7 +134,7 @@ class ElasticQueryBuilderHelper
                       'filter' => [
                         [
                           'match' => [
-                            'permissions.type' => 'App\Models\User',
+                            'permissions.type' => User::class,
                           ],
                         ],
                         [
@@ -261,6 +261,44 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
+    private function makeTypeConditions(Collection $constraints): array
+    {
+        if (! $constraints->get('ty')) {
+            return ['must' => []];
+        }
+
+        $types = explode(',', $constraints->get('ty'));
+
+        $base = [
+            'must' => [],
+        ];
+
+        foreach ($types as $type) {
+            $base['must'][] = ['match' => ['card_type' => $type]];
+        }
+
+        return $base;
+    }
+
+    private function makeTagConditions(Collection $constraints): array
+    {
+        if (! $constraints->get('t')) {
+            return ['must' => []];
+        }
+
+        $tags = explode(',', $constraints->get('t'));
+
+        $base = [
+            'must' => [],
+        ];
+
+        foreach ($tags as $tag) {
+            $base['must'][] = ['match' => ['tags' => $tag]];
+        }
+
+        return $base;
+    }
+
     public function baseQuery(User $user, Collection $constraints): array
     {
         return [
@@ -268,6 +306,8 @@ class ElasticQueryBuilderHelper
                 'must'   => $this->buildSearchCondition($constraints),
                 'filter' => [
                     ['bool' => $this->makeDateConditions($constraints)],
+                    ['bool' => $this->makeTagConditions($constraints)],
+                    ['bool' => $this->makeTypeConditions($constraints)],
                     $this->makePermissionsConditions($user),
                 ],
             ],

@@ -28,7 +28,7 @@ Text: If you’re concerned about the health and safety of your family members, 
 Tags: $list3
 ###
 Title: $title
-Markdown: $content
+Text: $content
 Tags:
 PROMPT,
             $exampleTags3,

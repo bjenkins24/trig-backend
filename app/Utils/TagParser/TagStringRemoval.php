@@ -24,7 +24,7 @@ class TagStringRemoval
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice',
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new',
     ];
 
     public function removeBadWords(array $tags): array
