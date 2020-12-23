@@ -53,7 +53,7 @@ class UserController extends Controller
         $response = $user->toArray();
         $response['total_cards'] = $this->userRepo->getTotalCards($user);
 
-        return response()->json($response);
+        return response()->json(['data' => $response]);
     }
 
     public function update(UpdateUserRequest $request): JsonResponse
@@ -62,7 +62,7 @@ class UserController extends Controller
         $user = User::find($userId);
 
         if (! empty($request->get('old_password') && ! Hash::check($request->get('old_password'), $user->password))) {
-            return response()->json(['error' => 'invalid_password', 'message' => 'The old password you entered was not correct.'], 401);
+            return response()->json(['error' => 'invalid_password', 'message' => 'The old password you entered was not correct.'], 400);
         }
         if ((! empty($request->get('old_password')) && empty($request->get('new_password'))) || (empty($request->get('old_password')) && ! empty($request->get('new_password')))) {
             return response()->json(['error' => 'bad_request', 'message' => 'If you are changing your password, you must include both your old password and your new password.'], 400);
@@ -73,7 +73,7 @@ class UserController extends Controller
 
         $this->userRepo->update($user, $request->all());
 
-        return response()->json(['test']);
+        return response()->json($user);
     }
 
     /**

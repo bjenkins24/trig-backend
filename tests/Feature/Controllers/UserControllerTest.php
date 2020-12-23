@@ -163,7 +163,7 @@ class UserControllerTest extends TestCase
             'old_password'  => 'not_correct',
             'new_password'  => 'hellothisis8chars',
         ]);
-        $response->assertStatus(401);
+        $response->assertStatus(400);
         self::assertEquals('invalid_password', $this->getResponseData($response, 'error')->get('error'));
     }
 
