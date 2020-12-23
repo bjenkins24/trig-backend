@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\PermissionType;
 use App\Models\User;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 
@@ -83,6 +84,14 @@ class UserRepository
         $user->save();
 
         return $user;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function delete(User $user): ?bool
+    {
+        return $user->delete();
     }
 
     public function create(array $input): User

@@ -8,6 +8,8 @@ use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\User\Helpers\ResetPasswordHelper;
+use App\Modules\User\UserRepository;
+use Exception;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
@@ -165,6 +167,31 @@ class UserControllerTest extends TestCase
         ]);
         $response->assertStatus(400);
         self::assertEquals('invalid_password', $this->getResponseData($response, 'error')->get('error'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testDeleteUser(): void
+    {
+        $this->refreshDb();
+        $response = $this->client('DELETE', 'me');
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('users', ['id' => 1]);
+
+        $this->mock(UserRepository::class, static function ($mock) {
+            $mock->shouldReceive('delete')->andReturn(false);
+        });
+
+        $response = $this->client('DELETE', 'me');
+        $response->assertStatus(400);
+        self::assertEquals('unexpected', $this->getResponseData($response, 'error')->get('error'));
+
+        $this->mock(UserRepository::class, static function ($mock) {
+            $mock->shouldReceive('delete')->andThrow(new Exception('random error!'));
+        });
+        $response->assertStatus(400);
+        self::assertEquals('unexpected', $this->getResponseData($response, 'error')->get('error'));
     }
 
     /**

@@ -21,6 +21,7 @@ use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Elasticsearch\Endpoints\Update;
 use Error;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -74,6 +75,22 @@ class UserController extends Controller
         $this->userRepo->update($user, $request->all());
 
         return response()->json($user);
+    }
+
+    public function delete(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        try {
+            $result = $this->userRepo->delete($user);
+        } catch (Exception $exception) {
+            return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.'], 400);
+        }
+
+        if (! $result) {
+            return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.'], 400);
+        }
+
+        return response()->json('success');
     }
 
     /**

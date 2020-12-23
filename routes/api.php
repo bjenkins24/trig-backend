@@ -26,6 +26,7 @@ Route::get('queue', 'UserController@queue');
  */
 Route::middleware('auth:api')->get('/me', 'UserController@me');
 Route::middleware('auth:api')->patch('/me', 'UserController@update');
+Route::middleware('auth:api')->delete('/me', 'UserController@delete');
 Route::middleware('auth:api')->get('/testGoogle', 'UserController@testGoogle');
 Route::middleware('auth:api')->post('/card', 'CardController@create');
 Route::middleware('auth:api')->get('/card/{id}', 'CardController@get');
