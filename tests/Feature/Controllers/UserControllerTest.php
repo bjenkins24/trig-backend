@@ -138,6 +138,18 @@ class UserControllerTest extends TestCase
 
         $user = User::find(1);
         self::assertTrue(Hash::check('password2', $user->password));
+
+        $secondUser = User::find(2);
+        $secondEmail = 'exists@email.com';
+        $secondUser->email = $secondEmail;
+        $secondUser->save();
+
+        $response = $this->client('PATCH', 'me', [
+            'email' => $secondEmail,
+        ]);
+
+        $response->assertStatus(400);
+        self::assertEquals('email_exists', $this->getResponseData($response, 'error')->get('error'));
     }
 
     /**

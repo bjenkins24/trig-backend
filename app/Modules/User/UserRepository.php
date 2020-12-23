@@ -81,6 +81,8 @@ class UserRepository
         });
 
         $user->save();
+
+        return $user;
     }
 
     public function create(array $input): User

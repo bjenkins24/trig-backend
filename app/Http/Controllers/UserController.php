@@ -67,6 +67,9 @@ class UserController extends Controller
         if ((! empty($request->get('old_password')) && empty($request->get('new_password'))) || (empty($request->get('old_password')) && ! empty($request->get('new_password')))) {
             return response()->json(['error' => 'bad_request', 'message' => 'If you are changing your password, you must include both your old password and your new password.'], 400);
         }
+        if (! empty($request->get('email')) && $user->email !== $request->get('email') && User::where('email', $request->get('email'))->exists()) {
+            return response()->json(['error' => 'email_exists', 'message' => 'The email you entered already exists. Please try again.'], 400);
+        }
 
         $this->userRepo->update($user, $request->all());
 
