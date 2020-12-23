@@ -9,6 +9,7 @@ use App\Models\PermissionType;
 use App\Models\User;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
 
 class UserRepository
 {
@@ -63,6 +64,23 @@ class UserRepository
         }
 
         return false;
+    }
+
+    public function update(User $user, array $input): User
+    {
+        // If all of these are true we can change the new password
+        if (! empty($input['old_password']) && ! empty($input['new_password']) && Hash::check($input['old_password'], $user->password)) {
+            $user->password = bcrypt($input['new_password']);
+        }
+
+        $fields = collect($input);
+        $fields->each(static function ($fieldValue, $fieldKey) use (&$user) {
+            if ('old_password' !== $fieldKey && 'new_password' !== $fieldKey) {
+                $user->{$fieldKey} = $fieldValue;
+            }
+        });
+
+        $user->save();
     }
 
     public function create(array $input): User

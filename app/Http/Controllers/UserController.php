@@ -10,16 +10,20 @@ use App\Http\Requests\User\ForgotPasswordRequest;
 use App\Http\Requests\User\GoogleSsoRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
+use App\Models\User;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
+use Elasticsearch\Endpoints\Update;
 use Error;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -43,13 +47,30 @@ class UserController extends Controller
     /**
      * Return the logged in user.
      */
-    public function me(Request $request)
+    public function me(Request $request): JsonResponse
     {
         $user = $request->user();
         $response = $user->toArray();
         $response['total_cards'] = $this->userRepo->getTotalCards($user);
 
         return response()->json($response);
+    }
+
+    public function update(UpdateUserRequest $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $user = User::find($userId);
+
+        if (! empty($request->get('old_password') && ! Hash::check($request->get('old_password'), $user->password))) {
+            return response()->json(['error' => 'invalid_password', 'message' => 'The old password you entered was not correct.'], 401);
+        }
+        if ((! empty($request->get('old_password')) && empty($request->get('new_password'))) || (empty($request->get('old_password')) && ! empty($request->get('new_password')))) {
+            return response()->json(['error' => 'bad_request', 'message' => 'If you are changing your password, you must include both your old password and your new password.'], 400);
+        }
+
+        $this->userRepo->update($user, $request->all());
+
+        return response()->json(['test']);
     }
 
     /**

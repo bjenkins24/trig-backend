@@ -11,9 +11,11 @@ use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use JsonException;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
@@ -103,6 +105,68 @@ class UserControllerTest extends TestCase
             'id'          => 1,
             'total_cards' => 0,
         ]);
+    }
+
+    public function testUpdate(): void
+    {
+        $this->refreshDb();
+        $firstName = 'Brian';
+        $lastName = 'Jenkins';
+        $email = 'john@john.com';
+        $this->client('PATCH', 'me', [
+           'first_name' => $firstName,
+           'last_name'  => $lastName,
+        ]);
+        $this->assertDatabaseHas('users', [
+            'id'         => 1,
+            'first_name' => $firstName,
+            'last_name'  => $lastName,
+            'email'      => Config::get('constants.seed.email'),
+        ]);
+        $this->client('PATCH', 'me', [
+            'email' => $email,
+        ]);
+        $this->assertDatabaseHas('users', [
+            'id'         => 1,
+            'email'      => $email,
+        ]);
+
+        $this->client('PATCH', 'me', [
+            'old_password' => 'password',
+            'new_password' => 'password2',
+        ]);
+
+        $user = User::find(1);
+        self::assertTrue(Hash::check('password2', $user->password));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testPasswordFailed(): void
+    {
+        $this->refreshDb();
+
+        $response = $this->client('PATCH', 'me', [
+            'old_password'  => 'not_correct',
+            'new_password'  => 'hellothisis8chars',
+        ]);
+        $response->assertStatus(401);
+        self::assertEquals('invalid_password', $this->getResponseData($response, 'error')->get('error'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testNoOldPassword(): void
+    {
+        $this->refreshDb();
+
+        $response = $this->client('PATCH', 'me', [
+            'new_password'  => 'hellothisis8chars',
+        ]);
+        $response->assertStatus(400);
+        self::assertEquals('bad_request', $this->getResponseData($response, 'error')->get('error'));
     }
 
     /**

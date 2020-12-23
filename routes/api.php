@@ -25,6 +25,7 @@ Route::get('queue', 'UserController@queue');
  * Authenticated routes
  */
 Route::middleware('auth:api')->get('/me', 'UserController@me');
+Route::middleware('auth:api')->patch('/me', 'UserController@update');
 Route::middleware('auth:api')->get('/testGoogle', 'UserController@testGoogle');
 Route::middleware('auth:api')->post('/card', 'CardController@create');
 Route::middleware('auth:api')->get('/card/{id}', 'CardController@get');
