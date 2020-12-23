@@ -19,7 +19,6 @@ use App\Modules\OauthIntegration\OauthIntegrationService;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
-use Elasticsearch\Endpoints\Update;
 use Error;
 use Exception;
 use Illuminate\Http\JsonResponse;
