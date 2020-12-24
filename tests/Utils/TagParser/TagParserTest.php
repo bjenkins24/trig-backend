@@ -4,27 +4,51 @@ namespace Tests\Utils\TagParser;
 
 use App\Utils\Gpt3;
 use App\Utils\TagParser\TagParser;
+use App\Utils\TagParser\TagPrompts;
 use App\Utils\TagParser\TagStringRemoval;
 use Exception;
 use Tests\TestCase;
 
 class TagParserTest extends TestCase
 {
-    private function mockResponse(string $completion): void
+    private function mockResponse(string $completion, string $completionSingular = ''): void
     {
-        $this->mock(Gpt3::class, static function ($mock) use ($completion) {
+        $this->mock(Gpt3::class, static function ($mock) {
             $mock->shouldReceive('getEngine')->andReturn('babbage');
-            $mock->shouldReceive('complete')->andReturn([
-                'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
+        });
+        if (! $completion) {
+            $completionSingular = $completion;
+        }
+        $this->mock(TagPrompts::class, static function ($mock) use ($completion, $completionSingular) {
+            $mock->shouldReceive('completeWithExamples')->andReturn([
+                [
+                    'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
+                    'object'  => 'text_completion',
+                    'created' => 1607731847,
+                    'model'   => 'babbage:2020-05-03',
+                    'choices' => [
+                        [
+                            'text'          => $completion,
+                            'index'         => 0,
+                            'logprobs'      => null,
+                            'finish_reason' => 'max_tokens',
+                        ],
+                    ],
+                ],
+                ['Laundry', 'Dryer Sheet', 'Toxic Chemicals'],
+            ]);
+
+            $mock->shouldReceive('completeSingularAdjustments')->andReturn([
+                'id'      => 'cmpl-2AOmCppBhQmrdAfirNzZCpE88xpF',
                 'object'  => 'text_completion',
-                'created' => 1607731847,
-                'model'   => 'babbage:2020-05-03',
+                'created' => 16088311960,
+                'model'   => 'curie:2020-05-03',
                 'choices' => [
                     [
-                        'text'          => $completion,
+                        'text'          => $completionSingular,
                         'index'         => 0,
                         'logprobs'      => null,
-                        'finish_reason' => 'max_tokens',
+                        'finish_reason' => 'stop',
                     ],
                 ],
             ]);
@@ -72,9 +96,9 @@ EXPECTED, $result
      * @dataProvider tagSuccessProvider
      * @group n
      */
-    public function testGetTagsSuccess(string $title, string $content, string $completion, array $expected): void
+    public function testGetTagsSuccess(string $title, string $content, string $completion, string $completionSingular, array $expected): void
     {
-        $this->mockResponse($completion);
+        $this->mockResponse($completion, $completionSingular);
         $results = app(TagParser::class)->getTags($title, $content);
         self::assertEquals(collect($expected), $results);
     }
@@ -85,38 +109,55 @@ EXPECTED, $result
             [
                 'fake',
                 'fake',
-                <<<COMPLETION
+                <<<COMPLETION_EXAMPLE
 Accountant, #Sales Enablement, Product Management
 
-COMPLETION,
+COMPLETION_EXAMPLE,
+                '',
                 ['Accounting', 'Sales', 'Product Management', 'Sales Enablement'],
             ],
             [
                 'Amazon.com: Books',
                 'fake',
-                <<<COMPLETION
-~Cool Tag, Fan, Amazon.com, HR
+                <<<COMPLETION_EXAMPLE
+~Cool Tag, Fan, Amazon.com, HR Personel
 
-COMPLETION,
-                ['Human Resources', 'Book', 'Cool Tag', 'Fan', 'Amazon'],
+COMPLETION_EXAMPLE,
+                '',
+                ['Human Resources', 'Book', 'Cool Tag', 'Fan', 'Amazon', 'HR Personel'],
             ],
             [
                 'fake',
                 'fake',
-                <<<COMPLETION
+                <<<COMPLETION_EXAMPLE
 Risk Managers, Making an MVP, Budget,
 
-COMPLETION,
+COMPLETION_EXAMPLE,
+                '',
                 ['Risk Management', 'MVP', 'Budgeting', 'Making an MVP'],
             ],
             [
                 'fake',
                 'fake',
-                <<<COMPLETION
+                <<<COMPLETION_EXAMPLE
 Covid 19, Covid 20, Covid 21, Do it yourself, it, cash, Cash, Cash Money, Covid 19, M&amp;M
 
-COMPLETION,
+COMPLETION_EXAMPLE,
+                '',
                 ['Covid 19', 'DIY', 'Cash Money', 'M&M'],
+            ],
+            [
+                'fake',
+                'fake',
+                <<<COMPLETION_EXAMPLE
+Video Games, Tree House, Friends
+
+COMPLETION_EXAMPLE,
+                <<<COMPLETION_SINGULAR
+ Video Game, Tree House, Friend
+
+COMPLETION_SINGULAR,
+                ['Video Game', 'Tree House', 'Friend'],
             ],
         ];
     }

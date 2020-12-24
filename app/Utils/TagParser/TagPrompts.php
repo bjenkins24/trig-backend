@@ -2,9 +2,18 @@
 
 namespace App\Utils\TagParser;
 
+use App\Utils\Gpt3;
+
 class TagPrompts
 {
-    public function getExamplePrompt(string $title, string $content): array
+    private Gpt3 $gpt3;
+
+    public function __construct(Gpt3 $gpt3)
+    {
+        $this->gpt3 = $gpt3;
+    }
+
+    public function completeWithExamples(string $title, string $content, int $engineId = 1): ?array
     {
         $exampleTags = ['Aliens', 'UFO'];
         $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Covid 19', 'Water Waste'];
@@ -13,8 +22,7 @@ class TagPrompts
         $list2 = implode(', ', $exampleTags2);
         $list3 = implode(', ', $exampleTags3);
 
-        return [
-            <<<PROMPT
+        $prompt = <<<PROMPT
 Title: UFOs Among Us
 Text: In the 1940s and 50s reports of "flying saucers" became an American cultural phenomena. Sightings of strange objects in the sky became the raw materials for Hollywood to present visions of potential threats. Amy Franko wanted to verify that there were extraterrestrials.
 Tags: $list
@@ -30,17 +38,61 @@ Tags: $list3
 Title: $title
 Text: $content
 Tags:
-PROMPT,
+PROMPT;
+
+        $response = $this->gpt3->complete($prompt, [
+            'max_tokens'        => 24,
+            'temperature'       => 0,
+            'top_p'             => 0.2,
+            'frequency_penalty' => 0.8,
+            'presence_penalty'  => 0.2,
+            'stop'              => '\n',
+        ], $engineId);
+
+        return [
+            $response,
             $exampleTags3,
         ];
     }
 
-    public function getTagPrompt(string $text): string
+    public function completeTag(string $text, int $engineId = 1): ?array
     {
-        return <<<PROMPT
+        $prompt = <<<PROMPT
 $text
 
 Tags:
 PROMPT;
+
+        return $this->gpt3->complete($prompt, [
+            'max_tokens'        => 24,
+            'temperature'       => 0,
+            'top_p'             => 0.2,
+            'frequency_penalty' => 0.8,
+            'presence_penalty'  => 0.2,
+            'stop'              => '\n',
+        ], $engineId);
+    }
+
+    // Approximately $0.000413 - on currie
+    public function completeSingularAdjustments(array $tags, int $engineId = 2): ?array
+    {
+        $string = implode(', ', $tags);
+
+        $prompt = <<<PROMPT
+Plural: turtles, Incredible Benches, great fiery darts, the Giving tree, old stories, internet of Things
+Singular: Turtle, Incredible Bench, Great Fiery Dart, The Giving Tree, Old Story, Internet of Things
+###
+Plural: $string
+Singular:
+PROMPT;
+
+        return $this->gpt3->complete($prompt, [
+            'max_tokens'        => 24,
+            'temperature'       => 0,
+            'top_p'             => 1,
+            'frequency_penalty' => 1,
+            'presence_penalty'  => 0.2,
+            'stop'              => '###',
+        ], $engineId);
     }
 }

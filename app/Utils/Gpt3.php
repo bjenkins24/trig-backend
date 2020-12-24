@@ -2,8 +2,11 @@
 
 namespace App\Utils;
 
+use Exception;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use JsonException;
 use RuntimeException;
 
@@ -19,23 +22,44 @@ class Gpt3
         return $engines[$id];
     }
 
-    /**
-     * @throws JsonException
-     */
-    public function complete(string $prompt, array $options, int $engineId = 1): array
+    public function complete(string $prompt, array $options, int $engineId = 1): ?array
     {
         $options['prompt'] = $prompt;
 
         $engine = $this->getEngine($engineId);
-        $response = Http::retry(3, 1000)->withOptions([
-            'connect_timeout' => 5,
-            'timeout'         => 10,
-            'headers'         => [
-                'Content-Type'  => 'application/json',
-                'Authorization' => 'Bearer '.Config::get('app.gpt3_api_key'),
-            ],
-        ])->post("https://api.openai.com/v1/engines/$engine/completions", $options);
+        try {
+            $response = Http::retry(3, 1000)->withOptions([
+                'connect_timeout' => 5,
+                'timeout'         => 10,
+                'headers'         => [
+                    'Content-Type'  => 'application/json',
+                    'Authorization' => 'Bearer '.Config::get('app.gpt3_api_key'),
+                ],
+            ])->post("https://api.openai.com/v1/engines/$engine/completions", $options);
+        } catch (RequestException $exception) {
+            Log::error('GPT has failed to load: '.$exception->getMessage());
 
-        return json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+            return null;
+        } catch (Exception $exception) {
+            Log::error('There was unexpected problem with the response from GTP3: '.$exception->getMessage());
+
+            return null;
+        }
+
+        try {
+            $response = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            Log::error('The json from GPT-3 could not be decoded: '.$exception->getMessage());
+
+            return null;
+        }
+
+        if (empty($response['choices']) || empty($response['choices'][0]) || empty($response['choices'][0]['text'])) {
+            Log::notice('There was an empty response from GPT-3: '.json_encode($response));
+
+            return [];
+        }
+
+        return $response;
     }
 }
