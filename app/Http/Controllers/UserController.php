@@ -21,6 +21,7 @@ use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Error;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -80,12 +81,16 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        DeleteUser::dispatch($user);
+        try {
+            DeleteUser::dispatch($user);
 
-        $user->properties = ['tagged_for_deletion' => true];
-        // Change the email so the old email can be used again while we're waiting for the job to finish
-        $user->email = 'deleting-'.$user->email;
-        $user->save();
+            $user->properties = ['tagged_for_deletion' => true];
+            // Change the email so the old email can be used again while we're waiting for the job to finish
+            $user->email = 'deleting-'.$user->email;
+            $user->save();
+        } catch (Exception $exception) {
+            return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.']);
+        }
 
         return response()->json('success');
     }
