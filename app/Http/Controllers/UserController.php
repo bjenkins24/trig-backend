@@ -83,6 +83,8 @@ class UserController extends Controller
         DeleteUser::dispatch($user);
 
         $user->properties = ['tagged_for_deletion' => true];
+        // Change the email so the old email can be used again while we're waiting for the job to finish
+        $user->email = 'deleting-'.$user->email;
         $user->save();
 
         return response()->json('success');

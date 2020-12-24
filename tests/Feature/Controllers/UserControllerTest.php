@@ -175,12 +175,14 @@ class UserControllerTest extends TestCase
     {
         $this->refreshDb();
         Queue::fake();
+        $email = User::find(1)->email;
         $response = $this->client('DELETE', 'me');
         $response->assertStatus(200);
         Queue::assertPushed(DeleteUser::class, 1);
 
         $this->assertDatabaseHas('users', [
             'id'         => '1',
+            'email'      => 'deleting-'.$email,
             'properties' => json_encode(['tagged_for_deletion' => true], JSON_THROW_ON_ERROR),
         ]);
 
