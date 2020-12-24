@@ -64,6 +64,7 @@ class TagManualAdditions
         [['romance', '~romance', 'romancing', '~romancing', 'romantic', '~romantic'], 'Romance'],
         ['self-', 'Self-Help'],
         [['dnd', 'd&d', '~dnd'], 'D&D'],
+        [['children', 'kids', 'kid', 'child', '~child', '~kid', '~children'], 'Kids'],
     ];
 
     /**
