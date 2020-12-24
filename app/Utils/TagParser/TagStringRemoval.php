@@ -9,6 +9,11 @@ class TagStringRemoval
      */
     private const BANNED_STRINGS = [
         '#', '~', '.com',
+        // Removing a single apostrophe is an interesting choice here. Let me justify myself
+        // This makes some tags grammatically incorrect "Adventurer's League" becomes "Adventurers League"
+        // Sometimes GPT3 doesn't know how to hand the apostrophe so we will get "Adventurers' League" as well
+        // which really screws up our tag overlap. I'd rather have tag overlap than this small grammar issue
+        '\'',
     ];
 
     /**

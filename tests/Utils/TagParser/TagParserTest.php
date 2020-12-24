@@ -70,6 +70,7 @@ EXPECTED, $result
 
     /**
      * @dataProvider tagSuccessProvider
+     * @group n
      */
     public function testGetTagsSuccess(string $title, string $content, string $completion, array $expected): void
     {
@@ -112,10 +113,10 @@ COMPLETION,
                 'fake',
                 'fake',
                 <<<COMPLETION
-Covid 19, Covid 20, Covid 21, Do it yourself, it, cash, Cash, Cash Money, Covid 19
+Covid 19, Covid 20, Covid 21, Do it yourself, it, cash, Cash, Cash Money, Covid 19, M&amp;M
 
 COMPLETION,
-                ['Covid 19', 'DIY', 'Cash Money'],
+                ['Covid 19', 'DIY', 'Cash Money', 'M&M'],
             ],
         ];
     }

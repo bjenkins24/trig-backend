@@ -90,13 +90,19 @@ class TagParser
 
     private function cleanTags(array $tags, string $title, string $documentText): Collection
     {
+        // Sometimes tags come in like D&amp;D instead of D&D
+        $newTags = $tags;
+        foreach ($tags as $tagKey => $tag) {
+            $newTags[$tagKey] = htmlspecialchars_decode($tag);
+        }
+
         return collect(
             array_values(
                 array_unique(
                     $this->tagStringRemoval->remove(
                         $this->tagManualAdditions->addHighLevelTags(
                             $this->tagHeuristics->addHeuristicTags(
-                                $tags,
+                                $newTags,
                                 $title,
                                 $documentText
                             )

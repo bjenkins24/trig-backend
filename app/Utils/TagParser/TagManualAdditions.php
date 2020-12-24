@@ -29,7 +29,7 @@ class TagManualAdditions
         [['customer service', '~customer services'], 'Customer Service'],
         [['MVP'], 'MVP'],
         [['machine learn'], 'Machine Learning'],
-        [['AI', 'artificial intelligence'], 'Artificial Intelligence'],
+        [[' AI', 'AI ', 'artificial intelligence'], 'Artificial Intelligence'],
         [['risk manag', '~risk manager', '~risk managers'], 'Risk Management'],
         [['data scien', '~data scientist', '~data scientists'], 'Data Science'],
         [['software engineer', 'software develop', '~software engineer', '~software engineers', '~software developer', '~software developers', '~software developing', '~software development'], 'Software Engineering'],
@@ -41,7 +41,7 @@ class TagManualAdditions
         [['lead', '~leader'], 'Leadership'],
         [['strateg', '~strategize'], 'Strategy'],
         [['entrepreneur', '~entrepreneur', '~entrepreneurial'], 'Entrepreneurship'],
-        [['HR', 'human resource manag', '~HR'], 'Human Resources'],
+        [['HR ', ' HR', 'human resource manag', '~HR'], 'Human Resources'],
         [['producti', '~productive'], 'Productivity'],
         [['economic', '~economic'], 'Economics'],
         [['coach', '~coach', '~coaches', '~coachable'], 'Coaching'],
@@ -58,11 +58,12 @@ class TagManualAdditions
         [['tech', '~tech'], 'Technology'],
         // Consumer related
         [['recipe', '~recipe'], 'Recipes'],
-        [['diy', 'do it yourself', '~do it yourself'], 'DIY'],
+        [['diy ', ' diy', 'do it yourself', '~do it yourself'], 'DIY'],
         // No parent - could be Parent Company for example
         [['parenting', '~parent'], 'Parenting'],
         [['romance', '~romance', 'romancing', '~romancing', 'romantic', '~romantic'], 'Romance'],
         ['self-', 'Self-Help'],
+        [['dnd', 'd&d', '~dnd'], 'D&D'],
     ];
 
     /**
