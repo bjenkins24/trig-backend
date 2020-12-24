@@ -12,6 +12,7 @@ use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\ValidateResetTokenRequest;
+use App\Jobs\DeleteUser;
 use App\Models\User;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
@@ -20,7 +21,6 @@ use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use App\Support\Traits\HandlesAuth;
 use Error;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -79,15 +79,11 @@ class UserController extends Controller
     public function delete(Request $request): JsonResponse
     {
         $user = $request->user();
-        try {
-            $result = $this->userRepo->delete($user);
-        } catch (Exception $exception) {
-            return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.'], 400);
-        }
 
-        if (! $result) {
-            return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.'], 400);
-        }
+        DeleteUser::dispatch($user);
+
+        $user->properties = ['tagged_for_deletion' => true];
+        $user->save();
 
         return response()->json('success');
     }
