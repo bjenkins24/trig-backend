@@ -31,21 +31,21 @@ class Website
         return $this->content;
     }
 
-    public function setContent(string $content): Website
+    public function setContent(?string $content): Website
     {
         $this->content = $content;
 
         return $this;
     }
 
-    public function setTitle(string $title): Website
+    public function setTitle(?string $title): Website
     {
         $this->title = $title;
 
         return $this;
     }
 
-    public function setScreenshot(string $screenshot): Website
+    public function setScreenshot(?string $screenshot): Website
     {
         $this->screenshot = $screenshot;
 
@@ -62,7 +62,7 @@ class Website
         return $this->title;
     }
 
-    public function setImage(string $image): Website
+    public function setImage(?string $image): Website
     {
         $this->image = $image;
 
@@ -74,7 +74,7 @@ class Website
         return $this->image;
     }
 
-    public function setExcerpt(string $excerpt): Website
+    public function setExcerpt(?string $excerpt): Website
     {
         $this->excerpt = $excerpt;
 
@@ -86,7 +86,7 @@ class Website
         return $this->excerpt;
     }
 
-    public function setAuthor(string $author): Website
+    public function setAuthor(?string $author): Website
     {
         $this->author = $author;
 

@@ -227,7 +227,7 @@ class ElasticQueryBuilderHelper
                    [
                        'span_near' => [
                            'clauses'  => $queryContent->toArray(),
-                           'slop'     => 1000,
+                           'slop'     => 10,
                            'in_order' => false,
                        ],
                    ],
