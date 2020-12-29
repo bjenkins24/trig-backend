@@ -188,7 +188,10 @@ class ElasticQueryBuilderHelper
             'span_multi' => [
                 'match' => [
                     'fuzzy' => [
-                        $field => $word,
+                        $field => [
+                            'value'     => $word,
+                            'fuzziness' => 1,
+                        ],
                     ],
                 ],
             ],
@@ -203,7 +206,7 @@ class ElasticQueryBuilderHelper
         }
 
         // Lower case the query string ES requires it to be lower case
-        $query = strtolower(str_replace('/', ' ', str_replace('-', ' ', $query)));
+//        $query = strtolower(str_replace('/', ' ', str_replace('-', ' ', $query)));
         $words = collect(explode(' ', $query));
 
         $queryTitle = $words->map(function ($word) {
@@ -218,19 +221,29 @@ class ElasticQueryBuilderHelper
            'bool' => [
                'should' => [
                    [
-                       'span_near' => [
-                           'clauses'  => $queryTitle->toArray(),
-                           'slop'     => 10,
-                           'in_order' => false,
+                       'multi_match' => [
+                           'query'  => $query,
+                           'fields' => [
+                               'title^3.0', 'tags^2.0', 'content^1.0',
+                           ],
+                           'type' => 'phrase_prefix',
+//                           'analyzer' => 'filter_stemmer',
                        ],
                    ],
-                   [
-                       'span_near' => [
-                           'clauses'  => $queryContent->toArray(),
-                           'slop'     => 10,
-                           'in_order' => false,
-                       ],
-                   ],
+//                   [
+//                       'span_near' => [
+//                           'clauses'  => $queryTitle->toArray(),
+//                           'slop'     => 10,
+//                           'in_order' => false,
+//                       ],
+//                   ],
+//                   [
+//                       'span_near' => [
+//                           'clauses'  => $queryContent->toArray(),
+//                           'slop'     => 10,
+//                           'in_order' => false,
+//                       ],
+//                   ],
                ],
            ],
         ];

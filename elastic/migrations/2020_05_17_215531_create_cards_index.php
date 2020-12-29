@@ -18,7 +18,13 @@ final class CreateCardsIndex implements MigrationInterface
             $mapping->long('user_id');
             $mapping->keyword('card_type');
             $mapping->keyword('url');
-            $mapping->keyword('tags');
+            $mapping->text('tags', [
+                'fields' => [
+                    'keyword' => [
+                        'type' => 'keyword', 'ignore_above' => 256,
+                    ],
+                ],
+            ]);
             $mapping->long('workspace_id');
             $mapping->text('title', [
                 'fields' => [
@@ -57,6 +63,23 @@ final class CreateCardsIndex implements MigrationInterface
                 ],
             ]);
             $mapping->date('actual_created_at');
+
+            $settings->analysis([
+                'filter' => [
+                    'stemmers' => [
+                        'type'     => 'stemmer',
+                        'language' => 'english',
+                    ],
+                ],
+                'analyzer' => [
+                    'filter_stemmer' => [
+                        'filter' => [
+                            'lowercase', 'stemmers',
+                        ],
+                        'tokenizer' => 'standard',
+                    ],
+                ],
+            ]);
         });
     }
 
