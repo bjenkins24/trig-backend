@@ -132,6 +132,15 @@ class CardRepository
         return $rawQuery->raw();
     }
 
+    private function sortValueAndKey(array $array): array
+    {
+        $keys = array_keys($array);
+        $values = array_values($array);
+        array_multisort($values, SORT_DESC, $keys, SORT_ASC);
+
+        return array_combine($keys, $values);
+    }
+
     public function buildFilterResponse(Collection $hits): array
     {
         $tags = [];
@@ -154,12 +163,14 @@ class CardRepository
                 }
             }
         });
-        arsort($tags);
+
+        $tags = $this->sortValueAndKey($tags);
         $newTags = [];
         foreach ($tags as $tag => $count) {
             $newTags[] = ['tag' => $tag, 'count' => $count];
         }
-        arsort($cardTypes);
+
+        $cardTypes = $this->sortValueAndKey($cardTypes);
         $newCardTypes = [];
         foreach ($cardTypes as $type => $count) {
             $newCardTypes[] = ['type' => $type, 'count' => $count];
