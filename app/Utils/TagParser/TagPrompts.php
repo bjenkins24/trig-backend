@@ -72,27 +72,4 @@ PROMPT;
             'stop'              => '\n',
         ], $engineId);
     }
-
-    // Approximately $0.000413 - on currie
-    public function completeSingularAdjustments(array $tags, int $engineId = 2): ?array
-    {
-        $string = implode(', ', $tags);
-
-        $prompt = <<<PROMPT
-Plural: turtles, Incredible Benches, great fiery darts, the Giving tree, old stories, internet of Things
-Singular: Turtle, Incredible Bench, Great Fiery Dart, The Giving Tree, Old Story, Internet of Things
-###
-Plural: $string
-Singular:
-PROMPT;
-
-        return $this->gpt3->complete($prompt, [
-            'max_tokens'        => 24,
-            'temperature'       => 0,
-            'top_p'             => 1,
-            'frequency_penalty' => 1,
-            'presence_penalty'  => 0.2,
-            'stop'              => '###',
-        ], $engineId);
-    }
 }

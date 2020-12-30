@@ -111,17 +111,6 @@ class TagParser
         );
     }
 
-    private function singularAdjustments($tags): array
-    {
-        $response = $this->tagPrompts->completeSingularAdjustments($tags);
-
-        if (empty($response) || empty($response['choices']['0']['text'])) {
-            return $tags;
-        }
-
-        return $this->completionToArray($response['choices'][0]['text']);
-    }
-
     /**
      * If the promptType is 'example' it will give examples to GPT-3 which act more like keywords. GPT-3 inheritantly
      * knows what tags are. There are some times that the prompt type 'tag' may work better. But there are too many
@@ -185,8 +174,6 @@ class TagParser
                 unset($tags[$tagKey]);
             }
         }
-
-        $tags = $this->singularAdjustments($tags);
 
         return $this->cleanTags($tags, $title, $documentText);
     }

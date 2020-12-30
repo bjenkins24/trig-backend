@@ -306,7 +306,7 @@ class ElasticQueryBuilderHelper
         ];
 
         foreach ($tags as $tag) {
-            $base['must'][] = ['match' => ['tags' => $tag]];
+            $base['must'][] = ['match' => ['tags.keyword' => $tag]];
         }
 
         return $base;

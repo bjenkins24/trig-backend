@@ -108,9 +108,6 @@ class ElasticQueryBuilderHelperTest extends TestCase
         self::assertEquals($expected, $result);
     }
 
-    /**
-     * @group n
-     */
     public function testCondition(): void
     {
         $constraints = collect(['q' => 'elasticsearch']);

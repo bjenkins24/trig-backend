@@ -5,18 +5,26 @@ namespace App\Modules\CardTag;
 use App\Models\Card;
 use App\Models\CardTag;
 use App\Models\Tag;
+use App\Modules\Tag\TagRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class CardTagRepository
 {
+    private TagRepository $tagRepository;
+
+    public function __construct(TagRepository $tagRepository)
+    {
+        $this->tagRepository = $tagRepository;
+    }
+
     /**
      * @throws Throwable
      */
     public function replaceTags(Card $card, array $tags): Card
     {
-        DB::transaction(static function () use ($tags, $card) {
+        DB::transaction(function () use ($tags, $card) {
             $cardTags = $card->cardTags();
 
             $cardTags->get()->each(static function ($cardTag) {
@@ -34,11 +42,11 @@ class CardTagRepository
                 if (! $tagString) {
                     continue;
                 }
-                $tag = Tag::where('tag', $tagString)->where('workspace_id', $workspaceId)->first();
+                $tag = $this->tagRepository->findSimilar($tagString, $workspaceId);
                 if (! $tag) {
                     // Add a card_tag
                     $tag = Tag::create([
-                        'workspace_id'    => $card->workspace_id,
+                        'workspace_id'    => $workspaceId,
                         'tag'             => $tagString,
                     ]);
                 }

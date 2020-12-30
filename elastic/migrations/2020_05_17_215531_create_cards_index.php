@@ -27,7 +27,8 @@ final class CreateCardsIndex implements MigrationInterface
             ]);
             $mapping->long('workspace_id');
             $mapping->text('title', [
-                'fields' => [
+                'analyzer' => 'filter_stemmer',
+                'fields'   => [
                     'keyword' => [
                           'type' => 'keyword', 'ignore_above' => 256,
                     ],
@@ -35,6 +36,7 @@ final class CreateCardsIndex implements MigrationInterface
             ]);
             $mapping->text('content', [
                 'term_vector' => 'with_positions_offsets',
+                'analyzer'    => 'filter_stemmer',
             ]);
             $mapping->keyword('card_duplicate_ids');
             $mapping->nested('views', [
@@ -65,18 +67,12 @@ final class CreateCardsIndex implements MigrationInterface
             $mapping->date('actual_created_at');
 
             $settings->analysis([
-                'filter' => [
-                    'stemmers' => [
-                        'type'     => 'stemmer',
-                        'language' => 'english',
-                    ],
-                ],
                 'analyzer' => [
                     'filter_stemmer' => [
-                        'filter' => [
-                            'lowercase', 'stemmers',
-                        ],
                         'tokenizer' => 'standard',
+                        'filter'    => [
+                            'lowercase', 'stemmer', 'asciifolding',
+                        ],
                     ],
                 ],
             ]);

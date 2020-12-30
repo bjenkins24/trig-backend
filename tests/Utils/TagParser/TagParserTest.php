@@ -94,7 +94,6 @@ EXPECTED, $result
 
     /**
      * @dataProvider tagSuccessProvider
-     * @group n
      */
     public function testGetTagsSuccess(string $title, string $content, string $completion, string $completionSingular, array $expected): void
     {
