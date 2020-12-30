@@ -132,6 +132,11 @@ class CardRepository
         return $rawQuery->raw();
     }
 
+    /**
+     * This will sort an array that looks like this: ['Games', => 3] FIRST by the value
+     * then alphabetically by the key. This is how we sort filters. This function doesn't
+     * belong here I know. Too much work to put it somewhere better.
+     */
     private function sortValueAndKey(array $array): array
     {
         $keys = array_keys($array);
