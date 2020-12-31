@@ -148,15 +148,15 @@ class CardRepositoryTest extends TestCase
 
         self::assertEquals([
             'tags' => [
-                ['tag' => 'Sales', 'count' => 2],
-                ['tag' => 'Product Management', 'count' => 1],
-                ['tag' => 'Product', 'count' => 1],
-                ['tag' => 'Management', 'count' => 1],
-                ['tag' => 'Friends', 'count' => 1],
+                ['name' => 'Sales', 'count' => 2],
+                ['name' => 'Friends', 'count' => 1],
+                ['name' => 'Management', 'count' => 1],
+                ['name' => 'Product', 'count' => 1],
+                ['name' => 'Product Management', 'count' => 1],
             ],
             'types' => [
-                ['type' => 'Link', 'count' => 2],
-                ['type' => 'Google Doc', 'count' => 1],
+                ['name' => 'Link', 'count' => 2],
+                ['name' => 'Google Doc', 'count' => 1],
             ],
         ], $result->get('filters'));
 
