@@ -312,7 +312,7 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    private function makeRecentlyViewedConditions(Collection $constraints): array
+    private function makeRecentlyViewedConditions(User $user, Collection $constraints): array
     {
         // Cohorts
         if (! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
@@ -332,6 +332,11 @@ class ElasticQueryBuilderHelper
                                             'views.created_at' => [
                                                 'gte' => Carbon::now()->subWeek()->timestamp,
                                             ],
+                                        ],
+                                    ],
+                                    [
+                                        'match' => [
+                                            'views.user_id' => $user->id,
                                         ],
                                     ],
                                 ],
@@ -372,7 +377,7 @@ class ElasticQueryBuilderHelper
                     ['bool' => $this->makeTagConditions($constraints)],
                     ['bool' => $this->makeTypeConditions($constraints)],
                     ['bool' => $this->makeFavoritesCondition($user, $constraints)],
-                    ['bool' => $this->makeRecentlyViewedConditions($constraints)],
+                    ['bool' => $this->makeRecentlyViewedConditions($user, $constraints)],
                     $this->makePermissionsConditions($user),
                 ],
             ],
