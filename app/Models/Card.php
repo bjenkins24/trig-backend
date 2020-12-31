@@ -140,6 +140,7 @@ class Card extends Model
             'favorites_by_user_id'  => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
             'views'                 => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
             'actual_created_at'     => $this->actual_created_at,
+            'created_at'            => $this->created_at,
             'card_duplicate_ids'    => $cardDuplicateIds,
         ];
     }

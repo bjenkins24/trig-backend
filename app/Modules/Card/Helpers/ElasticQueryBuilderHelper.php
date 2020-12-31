@@ -312,6 +312,37 @@ class ElasticQueryBuilderHelper
         ];
     }
 
+    private function makeRecentlyViewedConditions(Collection $constraints): array
+    {
+        // Cohorts
+        if (! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
+            return ['must' => []];
+        }
+
+        return [
+            'must' => [
+                [
+                    'nested' => [
+                        'path'  => 'views',
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    [
+                                        'range' => [
+                                            'views.created_at' => [
+                                                'gte' => Carbon::now()->subWeek()->timestamp,
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     private function makeTagConditions(Collection $constraints): array
     {
         if (! $constraints->get('t')) {
@@ -341,9 +372,24 @@ class ElasticQueryBuilderHelper
                     ['bool' => $this->makeTagConditions($constraints)],
                     ['bool' => $this->makeTypeConditions($constraints)],
                     ['bool' => $this->makeFavoritesCondition($user, $constraints)],
+                    ['bool' => $this->makeRecentlyViewedConditions($constraints)],
                     $this->makePermissionsConditions($user),
                 ],
             ],
         ];
+    }
+
+    public function sortRaw(Collection $constraints): array
+    {
+        if ($constraints->get('c') && Str::contains($constraints->get('c'), 'recently-viewed')) {
+            return [
+                'views.created_at' => [
+                    'order'  => 'desc',
+                    'nested' => ['path' => 'views'],
+                ],
+            ];
+        }
+
+        return ['created_at' => 'desc'];
     }
 }

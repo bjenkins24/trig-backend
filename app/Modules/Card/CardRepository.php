@@ -108,6 +108,7 @@ class CardRepository
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
             ->source(['tags', 'card_type'])
+            ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($limit);
 
@@ -214,26 +215,20 @@ class CardRepository
             }])
             ->with('cardSync:card_id,created_at');
 
-        if (! $constraints->get('q')) {
-            $query->orderBy('actual_created_at', 'desc');
-        }
-
         $result = $query->get();
 
-        if ($constraints->get('q')) {
-            $result = $hits->map(static function ($hit) use ($result) {
-                // Sort by score
-                $final = $result->first(static function ($card) use ($hit) {
-                    return $card->id === (int) $hit['_id'];
-                });
-                // Add id of elastic search hit that _isn't_ in mysql
-                if (! $final) {
-                    return collect(['id' => $hit['_id']]);
-                }
-
-                return $final;
+        // Sort by elastic search sort
+        $result = $hits->map(static function ($hit) use ($result) {
+            $final = $result->first(static function ($card) use ($hit) {
+                return $card->id === (int) $hit['_id'];
             });
-        }
+            // Add id of elastic search hit that _isn't_ in mysql
+            if (! $final) {
+                return collect(['id' => $hit['_id']]);
+            }
+
+            return $final;
+        });
 
         $result = collect($result->map(function ($card) use ($hits, $constraints) {
             // If the card exists in elastic search, but not in the database we need to set up a guard

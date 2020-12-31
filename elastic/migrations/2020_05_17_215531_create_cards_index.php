@@ -65,6 +65,7 @@ final class CreateCardsIndex implements MigrationInterface
                 ],
             ]);
             $mapping->date('actual_created_at');
+            $mapping->date('created_at');
 
             $settings->analysis([
                 'analyzer' => [
