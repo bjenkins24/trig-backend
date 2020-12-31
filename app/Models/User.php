@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToManyTeams;
 use App\Support\Traits\Relationships\BelongsToManyWorkspaces;
-use App\Support\Traits\Relationships\HasCardFavorite;
+use App\Support\Traits\Relationships\HasCardFavorites;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
 use App\Support\Traits\Relationships\PermissionTypeable;
@@ -67,7 +67,7 @@ class User extends Authenticatable
     use HasOauthConnections;
     use HasCards;
     use BelongsToManyTeams;
-    use HasCardFavorite;
+    use HasCardFavorites;
     use PermissionTypeable;
 
     /**

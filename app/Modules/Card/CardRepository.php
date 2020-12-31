@@ -210,8 +210,8 @@ class CardRepository
             ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites', 'total_views', 'description')
             ->with('user:id,first_name,last_name,email')
             ->with('cardType:id,name')
-            ->with(['cardFavorite' => static function ($query) use ($user) {
-                $query->where('user_id', $user->id)->select('card_id')->limit(1);
+            ->with(['cardFavorites' => static function ($query) use ($user) {
+                $query->where('user_id', $user->id)->select('card_id');
             }])
             ->with('cardSync:card_id,created_at');
 
@@ -241,10 +241,7 @@ class CardRepository
             if ($card->cardSync) {
                 $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
             }
-            $isFavorited = false;
-            if ($card->cardFavorite) {
-                $isFavorited = (bool) $card->cardFavorite->card_id;
-            }
+            $isFavorited = ! empty($card->cardFavorites[0]);
             $user = null;
             if ($card->user) {
                 $user['id'] = $card->user['id'];

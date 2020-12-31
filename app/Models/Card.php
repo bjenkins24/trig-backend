@@ -11,7 +11,7 @@ use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\BelongsToWorkspace;
 use App\Support\Traits\Relationships\HasCardDuplicates;
-use App\Support\Traits\Relationships\HasCardFavorite;
+use App\Support\Traits\Relationships\HasCardFavorites;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\HasCardTags;
@@ -77,7 +77,7 @@ class Card extends Model
     use BelongsToUser;
     use BelongsToWorkspace;
     use BelongsToCardType;
-    use HasCardFavorite;
+    use HasCardFavorites;
     use HasCardView;
     use HasCardIntegration;
     use HasCardDuplicates;

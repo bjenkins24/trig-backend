@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait BelongsToUser
@@ -11,6 +12,6 @@ trait BelongsToUser
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 }
