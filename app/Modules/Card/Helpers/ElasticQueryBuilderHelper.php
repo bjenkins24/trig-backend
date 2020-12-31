@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Person\PersonRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class ElasticQueryBuilderHelper
 {
@@ -293,6 +294,24 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
+    private function makeFavoritesCondition(User $user, Collection $constraints): array
+    {
+        // Cohorts
+        if (! $constraints->get('c') || ! Str::contains('favorites', $constraints->get('c'))) {
+            return ['must' => []];
+        }
+
+        return [
+            'must' => [
+                [
+                    'match' => [
+                        'favorites_by_user_id' => $user->id,
+                    ],
+                ],
+            ],
+        ];
+    }
+
     private function makeTagConditions(Collection $constraints): array
     {
         if (! $constraints->get('t')) {
@@ -321,6 +340,7 @@ class ElasticQueryBuilderHelper
                     ['bool' => $this->makeDateConditions($constraints)],
                     ['bool' => $this->makeTagConditions($constraints)],
                     ['bool' => $this->makeTypeConditions($constraints)],
+                    ['bool' => $this->makeFavoritesCondition($user, $constraints)],
                     $this->makePermissionsConditions($user),
                 ],
             ],

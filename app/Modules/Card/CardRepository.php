@@ -172,13 +172,13 @@ class CardRepository
         $tags = $this->sortValueAndKey($tags);
         $newTags = [];
         foreach ($tags as $tag => $count) {
-            $newTags[] = ['tag' => $tag, 'count' => $count];
+            $newTags[] = ['name' => $tag, 'count' => $count];
         }
 
         $cardTypes = $this->sortValueAndKey($cardTypes);
         $newCardTypes = [];
         foreach ($cardTypes as $type => $count) {
-            $newCardTypes[] = ['type' => $type, 'count' => $count];
+            $newCardTypes[] = ['name' => $type, 'count' => $count];
         }
 
         return [
