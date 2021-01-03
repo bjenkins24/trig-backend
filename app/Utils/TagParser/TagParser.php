@@ -137,7 +137,7 @@ class TagParser
         }
 
         // If there was an error $response will come back as null - we just want to abort in that case
-        if (null === $response || ! isset($response['choices']) || ! isset($response['choices'][0]) || ! isset($response['choices'][0]['text'])) {
+        if (! isset($response['choices'][0]['text']) || null === $response) {
             return collect([]);
         }
 
@@ -166,7 +166,7 @@ class TagParser
             // get 4 words too - and this is fairly common. Save on cost
             // If the 'example' prompt type is used, we know if it was a bad completion if they just repeated the
             // last tags. In that case we're gonna increase the engine here (only to currie)
-            if ($engineId < 2 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
+            if ($engineId < 3 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
                 return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK

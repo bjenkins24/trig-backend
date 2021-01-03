@@ -16,7 +16,8 @@ final class CreateCardsIndex implements MigrationInterface
     {
         Index::create('cards', static function (Mapping $mapping, Settings $settings) {
             $mapping->long('user_id');
-            $mapping->keyword('card_type');
+            $mapping->keyword('type_tag');
+            $mapping->keyword('type');
             $mapping->keyword('url');
             $mapping->keyword('token');
             $mapping->keyword('thumbnail');

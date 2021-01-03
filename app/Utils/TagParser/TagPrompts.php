@@ -16,7 +16,7 @@ class TagPrompts
     public function completeWithExamples(string $title, string $content, int $engineId = 1): ?array
     {
         $exampleTags = ['Aliens', 'UFO'];
-        $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Covid 19', 'Water Waste'];
+        $exampleTags2 = ['Drip Irrigation', 'Sprinkler System', 'Water Waste'];
         $exampleTags3 = ['Laundry', 'Dryer Sheet', 'Toxic Chemicals'];
         $list = implode(', ', $exampleTags);
         $list2 = implode(', ', $exampleTags2);
@@ -28,7 +28,7 @@ Text: In the 1940s and 50s reports of "flying saucers" became an American cultur
 Tags: $list
 ###
 Title: How to Use Drip Irrigation to Water Your Garden
-Text: Drip irrigation is a system of tubing that directs small quantities of water precisely where it’s needed says Brian Jenkins, preventing the water waste associated with sprinkler systems. Since Covid 19, Joseph Goldberg mentions that drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
+Text: Drip irrigation is a system of tubing that directs small quantities of water precisely where it’s needed says Brian Jenkins, preventing the water waste associated with sprinkler systems. Joseph Goldberg mentions that drip systems minimize water runoff, evaporation, and wind drift by delivering a slow, uniform stream of water either above the soil surface or directly to the root zone.
 Tags: $list2
 ###
 Title: "Greener" Laundry by the Load: Fabric Softener versus Dryer Sheets
@@ -51,7 +51,7 @@ PROMPT;
 
         return [
             $response,
-            $exampleTags3,
+            array_merge($exampleTags, $exampleTags2, $exampleTags3),
         ];
     }
 

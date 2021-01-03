@@ -288,7 +288,7 @@ class ElasticQueryBuilderHelper
         ];
 
         foreach ($types as $type) {
-            $base['must'][] = ['match' => ['card_type' => $type]];
+            $base['must'][] = ['match' => ['type_tag' => $type]];
         }
 
         return $base;
