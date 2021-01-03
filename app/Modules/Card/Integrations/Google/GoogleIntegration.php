@@ -151,17 +151,17 @@ class GoogleIntegration implements IntegrationInterface
         }
 
         $cardData = [
-            'user_id'            => $user->id,
-            'workspace_id'       => $workspace->id,
-            'delete'             => $file->trashed,
-            'card_type'          => $file->mimeType,
-            'url'                => $file->webViewLink,
-            'foreign_id'         => $file->id,
-            'title'              => $file->name,
-            'description'        => $file->description,
-            'actual_created_at'  => $file->createdTime,
-            'actual_updated_at'  => $file->modifiedTime,
-            'image'              => $this->getThumbnailLink($user, $workspace, $file),
+            'user_id'                => $user->id,
+            'workspace_id'           => $workspace->id,
+            'delete'                 => $file->trashed,
+            'card_type'              => $file->mimeType,
+            'url'                    => $file->webViewLink,
+            'foreign_id'             => $file->id,
+            'title'                  => $file->name,
+            'description'            => $file->description,
+            'actual_created_at'      => $file->createdTime,
+            'actual_updated_at'      => $file->modifiedTime,
+            'thumbnail'              => $this->getThumbnailLink($user, $workspace, $file),
         ];
 
         $permissions = $this->getPermissions($user, $file);

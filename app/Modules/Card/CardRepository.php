@@ -107,7 +107,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['tags', 'card_type'])
+            ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'card_type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($limit);
@@ -202,92 +202,61 @@ class CardRepository
         // We'll often get more results than we need from elastic search for filters, so we'll slice the array here.
         $hits = collect(array_slice($hits, 0, $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)));
         $totalResults = $result['hits']['total']['value'];
-        $ids = $hits->map(static function ($hit) {
-            return $hit['_id'];
-        });
 
-        $query = Card::whereIn('cards.id', $ids)
-            ->select('id', 'token', 'user_id', 'title', 'card_type_id', 'image', 'image_width', 'image_height', 'actual_created_at', 'url', 'total_favorites', 'total_views', 'description')
-            ->with('user:id,first_name,last_name,email')
-            ->with('cardType:id,name')
-            ->with(['cardFavorites' => static function ($query) use ($user) {
-                $query->where('user_id', $user->id)->select('card_id');
-            }])
-            ->with('cardSync:card_id,created_at');
+        $userIds = $hits->reduce(static function ($carry, $hit) {
+            $userId = $hit['_source']['user_id'];
+            if (in_array($userId, $carry, true)) {
+                return $carry;
+            }
+            $carry[] = $userId;
 
-        $result = $query->get();
+            return $carry;
+        }, []);
 
-        // Sort by elastic search sort
-        $result = $hits->map(static function ($hit) use ($result) {
-            $final = $result->first(static function ($card) use ($hit) {
-                return $card->id === (int) $hit['_id'];
+        $users = User::whereIn('users.id', $userIds)->select('id', 'first_name', 'last_name', 'email')->get();
+
+        $results = $hits->map(static function ($hit) use ($users, $user, $constraints) {
+            $cardUser = $users->first(static function ($user) use ($hit) {
+                return $hit['_source']['user_id'] === $user->id;
             });
-            // Add id of elastic search hit that _isn't_ in mysql
-            if (! $final) {
-                return collect(['id' => $hit['_id']]);
-            }
+            $fields = [];
+            $fields['user']['id'] = $cardUser->id;
+            $fields['user']['email'] = $cardUser->email;
+            $fields['user']['firstName'] = $cardUser->first_name;
+            $fields['user']['lastName'] = $cardUser->last_name;
 
-            return $final;
-        });
-
-        $result = collect($result->map(function ($card) use ($hits, $constraints) {
-            // If the card exists in elastic search, but not in the database we need to set up a guard
-            if (! $card->get('title')) {
-                Log::notice('A card exists in elastic search, but not within the database. Card id: '.$card->get('id'));
-                // TODO: It's probably safe to remove the card from elastic search here
-                return [];
-            }
-            $lastAttemptedSync = null;
-            if ($card->cardSync) {
-                $lastAttemptedSync = $card->cardSync->created_at->toIso8601String();
-            }
-            $isFavorited = ! empty($card->cardFavorites[0]);
-            $user = null;
-            if ($card->user) {
-                $user['id'] = $card->user['id'];
-                $user['firstName'] = $card->user['first_name'];
-                $user['lastName'] = $card->user['last_name'];
-                $user['email'] = $card->user['email'];
-            }
-            $fields = $this->mapToFields($card);
-            $fields['isFavorited'] = $isFavorited;
-            $fields['lastAttemptedSync'] = $lastAttemptedSync;
-            $fields['user'] = $user;
-            if (array_key_exists('h', $constraints->toArray())) {
-                $hit = $hits->first(static function ($hit) use ($card) {
-                    return (int) $hit['_id'] === $card->id;
-                });
-                if (! empty($hit['highlight'])) {
-                    $fields['highlights'] = [];
-                    if (! empty($hit['highlight']['title'])) {
-                        $fields['highlights']['title'] = $hit['highlight']['title'][0];
-                    }
-                    if (! empty($hit['highlight']['content'])) {
-                        $fields['highlights']['content'] = $hit['highlight']['content'][0];
-                    }
+            $fields['isFavorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            $fields['totalFavorites'] = count($hit['_source']['favorites_by_user_id']);
+            $fields['id'] = (int) $hit['_id'];
+            $fields['tags'] = $hit['_source']['tags'];
+            $fields['url'] = $hit['_source']['url'];
+            $fields['thumbnail'] = [
+                'path'   => $hit['_source']['thumbnail'],
+                'width'  => $hit['_source']['thumbnail_width'],
+                'height' => $hit['_source']['thumbnail_height'],
+            ];
+            $fields['token'] = $hit['_source']['token'];
+            $fields['description'] = $hit['_source']['description'];
+            $fields['title'] = $hit['_source']['title'];
+            $fields['cardType'] = $hit['_source']['card_type'];
+            $fields['createdAt'] = Carbon::parse($hit['_source']['created_at'])->toIso8601String();
+            if (! empty($hit['highlight']) && array_key_exists('h', $constraints->toArray())) {
+                $fields['highlights'] = [];
+                if (! empty($hit['highlight']['title'])) {
+                    $fields['highlights']['title'] = $hit['highlight']['title'][0];
+                }
+                if (! empty($hit['highlight']['content'])) {
+                    $fields['highlights']['content'] = $hit['highlight']['content'][0];
                 }
             }
 
             return $fields;
-        }));
-
-        $removedCard = 0;
-        $result->filter(static function ($card) use (&$removedCard) {
-            if (! empty($card)) {
-                return true;
-            }
-            ++$removedCard;
-
-            return false;
-        })->values();
-        $totalResults -= $removedCard;
+        });
 
         return collect([
             // We may have an empty card if the card exists in elastic search, but not mysql
-            'cards' => $result->filter(static function ($card) {
-                return ! empty($card);
-            })->values(),
-            'meta' => [
+            'cards' => $results,
+            'meta'  => [
                 'page'         => (int) $constraints->get('p'),
                 'totalPages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
                 'totalResults' => $totalResults,
@@ -305,18 +274,7 @@ class CardRepository
                 $newFields['createdAt'] = $card->actual_created_at->toIso8601String();
                 continue;
             }
-            if ('actual_updated_at' === $field) {
-                $newFields['updatedAt'] = $card->actual_updated_at->toIso8601String();
-                continue;
-            }
-            if ('card_type_id' === $field) {
-                $cardType = null;
-                if ($card->cardType) {
-                    $cardType = $card->cardType->name;
-                }
-                $newFields['cardType'] = $cardType;
-                unset($cardTypeId);
-            }
+
             if ('total_favorites' === $field) {
                 $newFields['totalFavorites'] = (int) $fieldValue;
             }
@@ -548,6 +506,19 @@ class CardRepository
         }
 
         return $query->exists();
+    }
+
+    public function setProperties(Card $card, array $properties): Card
+    {
+        if (empty($card->properties)) {
+            $newProperties = collect($properties);
+            $card->properties = $newProperties;
+        }
+        foreach ($properties as $propertyKey => $property) {
+            $card->properties = $card->properties->put($propertyKey, $property);
+        }
+
+        return $card;
     }
 
     /**

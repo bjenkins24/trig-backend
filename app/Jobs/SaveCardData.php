@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class SaveCardData implements ShouldQueue
 {
@@ -39,6 +40,7 @@ class SaveCardData implements ShouldQueue
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
             $syncCardsIntegration->saveCardData($this->card);
         } catch (Exception $error) {
+            Log::error($error->getMessage());
             app(CardSyncRepository::class)->create([
               'card_id' => $this->card->id,
               'status'  => 0,

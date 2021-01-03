@@ -43,8 +43,19 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '2',
                     '_score'  => 1.0,
                     '_source' => [
-                        'card_type' => 'Link',
-                        'tags'      => ['Product Management', 'Product'],
+                        'user_id'                         => 1,
+                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
+                        'title'                           => 'I dare say you never to lose.',
+                        'url'                             => 'http://www.mayer.com/',
+                        'thumbnail'                       => 'http://image.com',
+                        'thumbnail_width'                 => 251,
+                        'thumbnail_height'                => 251,
+                        'content'                         => 'My awesome content',
+                        'description'                     => 'My aweseom description',
+                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'favorites_by_user_id'            => [],
+                        'card_type'                       => 'Link',
+                        'tags'                            => ['Product Management', 'Product'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -64,8 +75,19 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '1',
                     '_score'  => 0.7,
                     '_source' => [
-                        'card_type' => 'Link',
-                        'tags'      => ['Sales', 'Management'],
+                        'user_id'                         => 1,
+                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
+                        'title'                           => 'I dare say you never to lose.',
+                        'url'                             => 'http://www.mayer.com/',
+                        'thumbnail'                       => 'http://image.com',
+                        'thumbnail_width'                 => 251,
+                        'thumbnail_height'                => 251,
+                        'content'                         => 'My awesome content',
+                        'description'                     => 'My aweseom description',
+                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'favorites_by_user_id'            => [],
+                        'card_type'                       => 'Link',
+                        'tags'                            => ['Sales', 'Management'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['10'],
@@ -85,8 +107,19 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '29084129',
                     '_score'  => 0.5,
                     '_source' => [
-                        'card_type' => 'Google Doc',
-                        'tags'      => ['Sales', 'Friends'],
+                        'user_id'                         => 1,
+                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
+                        'title'                           => 'I dare say you never to lose.',
+                        'url'                             => 'http://www.mayer.com/',
+                        'thumbnail'                       => 'http://image.com',
+                        'thumbnail_width'                 => 251,
+                        'thumbnail_height'                => 251,
+                        'description'                     => 'My aweseom description',
+                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'content'                         => 'My awesome content',
+                        'favorites_by_user_id'            => [],
+                        'card_type'                       => 'Google Doc',
+                        'tags'                            => ['Sales', 'Friends'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -114,11 +147,22 @@ class CardRepositoryTest extends TestCase
         app(CardRepository::class)->createIntegration(Card::find(1), 123, 'google');
     }
 
+    public function testSetProperties(): void
+    {
+        $card = Card::find(1);
+        $value = 1;
+        $card = app(CardRepository::class)->setProperties($card, ['test' => $value]);
+        $card->save();
+
+        self::assertEquals($value, $card->properties->get('test'));
+    }
+
     /**
      * Test if search for cards returns card objects.
      */
     public function testSearchCards(): void
     {
+        $this->refreshDb();
         $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
@@ -130,12 +174,9 @@ class CardRepositoryTest extends TestCase
             'cardType',
             'title',
             'url',
-            'image',
-            'imageWidth',
-            'imageHeight',
+            'thumbnail',
             'totalFavorites',
             'isFavorited',
-            'lastAttemptedSync',
             'createdAt',
         ]);
 

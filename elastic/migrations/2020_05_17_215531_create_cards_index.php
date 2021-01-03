@@ -18,6 +18,10 @@ final class CreateCardsIndex implements MigrationInterface
             $mapping->long('user_id');
             $mapping->keyword('card_type');
             $mapping->keyword('url');
+            $mapping->keyword('token');
+            $mapping->keyword('thumbnail');
+            $mapping->short('thumbnail_width');
+            $mapping->short('thumbnail_height');
             $mapping->text('tags', [
                 'fields' => [
                     'keyword' => [

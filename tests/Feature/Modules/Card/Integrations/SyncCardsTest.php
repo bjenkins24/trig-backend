@@ -290,7 +290,10 @@ class SyncCardsTest extends TestCase
 
         // Remove the current image so the new image will save
         $card->card_type_id = $cardType->id;
-        $card->image = '';
+        $card->properties->full_image = '';
+        $card->properties->thumbnail = '';
+        $card->properties->thumbnail_width = '';
+        $card->properties->thumbnail_height = '';
         $card->save();
 
         $result = $syncCards->saveCardData($card);

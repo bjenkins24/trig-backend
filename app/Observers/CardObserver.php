@@ -13,7 +13,10 @@ class CardObserver
      */
     public function deleted(Card $card): void
     {
-        $extension = substr($card->image, strpos($card->image, $card->token) + strlen($card->token));
+        if (empty($card->properties)) {
+            return;
+        }
+        $extension = substr($card->properties->get('thumbnail'), strpos($card->properties->get('thumbnail'), $card->token) + strlen($card->token));
         Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/thumbnail/{$card->token}{$extension}");
         Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/full/{$card->token}{$extension}");
     }

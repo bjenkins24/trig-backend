@@ -3,6 +3,7 @@
 namespace App\Modules\Card\Helpers;
 
 use App\Models\Card;
+use App\Modules\Card\CardRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Illuminate\Support\Collection;
@@ -52,7 +53,12 @@ class ThumbnailHelper
             return false;
         }
         $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
-        Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail')->encode($thumbnail->get('extension'))->__toString());
+        $fullResult = Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail')->encode($thumbnail->get('extension'))->__toString());
+        $cardRepository = app(CardRepository::class);
+
+        if ($fullResult) {
+            $card = $cardRepository->setProperties($card, ['full_image' => Config::get('app.url').Storage::url($imagePathWithExtension)]);
+        }
 
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
         $resizedImage = $this->fileHelper->makeImage($thumbnail->get('thumbnail'))->resize(251, null, static function ($constraint) {
@@ -65,9 +71,14 @@ class ThumbnailHelper
         Storage::delete($thumbnailUri);
 
         if ($result) {
-            $card->image = Config::get('app.url').Storage::url($thumbnailPathWithExtension);
-            $card->image_width = $resizedImage->width();
-            $card->image_height = $resizedImage->height();
+            $card = $cardRepository->setProperties($card, [
+                'thumbnail'        => Config::get('app.url').Storage::url($thumbnailPathWithExtension),
+                'thumbnail_width'  => $resizedImage->width(),
+                'thumbnail_height' => $resizedImage->height(),
+            ]);
+        }
+
+        if ($result || $fullResult) {
             $card->save();
         }
 

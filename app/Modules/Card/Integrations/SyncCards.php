@@ -208,7 +208,7 @@ class SyncCards
         $data = $data->reject(static function ($value) {
             return ! $value;
         });
-        $card->properties = $data->toArray();
+        $this->cardRepository->setProperties($card, $data->toArray());
         $result = $card->save();
 
         if ($result) {

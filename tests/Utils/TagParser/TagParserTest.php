@@ -6,20 +6,16 @@ use App\Utils\Gpt3;
 use App\Utils\TagParser\TagParser;
 use App\Utils\TagParser\TagPrompts;
 use App\Utils\TagParser\TagStringRemoval;
-use Exception;
 use Tests\TestCase;
 
 class TagParserTest extends TestCase
 {
-    private function mockResponse(string $completion, string $completionSingular = ''): void
+    private function mockResponse(string $completion): void
     {
         $this->mock(Gpt3::class, static function ($mock) {
             $mock->shouldReceive('getEngine')->andReturn('babbage');
         });
-        if (! $completion) {
-            $completionSingular = $completion;
-        }
-        $this->mock(TagPrompts::class, static function ($mock) use ($completion, $completionSingular) {
+        $this->mock(TagPrompts::class, static function ($mock) use ($completion) {
             $mock->shouldReceive('completeWithExamples')->andReturn([
                 [
                     'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
@@ -36,21 +32,6 @@ class TagParserTest extends TestCase
                     ],
                 ],
                 ['Laundry', 'Dryer Sheet', 'Toxic Chemicals'],
-            ]);
-
-            $mock->shouldReceive('completeSingularAdjustments')->andReturn([
-                'id'      => 'cmpl-2AOmCppBhQmrdAfirNzZCpE88xpF',
-                'object'  => 'text_completion',
-                'created' => 16088311960,
-                'model'   => 'curie:2020-05-03',
-                'choices' => [
-                    [
-                        'text'          => $completionSingular,
-                        'index'         => 0,
-                        'logprobs'      => null,
-                        'finish_reason' => 'stop',
-                    ],
-                ],
             ]);
         });
     }
@@ -95,9 +76,9 @@ EXPECTED, $result
     /**
      * @dataProvider tagSuccessProvider
      */
-    public function testGetTagsSuccess(string $title, string $content, string $completion, string $completionSingular, array $expected): void
+    public function testGetTagsSuccess(string $title, string $content, string $completion, array $expected): void
     {
-        $this->mockResponse($completion, $completionSingular);
+        $this->mockResponse($completion);
         $results = app(TagParser::class)->getTags($title, $content);
         self::assertEquals(collect($expected), $results);
     }
@@ -112,7 +93,6 @@ EXPECTED, $result
 Accountant, #Sales Enablement, Product Management
 
 COMPLETION_EXAMPLE,
-                '',
                 ['Accounting', 'Sales', 'Product Management', 'Sales Enablement'],
             ],
             [
@@ -122,7 +102,6 @@ COMPLETION_EXAMPLE,
 ~Cool Tag, Fan, Amazon.com, HR Personel
 
 COMPLETION_EXAMPLE,
-                '',
                 ['Human Resources', 'Book', 'Cool Tag', 'Fan', 'Amazon', 'HR Personel'],
             ],
             [
@@ -132,7 +111,6 @@ COMPLETION_EXAMPLE,
 Risk Managers, Making an MVP, Budget,
 
 COMPLETION_EXAMPLE,
-                '',
                 ['Risk Management', 'MVP', 'Budgeting', 'Making an MVP'],
             ],
             [
@@ -142,35 +120,9 @@ COMPLETION_EXAMPLE,
 Covid 19, Covid 20, Covid 21, Do it yourself, it, cash, Cash, Cash Money, Covid 19, M&amp;M
 
 COMPLETION_EXAMPLE,
-                '',
                 ['Covid 19', 'DIY', 'Cash Money', 'M&M'],
             ],
-            [
-                'fake',
-                'fake',
-                <<<COMPLETION_EXAMPLE
-Video Games, Tree House, Friends
-
-COMPLETION_EXAMPLE,
-                <<<COMPLETION_SINGULAR
- Video Game, Tree House, Friend
-
-COMPLETION_SINGULAR,
-                ['Video Game', 'Tree House', 'Friend'],
-            ],
         ];
-    }
-
-    public function testGtpFail(): void
-    {
-        $this->mock(Gpt3::class, static function ($mock) {
-            $mock->shouldReceive('getEngine')->andReturn('babbage');
-            $mock->shouldReceive('complete')->andThrow(new Exception('Fail!'));
-        });
-
-        $results = app(TagParser::class)->getTags('my text', 'my document');
-        $expectedTags = collect([]);
-        self::assertEquals($expectedTags, $results);
     }
 
     public function testGtpNoResults(): void

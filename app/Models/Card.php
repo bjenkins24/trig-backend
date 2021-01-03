@@ -33,8 +33,6 @@ use Laravel\Scout\Searchable;
  * @property string|null                                                          $description
  * @property string|null                                                          $content
  * @property string|null                                                          $image
- * @property int|null                                                             $image_height
- * @property int|null                                                             $image_width
  * @property string                                                               $url
  * @property \Illuminate\Support\Carbon                                           $actual_created_at
  * @property \Illuminate\Support\Carbon                                           $actual_updated_at
@@ -99,12 +97,12 @@ class Card extends Model
         'card_type_id',
         'title',
         'description',
-        'image',
         'actual_created_at',
         'actual_updated_at',
         'url',
         'content',
         'token',
+        'properties',
     ];
 
     /**
@@ -129,19 +127,24 @@ class Card extends Model
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
         return [
-            'user_id'               => $this->user_id,
-            'card_type'             => app(CardTypeRepository::class)->mapCardTypeToWords($this),
-            'url'                   => $this->url ?? '',
-            'workspace_id'          => $this->workspace_id,
-            'tags'                  => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
-            'title'                 => $this->title,
-            'content'               => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
-            'permissions'           => $permissions,
-            'favorites_by_user_id'  => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
-            'views'                 => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
-            'actual_created_at'     => $this->actual_created_at,
-            'created_at'            => $this->created_at,
-            'card_duplicate_ids'    => $cardDuplicateIds,
+            'user_id'                          => $this->user_id,
+            'card_type'                        => app(CardTypeRepository::class)->mapCardTypeToWords($this),
+            'token'                            => $this->token,
+            'thumbnail'                        => $this->properties ? $this->properties->get('thumbnail') : null,
+            'thumbnail_width'                  => $this->properties ? $this->properties->get('thumbnail_width') : null,
+            'thumbnail_height'                 => $this->properties ? $this->properties->get('thumbnail_height') : null,
+            'description'                      => $this->description,
+            'url'                              => $this->url ?? '',
+            'workspace_id'                     => $this->workspace_id,
+            'tags'                             => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
+            'title'                            => $this->title,
+            'content'                          => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
+            'permissions'                      => $permissions,
+            'favorites_by_user_id'             => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
+            'views'                            => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
+            'actual_created_at'                => $this->actual_created_at,
+            'created_at'                       => $this->created_at,
+            'card_duplicate_ids'               => $cardDuplicateIds,
         ];
     }
 }

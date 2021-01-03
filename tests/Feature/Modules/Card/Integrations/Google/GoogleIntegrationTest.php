@@ -121,17 +121,17 @@ class GoogleIntegrationTest extends TestCase
         $thumbnailLink = $googleIntegration->getThumbnailLink($user, $workspace, $file);
         $cardData = $googleIntegration->getCardData($user, $workspace, $file);
         self::assertEquals([
-            'user_id'            => $user->id,
-            'workspace_id'       => $workspace->id,
-            'delete'             => $file->trashed,
-            'card_type'          => $file->mimeType,
-            'url'                => $file->webViewLink,
-            'foreign_id'         => $file->id,
-            'title'              => $file->name,
-            'description'        => $file->description,
-            'actual_created_at'  => $file->createdTime,
-            'actual_updated_at'  => $file->modifiedTime,
-            'image'              => $thumbnailLink,
+            'user_id'                => $user->id,
+            'workspace_id'           => $workspace->id,
+            'delete'                 => $file->trashed,
+            'card_type'              => $file->mimeType,
+            'url'                    => $file->webViewLink,
+            'foreign_id'             => $file->id,
+            'title'                  => $file->name,
+            'description'            => $file->description,
+            'actual_created_at'      => $file->createdTime,
+            'actual_updated_at'      => $file->modifiedTime,
+            'thumbnail'              => $thumbnailLink,
         ], $cardData['data']);
         self::assertNotEmpty($cardData['permissions']);
     }

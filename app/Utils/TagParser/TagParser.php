@@ -137,7 +137,7 @@ class TagParser
         }
 
         // If there was an error $response will come back as null - we just want to abort in that case
-        if (null === $response) {
+        if (null === $response || ! isset($response['choices']) || ! isset($response['choices'][0]) || ! isset($response['choices'][0]['text'])) {
             return collect([]);
         }
 

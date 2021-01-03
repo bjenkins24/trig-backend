@@ -17,6 +17,7 @@ class GetTagsTest extends TestCase
      */
     public function testGetTags(): void
     {
+        $this->refreshDb();
         $card = Card::find(1);
         $this->mock(TagParser::class, static function ($mock) use ($card) {
             $tags = collect(['Tag', 'Cool Tag']);
