@@ -107,7 +107,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
+            ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($limit);
@@ -152,12 +152,12 @@ class CardRepository
         $tags = [];
         $cardTypes = [];
         $hits->each(static function ($hit) use (&$cardTypes, &$tags) {
-            if (! empty($hit['_source']['type_tag'])) {
+            if (! empty($hit['_source']['type'])) {
                 $totalCardTypes = 1;
-                if (! empty($cardTypes[$hit['_source']['type_tag']])) {
-                    $totalCardTypes = (int) $cardTypes[$hit['_source']['type_tag']] + 1;
+                if (! empty($cardTypes[$hit['_source']['type']])) {
+                    $totalCardTypes = (int) $cardTypes[$hit['_source']['type']] + 1;
                 }
-                $cardTypes[$hit['_source']['type_tag']] = $totalCardTypes;
+                $cardTypes[$hit['_source']['type']] = $totalCardTypes;
             }
             if (! empty($hit['_source']['tags'])) {
                 foreach ($hit['_source']['tags'] as $tag) {
@@ -238,7 +238,6 @@ class CardRepository
             $fields['token'] = $hit['_source']['token'];
             $fields['description'] = $hit['_source']['description'];
             $fields['title'] = $hit['_source']['title'];
-            $fields['typeTag'] = $hit['_source']['type_tag'];
             $fields['type'] = $hit['_source']['type'];
             $fields['createdAt'] = Carbon::parse($hit['_source']['created_at'])->toIso8601String();
             if (! empty($hit['highlight']) && array_key_exists('h', $constraints->toArray())) {
