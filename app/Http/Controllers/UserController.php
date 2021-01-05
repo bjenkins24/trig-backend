@@ -51,10 +51,14 @@ class UserController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
-        $response = $user->toArray();
-        $response['total_cards'] = $this->userRepo->getTotalCards($user);
 
-        return response()->json(['data' => $response]);
+        return response()->json(['data' => [
+            'id'          => $user->id,
+            'email'       => $user->email,
+            'first_name'  => $user->first_name,
+            'last_name'   => $user->lastName,
+            'total_cards' => $this->userRepo->getTotalCards($user),
+        ]]);
     }
 
     public function update(UpdateUserRequest $request): JsonResponse

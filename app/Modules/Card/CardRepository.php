@@ -222,11 +222,11 @@ class CardRepository
             $fields = [];
             $fields['user']['id'] = $cardUser->id;
             $fields['user']['email'] = $cardUser->email;
-            $fields['user']['firstName'] = $cardUser->first_name;
-            $fields['user']['lastName'] = $cardUser->last_name;
+            $fields['user']['first_name'] = $cardUser->first_name;
+            $fields['user']['last_name'] = $cardUser->last_name;
 
-            $fields['isFavorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
-            $fields['totalFavorites'] = count($hit['_source']['favorites_by_user_id']);
+            $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            $fields['total_favorites'] = count($hit['_source']['favorites_by_user_id']);
             $fields['id'] = (int) $hit['_id'];
             $fields['tags'] = $hit['_source']['tags'];
             $fields['url'] = $hit['_source']['url'];
@@ -239,7 +239,7 @@ class CardRepository
             $fields['description'] = $hit['_source']['description'];
             $fields['title'] = $hit['_source']['title'];
             $fields['type'] = $hit['_source']['type'];
-            $fields['createdAt'] = Carbon::parse($hit['_source']['created_at'])->toIso8601String();
+            $fields['created_at'] = Carbon::parse($hit['_source']['created_at'])->toIso8601String();
             if (! empty($hit['highlight']) && array_key_exists('h', $constraints->toArray())) {
                 $fields['highlights'] = [];
                 if (! empty($hit['highlight']['title'])) {
@@ -257,9 +257,9 @@ class CardRepository
             // We may have an empty card if the card exists in elastic search, but not mysql
             'cards' => $results,
             'meta'  => [
-                'page'         => (int) $constraints->get('p'),
-                'totalPages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
-                'totalResults' => $totalResults,
+                'page'          => (int) $constraints->get('p'),
+                'total_pages'   => (int) ceil($totalResults / $constraints->get('l', self::DEFAULT_SEARCH_LIMIT)),
+                'total_results' => $totalResults,
             ],
             'filters' => $filters,
         ]);
@@ -271,18 +271,18 @@ class CardRepository
         $newFields = [];
         foreach ($fields as $field => $fieldValue) {
             if ('actual_created_at' === $field) {
-                $newFields['createdAt'] = $card->actual_created_at->toIso8601String();
+                $newFields['created_at'] = $card->actual_created_at->toIso8601String();
                 continue;
             }
 
             if ('total_favorites' === $field) {
-                $newFields['totalFavorites'] = (int) $fieldValue;
+                $newFields['total_favorites'] = (int) $fieldValue;
             }
             // Fields to remove
             if ('created_at' === $field || 'updated_at' === $field || 'properties' === $field || 'card_sync' === $field || 'card_type' === $field) {
                 continue;
             }
-            $newFields[Str::camel($field)] = $fieldValue;
+            $newFields[$field] = $fieldValue;
         }
 
         return $newFields;
@@ -434,12 +434,12 @@ class CardRepository
      */
     public function saveView(array $fields, Card $card): void
     {
-        if (! isset($fields['viewedBy'])) {
+        if (! isset($fields['viewed_by'])) {
             return;
         }
         CardView::create([
             'card_id' => $card->id,
-            'user_id' => $fields['viewedBy'],
+            'user_id' => $fields['viewed_by'],
         ]);
         ++$card->total_views;
 
@@ -451,19 +451,19 @@ class CardRepository
      */
     private function saveFavorited(array $fields, Card $card): void
     {
-        if (! isset($fields['favoritedBy']) && ! isset($fields['unfavoritedBy'])) {
+        if (! isset($fields['favorited_by']) && ! isset($fields['unfavorited_by'])) {
             return;
         }
-        if (isset($fields['favoritedBy'])) {
+        if (isset($fields['favorited_by'])) {
             CardFavorite::create([
                 'card_id' => $card->id,
-                'user_id' => $fields['favoritedBy'],
+                'user_id' => $fields['favorited_by'],
             ]);
             ++$card->total_favorites;
         }
-        if (isset($fields['unfavoritedBy'])) {
+        if (isset($fields['unfavorited_by'])) {
             $cardFavorite = CardFavorite::where('card_id', $card->id)
-                ->where('user_id', $fields['unfavoritedBy'])
+                ->where('user_id', $fields['unfavorited_by'])
                 ->first();
             if ($cardFavorite) {
                 $cardFavorite->delete();

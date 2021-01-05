@@ -218,14 +218,14 @@ class CardControllerTest extends TestCase
         $favoritedById = 1;
 
         $newData = [
-            'id'                 => $newCard->get('id'),
-            'url'                => 'https://newurl.com',
-            'title'              => 'Cool new url',
-            'description'        => 'cool new Description',
-            'content'            => 'cool new content',
-            'createdAt'          => $now,
-            'updatedAt'          => $now,
-            'favoritedBy'        => $favoritedById,
+            'id'                  => $newCard->get('id'),
+            'url'                 => 'https://newurl.com',
+            'title'               => 'Cool new url',
+            'description'         => 'cool new Description',
+            'content'             => 'cool new content',
+            'created_at'          => $now,
+            'updated_at'          => $now,
+            'favorited_by'        => $favoritedById,
         ];
 
         $response = $this->client('PATCH', 'card', $newData);
@@ -235,7 +235,7 @@ class CardControllerTest extends TestCase
         $data['actual_created_at'] = $now->toDateTimeString();
         $data['actual_updated_at'] = $now->toDateTimeString();
         $data['total_favorites'] = 1;
-        unset($data['createdAt'], $data['updatedAt'], $data['favoritedBy']);
+        unset($data['created_at'], $data['updated_at'], $data['favorited_by']);
 
         $this->assertDatabaseHas('cards', $data);
         $this->assertDatabaseHas('card_favorites', [

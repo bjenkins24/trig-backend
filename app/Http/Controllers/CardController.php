@@ -56,10 +56,10 @@ class CardController extends Controller
                 'title'             => $request->get('title') ?? $request->get('url'),
                 'description'       => $request->get('description'),
                 'content'           => $request->get('content'),
-                'actual_created_at' => $request->get('createdAt'),
-                'actual_updated_at' => $request->get('updatedAt'),
+                'actual_created_at' => $request->get('created_at'),
+                'actual_updated_at' => $request->get('updated_at'),
                 'image'             => $request->get('image'),
-                'favorited'         => $request->get('isFavorited'),
+                'favorited'         => $request->get('is_favorited'),
             ]);
         } catch (CardExists $exception) {
             return response()->json([

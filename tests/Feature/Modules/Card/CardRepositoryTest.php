@@ -175,16 +175,16 @@ class CardRepositoryTest extends TestCase
             'title',
             'url',
             'thumbnail',
-            'totalFavorites',
-            'isFavorited',
-            'createdAt',
+            'total_favorites',
+            'is_favorited',
+            'created_at',
         ]);
 
         $userFields = collect([
             'id',
             'email',
-            'firstName',
-            'lastName',
+            'first_name',
+            'last_name',
         ]);
 
         self::assertEquals([
@@ -202,9 +202,9 @@ class CardRepositoryTest extends TestCase
         ], $result->get('filters'));
 
         self::assertEquals([
-            'totalPages'   => (int) ceil(4026 / CardRepository::DEFAULT_SEARCH_LIMIT),
-            'page'         => 0,
-            'totalResults' => 4026,
+            'total_pages'   => (int) ceil(4026 / CardRepository::DEFAULT_SEARCH_LIMIT),
+            'page'          => 0,
+            'total_results' => 4026,
         ], $result->get('meta'));
 
         // Reverse the order - sort by score check
@@ -516,11 +516,11 @@ class CardRepositoryTest extends TestCase
         $favoritedById = 1;
         $viewedById = 1;
         app(CardRepository::class)->updateOrInsert([
-            'url'         => $firstCardUrl,
-            'title'       => $title,
-            'image'       => 'cool_image',
-            'favoritedBy' => $favoritedById,
-            'viewedBy'    => $viewedById,
+            'url'          => $firstCardUrl,
+            'title'        => $title,
+            'image'        => 'cool_image',
+            'favorited_by' => $favoritedById,
+            'viewed_by'    => $viewedById,
         ], $card);
         $this->assertDatabaseHas('cards', [
             'id'               => 1,
@@ -545,9 +545,9 @@ class CardRepositoryTest extends TestCase
         ]);
 
         app(CardRepository::class)->updateOrInsert([
-            'title'         => $title,
-            'image'         => 'cool_image',
-            'unfavoritedBy' => $favoritedById,
+            'title'          => $title,
+            'image'          => 'cool_image',
+            'unfavorited_by' => $favoritedById,
         ], $card);
 
         $this->assertDatabaseHas('cards', [
