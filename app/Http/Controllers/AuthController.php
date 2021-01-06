@@ -45,7 +45,7 @@ class AuthController extends Controller
             throw new NoAccessTokenSet('No access token set');
         }
 
-        $user = $this->userRepo->findByEmail($request->get('email'));
+        $user = $this->userRepo->getMe($this->userRepo->findByEmail($request->get('email')));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
     }

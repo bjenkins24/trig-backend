@@ -67,6 +67,17 @@ class UserRepository
         return false;
     }
 
+    public function getMe(User $user): array
+    {
+        return [
+            'id'          => $user->id,
+            'email'       => $user->email,
+            'first_name'  => $user->first_name,
+            'last_name'   => $user->last_name,
+            'total_cards' => $this->getTotalCards($user),
+        ];
+    }
+
     public function update(User $user, array $input): User
     {
         // If all of these are true we can change the new password

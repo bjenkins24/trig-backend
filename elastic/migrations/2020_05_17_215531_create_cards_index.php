@@ -76,7 +76,7 @@ final class CreateCardsIndex implements MigrationInterface
                     'filter_stemmer' => [
                         'tokenizer' => 'standard',
                         'filter'    => [
-                            'lowercase', 'stemmer', 'asciifolding',
+                            'lowercase', 'asciifolding', 'stemmer',
                         ],
                     ],
                 ],
