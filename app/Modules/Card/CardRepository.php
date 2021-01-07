@@ -34,7 +34,7 @@ class CardRepository
     private ElasticQueryBuilderHelper $elasticQueryBuilderHelper;
     private ThumbnailHelper $thumbnailHelper;
     private UserRepository $userRepository;
-    public const DEFAULT_SEARCH_LIMIT = 90;
+    public const DEFAULT_SEARCH_LIMIT = 20;
 
     public function __construct(
         UserRepository $userRepository,
@@ -102,7 +102,8 @@ class CardRepository
         // FILTER LIMIT
         // The limit for filter fields is 5 times the normal limit - so we can get tags/card types that aren't
         // in the current view for filtering. It can be defined with fl instead if preferred
-        $limit = $constraints->get('fl', $constraints->get('l', self::DEFAULT_SEARCH_LIMIT) * 5);
+        $limit = $constraints->get('l', self::DEFAULT_SEARCH_LIMIT);
+        $filterLimit = $constraints->get('fl', $limit * 5);
 
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
@@ -110,7 +111,7 @@ class CardRepository
             ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
-            ->size($limit);
+            ->size($filterLimit);
 
         if ($constraints->get('h', 1) && $constraints->get('q')) {
             $rawQuery->highlightRaw([

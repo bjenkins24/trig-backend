@@ -63,8 +63,8 @@ class UserService
         $user = $this->create($authParams);
         $workspace = $user->workspaces()->first();
         $this->oauthConnectionRepo->create($user, $workspace, $this->googleIntegration::getIntegrationKey(), $oauthCredentials);
-
-        SetupGoogleIntegration::dispatch($user, $workspace);
+//
+//        SetupGoogleIntegration::dispatch($user, $workspace);
 
         return $user;
     }

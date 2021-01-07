@@ -36,6 +36,7 @@ class GoogleConnection implements ConnectionInterface
         $googleClient->setPrompt('select_account consent');
         $googleClient->setDeveloperKey(Config::get('services.google.drive_api_key'));
         $googleClient->setRedirectUri('http://localhost:8080');
+        $googleClient->addScope(['profile', 'email']);
         $this->client = $googleClient;
     }
 
@@ -63,6 +64,7 @@ class GoogleConnection implements ConnectionInterface
     public function getUser(string $code): array
     {
         $oauthCredentials = $this->retrieveAccessTokenWithCode($code);
+        dd($oauthCredentials);
         $payload = $this->client->verifyIdToken($oauthCredentials->get('id_token'));
         if (! $payload) {
             return [];
