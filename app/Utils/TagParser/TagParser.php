@@ -166,7 +166,7 @@ class TagParser
             // get 4 words too - and this is fairly common. Save on cost
             // If the 'example' prompt type is used, we know if it was a bad completion if they just repeated the
             // last tags. In that case we're gonna increase the engine here (only to currie)
-            if ($engineId < 3 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
+            if ($engineId < 2 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
                 return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK

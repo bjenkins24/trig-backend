@@ -4,7 +4,6 @@ namespace Tests\Feature\Controllers;
 
 use App\Jobs\DeleteUser;
 use App\Jobs\SendMail;
-use App\Jobs\SetupGoogleIntegration;
 use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
@@ -100,11 +99,11 @@ class UserControllerTest extends TestCase
     {
         $response = $this->client('GET', 'me');
         $response->assertStatus(200)->assertJsonFragment([
-            'email'       => Config::get('constants.seed.email'),
-            'firstName'   => Config::get('constants.seed.first_name'),
-            'lastName'    => Config::get('constants.seed.last_name'),
-            'id'          => 1,
-            'totalCards'  => 0,
+            'email'        => Config::get('constants.seed.email'),
+            'first_name'   => Config::get('constants.seed.first_name'),
+            'last_name'    => Config::get('constants.seed.last_name'),
+            'id'           => 1,
+            'total_cards'  => 0,
         ]);
     }
 
@@ -378,28 +377,24 @@ class UserControllerTest extends TestCase
 
     /**
      * Test login and register sso google.
-     *
-     * @group n
      */
     public function testGoogleSso(): void
     {
         $this->refreshDb();
         \Queue::fake();
         $email = 'sam_sung@example.com';
-//        $this->partialMock(GoogleConnection::class, static function ($mock) use ($email) {
-//            $mock->shouldReceive('getUser')->andReturn([
-//                'payload'          => collect(['email' => $email]),
-//                'oauthCredentials' => collect([
-//                    'access_token'  => '123',
-//                    'refresh_token' => '456',
-//                    'expires_in'    => 0,
-//                ]),
-//            ])->twice();
-//        });
+        $this->partialMock(GoogleConnection::class, static function ($mock) use ($email) {
+            $mock->shouldReceive('getUser')->andReturn([
+                'payload'          => collect(['email' => $email]),
+                'oauthCredentials' => collect([
+                    'access_token'  => '123',
+                    'refresh_token' => '456',
+                    'expires_in'    => 0,
+                ]),
+            ])->twice();
+        });
         $response = $this->json('POST', 'google-sso', ['code' => '4/0AY0e-g5TSQxVi4t6A7yJd9Cth2_eB6aQ_2E-Daoj4P3HxGJHzklQWnaxGNq9uBhctxutbQ']);
-        dd($response);
 
-        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
         $this->assertLoggedIn($response, $email);
 
         $this->assertDatabaseHas('users', [
@@ -407,7 +402,6 @@ class UserControllerTest extends TestCase
         ]);
 
         $response = $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200);
-        \Queue::assertPushed(SetupGoogleIntegration::class, 1);
         $this->assertLoggedIn($response, $email);
     }
 

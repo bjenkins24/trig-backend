@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Card;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
@@ -29,7 +30,7 @@ class CardTest extends TestCase
              'content'                          => Config::get('constants.seed.card.content'),
              'permissions'                      => [],
              'card_duplicate_ids'               => '1',
-             'thumbnail'                        => null,
+             'thumbnail'                        => 'https://coolstuff.com/public/'.ThumbnailHelper::IMAGE_FOLDER.'/thumbnail/'.$card->token.'.jpg',
              'thumbnail_width'                  => null,
              'thumbnail_height'                 => null,
         ], $result);

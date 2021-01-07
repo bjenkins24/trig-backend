@@ -54,7 +54,7 @@ class CardRepositoryTest extends TestCase
                         'description'                     => 'My aweseom description',
                         'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
                         'favorites_by_user_id'            => [],
-                        'card_type'                       => 'Link',
+                        'type'                            => 'link',
                         'tags'                            => ['Product Management', 'Product'],
                     ],
                     'fields' => [
@@ -86,7 +86,7 @@ class CardRepositoryTest extends TestCase
                         'description'                     => 'My aweseom description',
                         'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
                         'favorites_by_user_id'            => [],
-                        'card_type'                       => 'Link',
+                        'type'                            => 'link',
                         'tags'                            => ['Sales', 'Management'],
                     ],
                     'fields' => [
@@ -118,7 +118,7 @@ class CardRepositoryTest extends TestCase
                         'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
                         'content'                         => 'My awesome content',
                         'favorites_by_user_id'            => [],
-                        'card_type'                       => 'Google Doc',
+                        'type'                            => 'link',
                         'tags'                            => ['Sales', 'Friends'],
                     ],
                     'fields' => [
@@ -171,7 +171,7 @@ class CardRepositoryTest extends TestCase
         $fields = collect([
             'id',
             'token',
-            'cardType',
+            'type',
             'title',
             'url',
             'thumbnail',
@@ -196,8 +196,7 @@ class CardRepositoryTest extends TestCase
                 ['name' => 'Product Management', 'count' => 1],
             ],
             'types' => [
-                ['name' => 'Link', 'count' => 2],
-                ['name' => 'Google Doc', 'count' => 1],
+                ['name' => 'link', 'count' => 3],
             ],
         ], $result->get('filters'));
 

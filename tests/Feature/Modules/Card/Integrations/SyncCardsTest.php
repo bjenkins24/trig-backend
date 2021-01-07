@@ -303,7 +303,7 @@ class SyncCardsTest extends TestCase
             'content'            => $fakeData->get('content'),
             'title'              => $fakeData->get('title'),
             'description'        => $fakeData->get('description'),
-            'properties'         => json_encode(['author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
+            'properties'         => json_encode(['thumbnail' => $card->properties->get('thumbnail'), 'author' => $fakeData->get('author')], JSON_THROW_ON_ERROR),
         ]);
 
         $this->assertDatabaseHas('card_syncs', [

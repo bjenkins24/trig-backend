@@ -38,6 +38,7 @@
                 <file>./app/Utils/WebsiteExtraction/WebsiteExtractionHelper.php</file>
                 <file>./app/Http/Controllers/WebController</file>
                 <file>./app/Modules/Card/Integrations/Google/GoogleConnection.php</file>
+                <file>./app/Modules/Card/Helpers/ElasticQueryBuilderHelper.php</file>
                 <!-- There are some methods in this service that aren't worth it to test some that are -->
                 <file>./app/Modules/OauthConnection/OauthConnectionService.php</file>
                 <directory suffix=".php">./app/Events</directory>

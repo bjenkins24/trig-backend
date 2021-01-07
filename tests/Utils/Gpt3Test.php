@@ -5,14 +5,10 @@ namespace Tests\Utils;
 use App\Utils\Gpt3;
 use Exception;
 use Illuminate\Support\Facades\Http;
-use JsonException;
 use Tests\TestCase;
 
 class Gpt3Test extends TestCase
 {
-    /**
-     * @throws JsonException
-     */
     public function testComplete(): void
     {
         $mockedResult = [

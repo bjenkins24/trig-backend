@@ -23,6 +23,7 @@ class CardControllerTest extends TestCase
         $this->refreshDb();
         Queue::fake();
 
+        Carbon::setTestNow('2020-11-20 00:00:20');
         $now = Carbon::now();
         $data = [
             'url'                => 'https://google.com',
