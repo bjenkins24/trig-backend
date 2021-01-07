@@ -9,13 +9,12 @@ on:
 jobs:
   laravel-tests:
 
-    run:
-      runs-on: ${{ matrix.operating-system }}
-      strategy:
-        matrix:
-            operating-system: [ ubuntu-latest ]
-            php-versions: [ '7.4' ]
-      name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+          operating-system: [ ubuntu-latest ]
+          php-versions: [ '7.4' ]
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     steps:
     - uses: actions/checkout@v2
     - name: Copy .env
