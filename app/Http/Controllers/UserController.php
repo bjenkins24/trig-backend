@@ -106,8 +106,12 @@ class UserController extends Controller
 
         $user = $this->userService->create($request->all());
 
-        // Login the new user
-        $authToken = $this->authRequest($request->all());
+        try {
+            // Login the new user
+            $authToken = $this->authRequest($request->all());
+        } catch (Exception $e) {
+            return response()->json(['error' => 'unexpected', 'message' => $e->getMessage()]);
+        }
 
         return response()->json(['data' => compact('authToken', 'user')], 201);
     }
