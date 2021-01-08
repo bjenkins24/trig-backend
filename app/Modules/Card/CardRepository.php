@@ -413,8 +413,11 @@ class CardRepository
     /**
      * @throws OauthKeyInvalid
      */
-    public function getByForeignId(string $foreignId, string $integrationKey): ?Card
+    public function getByForeignId(?string $foreignId, string $integrationKey): ?Card
     {
+        if (! $foreignId) {
+            return null;
+        }
         $oauthIntegration = $this->oauthIntegration->findByName($integrationKey);
         if (! $oauthIntegration) {
             throw new OauthKeyInvalid("The integration key $integrationKey does not exist");

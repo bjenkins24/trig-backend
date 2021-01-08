@@ -82,8 +82,11 @@ class OauthConnectionRepository
         return $oauthConnection->expires->isBefore(Carbon::now());
     }
 
-    public function getNextPageToken(User $user, Workspace $workspace, string $integrationKey)
+    public function getNextPageToken(User $user, Workspace $workspace, string $integrationKey): ?string
     {
+        if ('link' === $integrationKey) {
+            return null;
+        }
         $oauthConnection = $this->findUserConnection($user, $workspace, $integrationKey);
         if (null === $oauthConnection) {
             throw new RuntimeException('The oauth connection was not found');

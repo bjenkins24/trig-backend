@@ -4,6 +4,7 @@ namespace Tests\Feature\Jobs;
 
 use App\Jobs\GetTags;
 use App\Models\Card;
+use App\Modules\Tag\TagRepository;
 use App\Utils\TagParser\TagParser;
 use Exception;
 use Illuminate\Support\Str;
@@ -23,6 +24,10 @@ class GetTagsTest extends TestCase
             $tags = collect(['Tag', 'Cool Tag']);
             $mock->shouldReceive('getTags')->withArgs([$card->title, Str::htmlToMarkdown($card->content)])->andReturn($tags);
             $mock->shouldReceive('replaceTags')->withArgs([$card, $tags->toArray()]);
+        });
+
+        $this->mock(TagRepository::class, static function ($mock) {
+            $mock->shouldReceive('findSimilar')->andReturn(null);
         });
 
         $getTags = new GetTags(Card::find(1));

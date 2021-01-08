@@ -18,7 +18,7 @@ class SaveCardDataTest extends TestCase
             $mock->shouldReceive('saveCardData')->once();
         });
 
-        $syncCards = new SaveCardData(Card::find(1), 'google');
+        $syncCards = new SaveCardData(Card::find(1), 'link');
         $syncCards->handle();
     }
 

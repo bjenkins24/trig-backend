@@ -2,6 +2,7 @@
 
 namespace Tests\Utils\WebsiteExtraction\WebsiteTypes;
 
+use App\Utils\ExtractDataHelper;
 use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
 use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GoogleDocsExtraction;
@@ -44,6 +45,7 @@ class GoogleDocsExtractionTest extends TestCase
      */
     public function testToHtmlExport(string $givenUrl, string $expectedUrl): void
     {
+        $this->mock(ExtractDataHelper::class);
         $newLink = app(GoogleDocsExtraction::class)->toHtmlExport($givenUrl);
         self::assertEquals(
             $expectedUrl,

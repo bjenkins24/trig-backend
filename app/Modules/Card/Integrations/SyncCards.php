@@ -144,7 +144,7 @@ class SyncCards
             return;
         }
 
-        if (! $existingCard) {
+        if (! $existingCard && 'link' !== $this->integrationKey) {
             $this->cardRepository->createIntegration($card, $data->get('foreign_id'), $this->integrationKey);
         }
 

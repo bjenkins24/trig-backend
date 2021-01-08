@@ -9,6 +9,7 @@ use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardTag\CardTagRepository;
+use App\Modules\Tag\TagRepository;
 use Tests\TestCase;
 use Throwable;
 
@@ -26,6 +27,10 @@ class CardTagRepositoryTest extends TestCase
         $cardId = 1;
         $card = Card::find($cardId);
         $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
+        $this->mock(TagRepository::class, static function ($mock) {
+            $mock->shouldReceive('findSimilar');
+        });
+
         app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
 
         $card2 = app(CardRepository::class)->updateOrInsert([
@@ -87,6 +92,9 @@ class CardTagRepositoryTest extends TestCase
     {
         $card = Card::find(1);
         $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
+        $this->mock(TagRepository::class, static function ($mock) {
+            $mock->shouldReceive('findSimilar');
+        });
         app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
         $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Utils\WebsiteExtraction;
 
+use App\Utils\ExtractDataHelper;
 use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GoogleDocsExtraction;
@@ -16,6 +17,7 @@ class WebsiteExtractionFactoryTest extends TestCase
      */
     public function testMakeWebsiteType(string $url, string $extractionClass): void
     {
+        $this->mock(ExtractDataHelper::class);
         $actualClass = app(WebsiteExtractionFactory::class)->make($url);
         self::assertInstanceOf($extractionClass, $actualClass);
     }

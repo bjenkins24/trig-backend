@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\Card\Helpers\ThumbnailHelper;
-use App\Modules\Card\Integrations\Google\GoogleIntegration;
+use App\Modules\Card\Integrations\Link\LinkIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
@@ -29,7 +29,7 @@ trait SyncCardsTrait
      * @throws OauthIntegrationNotFound
      * @throws OauthMissingTokens
      */
-    private function getSetup(?User $user = null, ?Workspace $workspace = null, ?array $data = null, ?string $service = 'google', ?bool $refreshDb = true): array
+    private function getSetup(?User $user = null, ?Workspace $workspace = null, ?array $data = null, ?string $service = 'link', ?bool $refreshDb = true): array
     {
         Queue::fake();
         if ($refreshDb) {
@@ -60,9 +60,8 @@ trait SyncCardsTrait
             [
                 'data' => [
                     'delete'             => false,
-                    'card_type'          => 'application/vnd.google-apps.document',
+                    'card_type'          => 'link',
                     'url'                => 'https://docs.google.com/document/d/1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k/edit?usp=drivesdk',
-                    'foreign_id'         => '1pfVBaUFC7FnsI_KNQGQHVMnSqblubGGj7hNGqsvHP5k',
                     'title'              => 'Interview Template v0.1',
                     'description'        => 'My cool description',
                     'actual_created_at'  => '2018-12-22 12:30:00',
@@ -80,14 +79,14 @@ trait SyncCardsTrait
     /**
      * @throws OauthIntegrationNotFound
      */
-    private function getBase(?array $data = null, ?string $service = 'google'): SyncCardsIntegration
+    private function getBase(?array $data = null, ?string $service = 'link'): SyncCardsIntegration
     {
         if (null === $data) {
             $data = $this->getMockData();
         }
-        $this->mock(GoogleIntegration::class, static function ($mock) use ($data) {
+        $this->mock(LinkIntegration::class, static function ($mock) use ($data) {
             $mock->shouldReceive('getAllCardData')->andReturn($data);
-            $mock->shouldReceive('getIntegrationKey')->andReturn('google');
+            $mock->shouldReceive('getIntegrationKey')->andReturn('link');
         });
         $this->partialMock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');

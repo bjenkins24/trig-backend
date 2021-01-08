@@ -22,7 +22,7 @@ class SyncCardsTest extends TestCase
             $mock->shouldReceive('syncCards')->once();
         });
 
-        $syncCards = new SyncCards(1, 1, 'google');
+        $syncCards = new SyncCards(1, 1, 'link');
         $syncCards->handle();
     }
 }

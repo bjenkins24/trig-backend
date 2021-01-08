@@ -22,6 +22,7 @@ class GoogleContentTest extends TestCase
      */
     public function testGoogleToMime(string $mime, string $expected): void
     {
+        $this->mock(ExtractDataHelper::class);
         self::assertEquals($expected, app(GoogleContent::class)->googleToMime($mime));
     }
 
@@ -31,6 +32,7 @@ class GoogleContentTest extends TestCase
      */
     public function testGetCardContentGoogle(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $this->mock(GoogleConnection::class, static function ($mock) {
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
@@ -61,6 +63,7 @@ class GoogleContentTest extends TestCase
      */
     public function testGetCardContentNotGoogle(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $this->mock(GoogleConnection::class, static function ($mock) {
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
@@ -74,6 +77,7 @@ class GoogleContentTest extends TestCase
      */
     public function testGetCardGoogleNoMime(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $this->mock(GoogleConnection::class, static function ($mock) {
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
