@@ -22,8 +22,10 @@ do
 sleep 1
 done;
 
-php artisan app:scaffold
-# php artisan migrate --force
+#php artisan app:scaffold
+php artisan migrate --force
+php artisan elastic:migrate --force
+php artisan passport:install --force
 # php artisan horizon
 # php artisan schedule:run
 
