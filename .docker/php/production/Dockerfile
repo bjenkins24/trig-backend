@@ -8,7 +8,7 @@ WORKDIR /var/www/html
 
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli
 
-RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql
+RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets
 
 RUN yes "" | pecl install redis \
     && rm -rf /tmp/pear \
