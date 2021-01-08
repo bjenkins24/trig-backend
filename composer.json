@@ -10,6 +10,7 @@
     "require": {
         "ext-dom": "*",
         "ext-json": "*",
+        "ext-sockets": "*",
         "andreskrey/readability.php": "^2.1",
         "aws/aws-sdk-php": "^3.150",
         "babenkoivan/elastic-migrations": "^1.3",
