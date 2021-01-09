@@ -36,17 +36,6 @@ class Handler extends ExceptionHandler
      */
     public function report(Throwable $exception): void
     {
-        echo json_encode($this->shouldReport($exception));
-        echo '<br>';
-        echo json_encode(env('APP_ENV'));
-        echo '<br>';
-        echo json_encode(app()->bound('sentry'));
-        echo '<br>';
-        echo json_encode(app('sentry'));
-        echo '<br>';
-        echo json_encode(app('sentry')->captureException($exception));
-        echo '<br>';
-        echo json_encode($exception);
         if (
             $this->shouldReport($exception) &&
             'production' === env('APP_ENV') &&
