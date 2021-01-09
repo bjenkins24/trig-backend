@@ -14,6 +14,7 @@ RUN yes "" | pecl install redis \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable redis
 
+COPY .docker/php/production/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 RUN curl -sS https://getcomposer.org/installer | \
