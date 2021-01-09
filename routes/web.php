@@ -14,5 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'WebController@home');
+Route::get('/please-work', function () {
+    echo 'hello world';
+});
 Route::get('/debug-sentry', 'WebController@debug');
 Route::get('/health', 'WebController@health');
