@@ -85,11 +85,18 @@ class UserRepository
             $user->password = bcrypt($input['new_password']);
         }
 
+        $possibleFields = [
+            'email',
+            'first_name',
+            'last_name',
+        ];
+
         $fields = collect($input);
-        $fields->each(static function ($fieldValue, $fieldKey) use (&$user) {
-            if ('old_password' !== $fieldKey && 'new_password' !== $fieldKey) {
-                $user->{$fieldKey} = $fieldValue;
+        $fields->each(static function ($fieldValue, $fieldKey) use ($possibleFields, &$user) {
+            if (! in_array($fieldKey, $possibleFields, true)) {
+                return;
             }
+            $user->{$fieldKey} = $fieldValue;
         });
 
         $user->save();

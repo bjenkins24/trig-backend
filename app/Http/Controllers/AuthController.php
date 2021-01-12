@@ -6,8 +6,10 @@ use App\Exceptions\Auth\NoAccessTokenSet;
 use App\Http\Requests\Auth\Login;
 use App\Modules\User\UserRepository;
 use App\Support\Traits\HandlesAuth;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthController extends Controller
 {
@@ -24,12 +26,13 @@ class AuthController extends Controller
      * Log in user.
      *
      * @throws NoAccessTokenSet
+     * @throws Exception
      */
     public function login(Login $request): JsonResponse
     {
         try {
             $authToken = $this->authRequest($request->all());
-        } catch (\Exception $e) {
+        } catch (HttpException $e) {
             $error = $e->getMessage();
             $message = 'invalid_grant' === $error ?
                 'The email or password you entered was incorrect. Please try again.' :

@@ -2,9 +2,11 @@
 
 namespace App\Support\Traits;
 
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Passport\Client;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait HandlesAuth
@@ -33,13 +35,15 @@ trait HandlesAuth
     }
 
     /**
-     * Send authentication request.
-     *
-     * @return array
+     * @throws Exception
      */
-    public function authRequest(array $input)
+    public function authRequest(array $input): array
     {
         $client = Client::where('name', 'like', '%Password%')->first();
+
+        if (! $client) {
+            throw new RuntimeException("No oauth client found for passport. You likely didn't install passport on the server. You need to ssh in and run `php artisan passport:install`. This needs to happen only once. It adds an oauth client to the DB.");
+        }
 
         $response = $this->authResponse(array_merge($input, [
             'client_secret' => $client->secret,

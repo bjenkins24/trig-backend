@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor
 
 RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets
 
@@ -16,6 +16,8 @@ RUN yes "" | pecl install redis \
 
 COPY .docker/php/production/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+
+COPY .docker/php/production/laravel-worker.conf /etc/supervisor/conf.d/laravel-worker.conf
 
 RUN curl -sS https://getcomposer.org/installer | \
     php -- --install-dir=/usr/bin/ --filename=composer

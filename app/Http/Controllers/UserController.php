@@ -72,7 +72,7 @@ class UserController extends Controller
 
         $this->userRepo->update($user, $request->all());
 
-        return response()->json($user);
+        return response()->json($this->userRepo->getMe($user));
     }
 
     public function delete(Request $request): JsonResponse
@@ -84,7 +84,9 @@ class UserController extends Controller
 
             $user->properties = ['tagged_for_deletion' => true];
             // Change the email so the old email can be used again while we're waiting for the job to finish
-            $user->email = 'deleting-'.$user->email;
+            // We need some entropy just incase they create an account with the same email and delete it immediately
+            // before the deletion of the last one occurred
+            $user->email = 'deleting-'.bin2hex(random_bytes(8)).'-'.$user->email;
             $user->save();
         } catch (Exception $exception) {
             return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.']);
@@ -113,7 +115,12 @@ class UserController extends Controller
             return response()->json(['error' => 'unexpected', 'message' => $e->getMessage()]);
         }
 
-        return response()->json(['data' => compact('authToken', 'user')], 201);
+        return response()->json([
+            'data' => [
+                'authToken' => $authToken,
+                'user'      => $this->userRepo->getMe($user),
+            ],
+        ], 201);
     }
 
     /**

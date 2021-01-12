@@ -181,8 +181,12 @@ class UserControllerTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id'         => '1',
-            'email'      => 'deleting-'.$email,
             'properties' => json_encode(['tagged_for_deletion' => true], JSON_THROW_ON_ERROR),
+        ]);
+
+        $this->assertDatabaseMissing('users', [
+            'id'         => '1',
+            'email'      => $email,
         ]);
 
         self::assertEquals('"success"', $response->getContent());

@@ -34,9 +34,14 @@ return [
     */
 
     'channels' => [
+        'sentry' => [
+            'driver' => 'sentry',
+            'bubble' => true,
+        ],
+
         'stack' => [
             'driver'            => 'stack',
-            'channels'          => ['single'],
+            'channels'          => ['single', 'sentry'],
             'ignore_exceptions' => false,
         ],
 
