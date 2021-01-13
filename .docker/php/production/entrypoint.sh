@@ -34,7 +34,7 @@ if [ "$role" = "app" ]; then
 
 elif [ "$role" = "queue" ]; then
 
-   exit 0
+    php-fpm -F -R
 
 elif [ "$role" = "scheduler" ]; then
 
