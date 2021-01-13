@@ -34,9 +34,7 @@ if [ "$role" = "app" ]; then
 
 elif [ "$role" = "queue" ]; then
 
-    supervisorctl reread
-    supervisorctl update
-    supervisorctl start laravel-worker:*
+   exit 0
 
 elif [ "$role" = "scheduler" ]; then
 
