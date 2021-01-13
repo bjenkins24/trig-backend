@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli
 
 RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets
 
