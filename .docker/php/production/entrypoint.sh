@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e # exit script if any command fails (non-zero value)
 
+role=${CONTAINER_ROLE:-app}
+
 #echo Waiting for redis service start...;
 #
 #while ! nc -z redis 6379;
@@ -26,4 +28,26 @@ set -e # exit script if any command fails (non-zero value)
 #php artisan elastic:migrate
 #php artisan optimize
 
-php-fpm -F -R
+if [ "$role" = "app" ]; then
+
+    php-fpm -F -R
+
+elif [ "$role" = "queue" ]; then
+
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl start laravel-worker:*
+
+elif [ "$role" = "scheduler" ]; then
+
+    while [ true ]
+    do
+      php /var/www/html/artisan schedule:run --verbose --no-interaction &
+      sleep 60
+    done
+
+else
+    echo "Could not match the container role \"$role\""
+    exit 1
+fi
+
