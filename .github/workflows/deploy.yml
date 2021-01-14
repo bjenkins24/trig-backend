@@ -60,6 +60,7 @@ jobs:
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY
         aws --region us-west-1 ecs update-service --cluster main-frontend-production --service main-frontend-production --force-new-deployment
+        aws --region us-west-1 ecs update-service --cluster main-backend-production --service main-backend-production-queue-worker --force-new-deployment
       env:
         ECR_REGISTRY: "${{ steps.login-ecr.outputs.registry }}"
         NEW_RELIC_AGENT_VERSION: 9.13.0.270
