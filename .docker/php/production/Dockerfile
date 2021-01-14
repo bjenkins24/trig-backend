@@ -6,9 +6,11 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev
 
-RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets
+RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr
+
+RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets gd
 
 RUN yes "" | pecl install redis \
     && rm -rf /tmp/pear \
