@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\CardView;
+namespace Tests\Feature\Modules\CardFavorite;
 
 use App\Models\Card;
 use App\Models\CardFavorite;

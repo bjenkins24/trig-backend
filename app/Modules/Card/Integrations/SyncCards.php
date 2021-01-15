@@ -223,9 +223,9 @@ class SyncCards
             GetTags::dispatch($card)->onQueue('get-tags');
         }
 
-        if ($card->content) {
-            CardDedupe::dispatch($card)->onQueue('card-dedupe');
-        }
+//        if ($card->content) {
+//            CardDedupe::dispatch($card)->onQueue('card-dedupe');
+//        }
 
         return true;
     }
