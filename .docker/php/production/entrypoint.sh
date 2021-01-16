@@ -18,6 +18,7 @@ elif [ "$role" = "queue" ]; then
     supervisorctl reread
     supervisorctl update
     supervisorctl start laravel-worker:*
+    php-fpm -F -R
 
 elif [ "$role" = "scheduler" ]; then
 
