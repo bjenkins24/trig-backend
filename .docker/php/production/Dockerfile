@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g nodejs
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-xpm --with-webp
 
