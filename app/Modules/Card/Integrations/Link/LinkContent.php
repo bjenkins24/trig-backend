@@ -9,6 +9,7 @@ use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteExtractionFactory;
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class LinkContent implements ContentInterface
 {
@@ -45,7 +46,7 @@ class LinkContent implements ContentInterface
 
             return collect([]);
         } catch (Exception $exception) {
-            \Log::notice('5.8 Website extraction failed: attempt '.$this->attempts);
+            Log::notice('Failed website extraction on attempt '.$this->attempts.': '.$exception->getMessage());
             ++$this->attempts;
             // Enough retrying IT FAILED!
             if ($this->attempts >= self::TOTAL_ATTEMPTS) {
