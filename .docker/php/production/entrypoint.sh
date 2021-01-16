@@ -7,12 +7,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
+php-fpm -F -R
 
-if [ "$role" = "app" ]; then
-
-    php-fpm -F -R
-
-elif [ "$role" = "queue" ]; then
+if [ "$role" = "queue" ]; then
 
     supervisord -c /etc/supervisor/supervisord.conf
     supervisorctl reread
