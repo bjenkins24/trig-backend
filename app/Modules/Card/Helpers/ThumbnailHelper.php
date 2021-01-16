@@ -7,7 +7,6 @@ use App\Modules\Card\CardRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -46,25 +45,25 @@ class ThumbnailHelper
 
     public function saveThumbnail(string $thumbnailUri, Card $card): bool
     {
-        $imagePath = 'public/'.self::IMAGE_FOLDER.'/full/'.$card->token;
-        $thumbnailPath = 'public/'.self::IMAGE_FOLDER.'/thumbnail/'.$card->token;
+        $imagePath = '/'.self::IMAGE_FOLDER.'/full/'.$card->token;
+        $thumbnailPath = '/'.self::IMAGE_FOLDER.'/thumbnail/'.$card->token;
         $thumbnail = $this->getThumbnail($thumbnailUri);
         if ($thumbnail->isEmpty()) {
             return false;
         }
         $imagePathWithExtension = $imagePath.'.'.$thumbnail->get('extension');
-        $fullResult = Storage::put($imagePathWithExtension, $thumbnail->get('thumbnail')->encode($thumbnail->get('extension'))->__toString());
+        $fullResult = Storage::put('public'.$imagePathWithExtension, $thumbnail->get('thumbnail')->encode($thumbnail->get('extension'))->__toString());
         $cardRepository = app(CardRepository::class);
 
         if ($fullResult) {
-            $card = $cardRepository->setProperties($card, ['full_image' => Config::get('app.url').Storage::url($imagePathWithExtension)]);
+            $card = $cardRepository->setProperties($card, ['full_image' => $imagePathWithExtension]);
         }
 
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
         $resizedImage = $this->fileHelper->makeImage($thumbnail->get('thumbnail'))->resize(251, null, static function ($constraint) {
             $constraint->aspectRatio();
         });
-        $result = Storage::put($thumbnailPathWithExtension, $resizedImage->encode($thumbnail->get('extension'))->__toString());
+        $result = Storage::put('public'.$thumbnailPathWithExtension, $resizedImage->encode($thumbnail->get('extension'))->__toString());
 
         $thumbnailUri = str_replace('storage/', '', $thumbnailUri);
         // If we have it locally it should get deleted because we moved it to the thumbnail and image path folders
@@ -72,7 +71,7 @@ class ThumbnailHelper
 
         if ($result) {
             $card = $cardRepository->setProperties($card, [
-                'thumbnail'        => Config::get('app.url').Storage::url($thumbnailPathWithExtension),
+                'thumbnail'        => $thumbnailPathWithExtension,
                 'thumbnail_width'  => $resizedImage->width(),
                 'thumbnail_height' => $resizedImage->height(),
             ]);
