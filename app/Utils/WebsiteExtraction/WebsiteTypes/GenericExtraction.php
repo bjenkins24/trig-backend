@@ -34,6 +34,8 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
         try {
             $content = $website->parseContent();
             \Log::notice('9. Got website parse content:'.json_encode($content));
+
+            return $content;
         } catch (ReadabilityParseException $e) {
             if (! $this->url) {
                 \Log::notice('9.5. no url!:'.json_encode($website));
