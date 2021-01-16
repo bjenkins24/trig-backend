@@ -28,7 +28,7 @@ RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
     aws s3 cp s3://trig-us-west-1/main/.env.production .env
 
 COPY composer.lock composer.json ./
-RUN composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
+RUN composer install --optimize-autoloader --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
 
 COPY . .
 

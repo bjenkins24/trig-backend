@@ -3,30 +3,11 @@ set -e # exit script if any command fails (non-zero value)
 
 role=${CONTAINER_ROLE:-app}
 
-#echo Waiting for redis service start...;
-#
-#while ! nc -z redis 6379;
-#do
-#sleep 1;
-#done;
-#
-#echo Waiting for mysql service start...;
-#
-#while ! nc -z mysql 3306;
-#do
-#sleep 1;
-#done;
-#
-#echo Waiting for elasticsearch to start...;
-#
-#while ! nc -z elasticsearch 9200;
-#do
-#sleep 1
-#done;
-
-#php artisan migrate --force
-#php artisan elastic:migrate
-#php artisan optimize
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan migrate
+php artisan elastic:migrate
 
 if [ "$role" = "app" ]; then
 
@@ -34,7 +15,10 @@ if [ "$role" = "app" ]; then
 
 elif [ "$role" = "queue" ]; then
 
-    php-fpm -F -R
+    supervisord -c /etc/supervisor/supervisord.conf
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl start laravel-worker:*
 
 elif [ "$role" = "scheduler" ]; then
 
