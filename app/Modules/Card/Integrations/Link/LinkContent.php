@@ -27,12 +27,9 @@ class LinkContent implements ContentInterface
 
     public function getCardContentData(Card $card, ?string $id = null, ?string $mimeType = null, int $currentRetryAttempt = 0): Collection
     {
-        \Log::notice('5. Get card content start '.json_encode($card));
         ini_set('max_execution_time', 120);
         $websiteExtraction = $this->websiteExtractionFactory->make($card->url);
         if (! $websiteExtraction) {
-            \Log::notice('5.5 No website extraction class');
-
             return collect([]);
         }
         try {
@@ -42,7 +39,6 @@ class LinkContent implements ContentInterface
                 'card_id' => $card->id,
                 'status'  => 2,
             ]);
-            \Log::notice('5.75 404 website');
 
             return collect([]);
         } catch (Exception $exception) {
@@ -62,11 +58,7 @@ class LinkContent implements ContentInterface
             return $this->getCardContentData($card, $id, $mimeType, $this->attempts);
         }
 
-        \Log::notice('10.5 got website: '.json_encode($website));
-
         if (! $website || ! $website->getRawContent()) {
-            \Log::notice('5.9 Website no content or website');
-
             return collect([]);
         }
 

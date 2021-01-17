@@ -163,10 +163,7 @@ class SyncCards
      */
     public function saveCardData(Card $card): bool
     {
-        \Log::notice('3. Start save card data');
         if (! $this->cardSyncRepository->shouldSync($card)) {
-            \Log::notice('3.5 Should not sync');
-
             return false;
         }
         $this->oauthIntegrationService->isIntegrationValid(CardType::find($card->card_type_id)->name);
@@ -178,17 +175,12 @@ class SyncCards
             $mimeType = $this->cardRepository->getCardType($card)->name;
         }
 
-        \Log::notice('3.8. Mime type: '.$mimeType);
-        \Log::notice('4. About to get content.');
         $data = $this->contentIntegration->getCardContentData($card, $id, $mimeType);
-        \Log::notice('11. got content: '.json_encode($data));
 
         // If there's no card content we should just stop. If this is in error, `getCardContentData` will do the
         // retry logic and logging. This can be a legitimate result of getCardContentData though, so we're just going
         // to no-op here instead of logging
         if ($data->isEmpty()) {
-            \Log::notice('12. NO CONTENT STOP');
-
             return false;
         }
 

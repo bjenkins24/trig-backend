@@ -36,10 +36,8 @@ class SaveCardData implements ShouldQueue
 
     public function handle(): void
     {
-        \Log::notice('1. Start queue.');
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-            \Log::notice('2. Make integration.');
             $syncCardsIntegration->saveCardData($this->card);
         } catch (Exception $error) {
             Log::error($error->getMessage());
