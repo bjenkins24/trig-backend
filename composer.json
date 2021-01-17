@@ -25,6 +25,7 @@
         "intervention/image": "^2.5",
         "laravel/framework": "^7.0",
         "laravel/horizon": "^4.3",
+        "laravel/nova": "*",
         "laravel/passport": "^8.4",
         "laravel/scout": "^8.0",
         "laravel/tinker": "^2.0",
@@ -75,6 +76,12 @@
             "Tests\\": "tests/"
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./nova"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
