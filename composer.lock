@@ -365,16 +365,16 @@
         },
         {
             "name": "babenkoivan/elastic-scout-driver",
-            "version": "v1.2.1",
+            "version": "v1.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/babenkoivan/elastic-scout-driver.git",
-                "reference": "32cb086d21a9fc732005777350c0683dac00b268"
+                "reference": "d4abf667628bdd980861fa286dcd544be34118ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/babenkoivan/elastic-scout-driver/zipball/32cb086d21a9fc732005777350c0683dac00b268",
-                "reference": "32cb086d21a9fc732005777350c0683dac00b268",
+                "url": "https://api.github.com/repos/babenkoivan/elastic-scout-driver/zipball/d4abf667628bdd980861fa286dcd544be34118ac",
+                "reference": "d4abf667628bdd980861fa286dcd544be34118ac",
                 "shasum": ""
             },
             "require": {
@@ -422,7 +422,7 @@
                 "php",
                 "scout"
             ],
-            "time": "2020-12-10T15:10:19+00:00"
+            "time": "2021-01-17T12:55:55+00:00"
         },
         {
             "name": "babenkoivan/elastic-scout-driver-plus",
@@ -11090,16 +11090,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "8.5.13",
+            "version": "8.5.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "8e86be391a58104ef86037ba8a846524528d784e"
+                "reference": "c25f79895d27b6ecd5abfa63de1606b786a461a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/8e86be391a58104ef86037ba8a846524528d784e",
-                "reference": "8e86be391a58104ef86037ba8a846524528d784e",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c25f79895d27b6ecd5abfa63de1606b786a461a3",
+                "reference": "c25f79895d27b6ecd5abfa63de1606b786a461a3",
                 "shasum": ""
             },
             "require": {
@@ -11179,7 +11179,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-12-01T04:53:52+00:00"
+            "time": "2021-01-17T07:37:30+00:00"
         },
         {
             "name": "roave/security-advisories",
