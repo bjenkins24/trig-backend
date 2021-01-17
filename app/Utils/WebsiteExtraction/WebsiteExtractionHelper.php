@@ -71,7 +71,10 @@ class WebsiteExtractionHelper
     public function fullFetch(string $url): Website
     {
         $puppeteer = new Puppeteer();
-        $browser = $puppeteer->launch();
+        $browser = $puppeteer->launch([
+            'headless' => true,
+            'args'     => ['--no-sandbox'],
+        ]);
 
         $page = $browser->newPage();
         $page->setExtraHTTPHeaders($this->getHeaders());
