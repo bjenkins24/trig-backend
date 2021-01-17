@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c3fde7f98fc5baaf90e0ad0d474198b",
+    "content-hash": "9511e165b82482eddcc67841c4228118",
     "packages": [
         {
             "name": "andreskrey/readability.php",
