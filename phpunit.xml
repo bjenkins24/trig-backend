@@ -33,6 +33,8 @@
                 <file>./app/Providers/BroadcastServiceProvider.php</file>
                 <file>./app/Exceptions/Handler.php</file>
                 <file>./app/Jobs/SendMail.php</file>
+                <file>./app/Nova/Resource.php</file>
+                <file>./app/Nova/User.php</file>
                 <file>./app/Jobs/SendMail.php</file>
                 <file>./app/Utils/FileHelper.php</file>
                 <file>./app/Utils/WebsiteExtraction/WebsiteExtractionHelper.php</file>
