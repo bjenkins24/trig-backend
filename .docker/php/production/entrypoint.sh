@@ -10,7 +10,6 @@ php artisan migrate --force
 
 if [ "$role" = "app" ]; then
 
-    php artisan nova:install
     php-fpm -F -R
 
 elif [ "$role" = "queue" ]; then
