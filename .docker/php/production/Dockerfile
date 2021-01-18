@@ -34,14 +34,17 @@ RUN curl -sS https://getcomposer.org/installer | \
 RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
     aws s3 cp s3://trig-us-west-1/main/.env.production .env
 
-COPY composer.lock composer.json nova ./
+COPY . .
+
+## Have to npm install for puppeteer
+#COPY package.json package-lock.json ./
+#RUN npm ci --only=prod
+#
+#COPY composer.lock composer.json nova ./
 RUN composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
 
-# Have to npm install for puppeteer
-COPY package.json package-lock.json ./
-RUN npm ci --only=prod
 
-COPY . .
+
 
 RUN chown -R www-data:www-data \
     ./storage \
