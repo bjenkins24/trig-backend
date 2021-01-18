@@ -34,12 +34,14 @@ RUN curl -sS https://getcomposer.org/installer | \
 RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
     aws s3 cp s3://trig-us-west-1/main/.env.production .env
 
+# Ideally this should go below composer install and npm ci, but composer won't install nova correctly for some reason
+# even after copying the ./nova folder. So this is a hack.
 COPY . .
 
 ## Have to npm install for puppeteer
 #COPY package.json package-lock.json ./
-#RUN npm ci --only=prod
-#
+RUN npm ci --only=prod
+
 #COPY composer.lock composer.json nova ./
 RUN composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
 
