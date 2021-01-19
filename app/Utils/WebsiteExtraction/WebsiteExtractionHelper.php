@@ -11,7 +11,6 @@ use Campo\UserAgent;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use JsonException;
 use Nesk\Puphpeteer\Puppeteer;
@@ -84,8 +83,8 @@ class WebsiteExtractionHelper
             'width'    => 640,
             'height'   => 480,
         ]);
-//        $imagePath = 'public'.Storage::url('tmp-screenshots/'.Str::random().'.png');
-        $screenshot = $page->screenshot();
+        $imagePath = 'public/tmp-screenshots/'.Str::random().'.png';
+        $screenshot = $page->screenshot(['path' => $imagePath]);
 
         $browser->close();
 
