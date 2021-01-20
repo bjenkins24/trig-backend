@@ -36,6 +36,8 @@ class SaveCardData implements ShouldQueue
 
     public function handle(): void
     {
+        // Puppeteer can take a lot of memory
+        ini_set('memory_limit', '1024M');
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
             $syncCardsIntegration->saveCardData($this->card);
