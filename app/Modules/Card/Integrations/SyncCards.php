@@ -184,9 +184,10 @@ class SyncCards
             return false;
         }
 
-        if ($data->get('image')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
+        if ($data->get('image') || $data->get('screenshot')) {
+            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
             $data->forget('image');
+            $data->forget('screenshot');
         }
 
         // We need to know if it's synced in the PAST for deciding if we should get the tags for this card

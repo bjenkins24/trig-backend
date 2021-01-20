@@ -83,8 +83,8 @@ class WebsiteExtractionHelper
             'width'    => 640,
             'height'   => 480,
         ]);
-        $imagePath = 'public/tmp-screenshots/'.Str::random().'.png';
-        $screenshot = $page->screenshot(['path' => $imagePath]);
+        $imagePath = Str::random().'.png';
+        $page->screenshot(['path' => $imagePath, 'fullPage' => true]);
 
         $browser->close();
 
@@ -95,7 +95,7 @@ class WebsiteExtractionHelper
             }
         }
 
-        return $this->websiteFactory->make($content)->setScreenshot($screenshot);
+        return $this->websiteFactory->make($content)->setScreenshot($imagePath);
     }
 
     /**

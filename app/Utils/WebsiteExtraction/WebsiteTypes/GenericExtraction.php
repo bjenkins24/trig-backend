@@ -23,15 +23,11 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
             $website = $this->websiteExtractionHelper->simpleFetch($this->url);
         }
         if (3 === $currentRetryAttempt) {
-            $download = $this->websiteExtractionHelper->downloadAndExtract($this->url);
-
-            return $download;
+            return $this->websiteExtractionHelper->downloadAndExtract($this->url);
         }
 
         try {
-            $content = $website->parseContent();
-
-            return $content;
+            return $website->parseContent();
         } catch (ReadabilityParseException $e) {
             if (! $this->url) {
                 return $website;
@@ -40,9 +36,7 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
             // and then parse it with Tika. Maybe we'll have better luck
             // This could be when full or simple fetch did NOT fail, but readability
             // didn't have enough context for whatever reason to parse the string
-            $download = $this->websiteExtractionHelper->downloadAndExtract($this->url);
-
-            return $download;
+            return $this->websiteExtractionHelper->downloadAndExtract($this->url);
         }
     }
 }
