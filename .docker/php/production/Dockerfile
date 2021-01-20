@@ -39,6 +39,7 @@ RUN curl -L https://download.newrelic.com/php_agent/archive/${NEW_RELIC_AGENT_VE
       /usr/local/etc/php/conf.d/newrelic.ini
 
 COPY .docker/php/production/laravel-worker.conf /etc/supervisor/conf.d/laravel-worker.conf
+COPY .docker/php/production/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 RUN curl -sS https://getcomposer.org/installer | \
     php -- --install-dir=/usr/bin/ --filename=composer
