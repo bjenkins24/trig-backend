@@ -14,10 +14,10 @@ if [ "$role" = "app" ]; then
 
 elif [ "$role" = "queue" ]; then
 
-#    supervisord -c /etc/supervisor/supervisord.conf
-#    supervisorctl reread
-#    supervisorctl update
-#    supervisorctl start laravel-worker:*
+    supervisord -c /etc/supervisor/supervisord.conf
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl start laravel-worker:*
     php-fpm -F -R
 
 elif [ "$role" = "scheduler" ]; then
