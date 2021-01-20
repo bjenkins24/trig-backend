@@ -148,8 +148,8 @@ class SyncCards
             $this->cardRepository->createIntegration($card, $data->get('foreign_id'), $this->integrationKey);
         }
 
-        if ($data->get('image')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $card);
+        if ($data->get('image') || $data->get('screenshot')) {
+            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
         }
         $this->savePermissions($cardData->get('permissions'), $card);
 

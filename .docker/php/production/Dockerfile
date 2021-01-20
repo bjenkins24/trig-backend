@@ -45,9 +45,6 @@ RUN npm ci --only=prod
 #COPY composer.lock composer.json nova ./
 RUN composer install --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
 
-
-
-
 RUN chown -R www-data:www-data \
     ./storage \
     ./bootstrap/cache

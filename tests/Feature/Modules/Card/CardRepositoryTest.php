@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
+use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ThumbnailHelper;
@@ -439,6 +440,11 @@ class CardRepositoryTest extends TestCase
         self::assertNull($card);
     }
 
+    /**
+     * @throws CardExists
+     * @throws CardWorkspaceIdMustExist
+     * @throws CardUserIdMustExist
+     */
     public function testNoActualCreatedUpdateOrInsert(): void
     {
         $this->refreshDb();

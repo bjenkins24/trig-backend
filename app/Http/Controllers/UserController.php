@@ -80,14 +80,14 @@ class UserController extends Controller
         $user = $request->user();
 
         try {
-            DeleteUser::dispatch($user);
-
             $user->properties = ['tagged_for_deletion' => true];
             // Change the email so the old email can be used again while we're waiting for the job to finish
             // We need some entropy just incase they create an account with the same email and delete it immediately
             // before the deletion of the last one occurred
             $user->email = 'deleting-'.bin2hex(random_bytes(8)).'-'.$user->email;
             $user->save();
+
+            DeleteUser::dispatch($user);
         } catch (Exception $exception) {
             return response()->json(['error' => 'unexpected', 'message' => 'An unexpected error has occurred. Please try again.']);
         }

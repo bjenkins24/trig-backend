@@ -2,21 +2,15 @@
 
 namespace Tests\Feature\Modules\Card\Integrations;
 
-use App\Jobs\CardDedupe;
 use App\Models\Capability;
 use App\Models\Card;
-use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\Person;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
-use App\Modules\Card\Integrations\Google\GoogleContent;
 use App\Modules\CardSync\CardSyncRepository;
-use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
-use Illuminate\Support\Facades\Queue;
-use JsonException;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\Support\Traits\SyncCardsTrait;
 use Tests\TestCase;

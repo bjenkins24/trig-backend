@@ -44,7 +44,8 @@ class LinkContentTest extends TestCase
             ->setTitle('hello')
             ->setAuthor('my author')
             ->setExcerpt('description')
-            ->setImage('cool image');
+            ->setImage('cool image')
+            ->setScreenshot('cool screenshot');
 
         $this->mock(GenericExtraction::class, static function ($mock) use ($mockWebsite) {
             $mock->shouldReceive('getWebsite')->andReturn($mockWebsite);
@@ -60,6 +61,7 @@ class LinkContentTest extends TestCase
             'author'      => $mockWebsite->getAuthor(),
             'description' => $mockWebsite->getExcerpt(),
             'image'       => $mockWebsite->getImage(),
+            'screenshot'  => $mockWebsite->getScreenshot(),
         ]), $cardData);
     }
 }
