@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "61fef2c5195b3e12e70ea09952a823b7",
+    "content-hash": "64c66cb7dd4797fc278328112d7e4e44",
     "packages": [
         {
             "name": "andreskrey/readability.php",
@@ -759,12 +759,12 @@
             "version": "v1.5.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/clue/php-stream-filter.git",
+                "url": "https://github.com/clue/stream-filter.git",
                 "reference": "aeb7d8ea49c7963d3b581378955dbf5bc49aa320"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/clue/php-stream-filter/zipball/aeb7d8ea49c7963d3b581378955dbf5bc49aa320",
+                "url": "https://api.github.com/repos/clue/stream-filter/zipball/aeb7d8ea49c7963d3b581378955dbf5bc49aa320",
                 "reference": "aeb7d8ea49c7963d3b581378955dbf5bc49aa320",
                 "shasum": ""
             },
@@ -884,6 +884,60 @@
                 }
             ],
             "time": "2020-11-11T10:22:58+00:00"
+        },
+        {
+            "name": "davidpiesse/nova-phpinfo",
+            "version": "0.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/davidpiesse/nova-phpinfo.git",
+                "reference": "4ea455b1eba1e72cd3a9f791b22585108ae57a30"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/davidpiesse/nova-phpinfo/zipball/4ea455b1eba1e72cd3a9f791b22585108ae57a30",
+                "reference": "4ea455b1eba1e72cd3a9f791b22585108ae57a30",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": "*",
+                "php": ">=7.1.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^3.6",
+                "phpunit/phpunit": "7.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Davidpiesse\\NovaPhpinfo\\ToolServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Davidpiesse\\NovaPhpinfo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Piesse",
+                    "email": "piesse@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Display PHPInfo data",
+            "homepage": "https://github.com/davidpiesse/nova-phpinfo",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "time": "2018-10-11T19:24:22+00:00"
         },
         {
             "name": "defuse/php-encryption",
