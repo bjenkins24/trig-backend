@@ -5,29 +5,59 @@ namespace App\Utils\TagParser;
 class TagHeuristics
 {
     /**
-     * If the content or the title contain a certain string let's just auto tag it. This is how a human
+     * If the content, title, or URL contain a certain string let's just auto tag it. This is how a human
      * would do it.
      */
     private const HEURISTICS = [
         [
-            'title' => 'Amazon.com: Books',
+            'title' => ['Amazon.com: Books'],
             'tag'   => 'Book',
         ],
         [
-            'title' => 'sale',
+            'title' => ['sale'],
             'tag'   => 'Sales',
+        ],
+        [
+            'url' => [
+                'allrecipes.com',
+                'yummly.com',
+                'epicurious.com',
+                'tasty.co',
+                'spoonacular.com',
+                'delish.com',
+                'edamam.com',
+                'pinchofyum.com',
+                'recipetineats.com',
+                'foodnetwork.com',
+                'souldeliciouz',
+                'turkishfood',
+                'cooked.com',
+                'gimmesomeoven.com',
+            ],
+            'tag' => 'Recipe',
         ],
     ];
 
     /**
      * Add tags based off of just simple string matching in the title or content.
      */
-    public function addHeuristicTags(array $tags, ?string $title = '', ?string $content = ''): array
+    public function addHeuristicTags(array $tags, ?string $title = '', ?string $content = '', ?string $url = ''): array
     {
         $newTags = $tags;
         foreach (self::HEURISTICS as $heuristic) {
-            if (! empty($heuristic['title']) && false !== stripos($title, $heuristic['title'])) {
-                $newTags[] = $heuristic['tag'];
+            if (! empty($heuristic['title'])) {
+                foreach ($heuristic['title'] as $testTitle) {
+                    if (false !== stripos($title, $testTitle)) {
+                        $newTags[] = $heuristic['tag'];
+                    }
+                }
+            }
+            if (! empty($heuristic['url'])) {
+                foreach ($heuristic['url'] as $testUrl) {
+                    if (false !== stripos($url, $testUrl)) {
+                        $newTags[] = $heuristic['tag'];
+                    }
+                }
             }
         }
 

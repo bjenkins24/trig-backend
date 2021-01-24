@@ -71,17 +71,21 @@ class WebsiteExtractionHelper
     {
         $puppeteer = new Puppeteer();
         $browser = $puppeteer->launch([
-            'headless' => true,
-            'args'     => ['--no-sandbox'],
+            'headless'        => true,
+            'args'            => ['--no-sandbox', '--start-maximized', '--disable-dev-shm-usage'],
+            'defaultViewport' => null,
         ]);
 
         $page = $browser->newPage();
         $page->setExtraHTTPHeaders($this->getHeaders());
-        $response = $page->goto($url);
+        $response = $page->goto($url, [
+            'timeout'   => 15,
+        ]);
         $content = $page->content();
         $page->setViewport([
-            'width'    => 640,
-            'height'   => 480,
+            'width'              => 1440,
+            'height'             => 900,
+            'deviceScaleFactor'  => 2,
         ]);
         $imagePath = Str::random().'.png';
         $page->screenshot(['path' => $imagePath, 'fullPage' => true]);

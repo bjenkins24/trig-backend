@@ -76,10 +76,10 @@ EXPECTED, $result
     /**
      * @dataProvider tagSuccessProvider
      */
-    public function testGetTagsSuccess(string $title, string $content, string $completion, array $expected): void
+    public function testGetTagsSuccess(string $title, string $content, string $url, string $completion, array $expected): void
     {
         $this->mockResponse($completion);
-        $results = app(TagParser::class)->getTags($title, $content);
+        $results = app(TagParser::class)->getTags($title, $content, $url);
         self::assertEquals(collect($expected), $results);
     }
 
@@ -89,6 +89,7 @@ EXPECTED, $result
             [
                 'fake',
                 'fake',
+                '',
                 <<<COMPLETION_EXAMPLE
 Accountant, #Sales Enablement, Product Management
 
@@ -98,6 +99,7 @@ COMPLETION_EXAMPLE,
             [
                 'Amazon.com: Books',
                 'fake',
+                '',
                 <<<COMPLETION_EXAMPLE
 ~Cool Tag, Fan, Amazon.com, HR Personel
 
@@ -107,6 +109,7 @@ COMPLETION_EXAMPLE,
             [
                 'fake',
                 'fake',
+                '',
                 <<<COMPLETION_EXAMPLE
 Risk Managers, Making an MVP, Budget,
 
@@ -116,11 +119,19 @@ COMPLETION_EXAMPLE,
             [
                 'fake',
                 'fake',
+                'https://www.gimmesomeoven.com/slow-cooker-chicken-enchilada-soup-recipe',
                 <<<COMPLETION_EXAMPLE
-Covid 19, Covid 20, Covid 21, Do it yourself, it, cash, Cash, Cash Money, Covid 19, M&amp;M
+Covid 19, Covid 20, Covid 21, Do it yourself, it, Five Word Tag Gets Removed, cash, Cash, Cash Money, Covid 19, M&amp;M
 
 COMPLETION_EXAMPLE,
-                ['Covid 19', 'DIY', 'Cash Money', 'M&M'],
+                ['Covid 19', 'DIY', 'Recipe', 'Cash Money', 'M&M'],
+            ],
+            [
+                '',
+                '',
+                '',
+                '',
+                [],
             ],
         ];
     }

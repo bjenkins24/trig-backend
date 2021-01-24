@@ -51,7 +51,7 @@ class TagParser
         return $tags;
     }
 
-    private function increaseEngine(int $engineId, string $completion, string $input, string $title, string $documentText, string $promptType): Collection
+    private function increaseEngine(int $engineId, string $completion, string $input, string $title, string $documentText, ?string $url, string $promptType): Collection
     {
         $nextEngineNoticeMessage = '';
         if ($engineId < 3) {
@@ -61,7 +61,7 @@ class TagParser
 
         Log::notice($nextEngineNoticeMessage);
 
-        return $this->getTags($title, $documentText, $promptType, $engineId + 1);
+        return $this->getTags($title, $documentText, $url, $promptType, $engineId + 1);
     }
 
     /**
@@ -86,7 +86,7 @@ class TagParser
         return $formatted;
     }
 
-    private function cleanTags(array $tags, string $title, string $documentText): Collection
+    private function cleanTags(array $tags, string $title, string $documentText, ?string $url): Collection
     {
         // Sometimes tags come in like D&amp;D instead of D&D
         $newTags = $tags;
@@ -102,7 +102,8 @@ class TagParser
                             $this->tagHeuristics->addHeuristicTags(
                                 $newTags,
                                 $title,
-                                $documentText
+                                $documentText,
+                                $url
                             )
                         )
                     )
@@ -117,7 +118,7 @@ class TagParser
      * inconsistencies currently. I'm keeping it here because it was difficult to get working at all, and it seems
      * like there is a lot of potential there. So we may come back and use it in the future, or test the differences.
      */
-    public function getTags(string $title, string $documentText, string $promptType = 'example', int $engineId = 1): Collection
+    public function getTags(string $title, string $documentText, ?string $url = '', string $promptType = 'example', int $engineId = 1): Collection
     {
         if (! $documentText || ! $title) {
             return collect([]);
@@ -143,7 +144,7 @@ class TagParser
 
         if (is_array($response) && empty($response)) {
             if (3 !== $engineId) {
-                return $this->increaseEngine($engineId, '', $blockText, $title, $documentText, $promptType);
+                return $this->increaseEngine($engineId, '', $blockText, $title, $documentText, $url, $promptType);
             }
 
             return collect([]);
@@ -157,7 +158,7 @@ class TagParser
 
         // If there are consecutive numbers or we words on that bad list - let's try a new engine - that means it stunk
         if (3 !== $engineId && ($isCounting || $hasBadWords)) {
-            return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
+            return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $url, $promptType);
         }
 
         // If the result includes the example tags then the tag retrieval didn't work. Let's try a better engine
@@ -167,7 +168,7 @@ class TagParser
             // If the 'example' prompt type is used, we know if it was a bad completion if they just repeated the
             // last tags. In that case we're gonna increase the engine here (only to currie)
             if ($engineId < 2 && (str_word_count($tag) > 3 || in_array($tag, $exampleTags, true))) {
-                return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $promptType);
+                return $this->increaseEngine($engineId, $completion, $blockText, $title, $documentText, $url, $promptType);
             }
             // Never have a string longer than 3 words - anything longer than 3 words in tags SUCK
             if (str_word_count($tag) > 3) {
@@ -175,6 +176,6 @@ class TagParser
             }
         }
 
-        return $this->cleanTags($tags, $title, $documentText);
+        return $this->cleanTags($tags, $title, $documentText, $url);
     }
 }
