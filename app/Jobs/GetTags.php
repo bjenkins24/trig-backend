@@ -40,7 +40,7 @@ class GetTags implements ShouldQueue
     public function handle(): bool
     {
         try {
-            $tags = app(TagParser::class)->getTags($this->card->title, Str::htmlToMarkdown($this->card->content));
+            $tags = app(TagParser::class)->getTags($this->card->title, Str::htmlToMarkdown($this->card->content), $this->card->url);
             app(CardTagRepository::class)->replaceTags($this->card, $tags->toArray());
 
             return true;

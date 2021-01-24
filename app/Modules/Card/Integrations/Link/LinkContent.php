@@ -42,7 +42,7 @@ class LinkContent implements ContentInterface
 
             return collect([]);
         } catch (Exception $exception) {
-            Log::notice('Failed website extraction on attempt '.$this->attempts.': '.$exception->getMessage());
+            Log::notice('Failed website extraction on attempt '.$this->attempts.' for '.$card->url.': '.$exception->getMessage());
             ++$this->attempts;
             // Enough retrying IT FAILED!
             if ($this->attempts >= self::TOTAL_ATTEMPTS) {

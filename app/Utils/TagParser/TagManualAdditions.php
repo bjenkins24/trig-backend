@@ -27,8 +27,8 @@ class TagManualAdditions
         [['cognitive bias', '~cognitive bias', '~cognitive biases'], 'Cognitive Bias'],
         [['confirmation bias', '~confirmation bias', '~confirmation biases'], 'Confirmation Bias'],
         [['customer service', '~customer services'], 'Customer Service'],
-        [['MVP'], 'MVP'],
-        [['machine learn'], 'Machine Learning'],
+        [[' MVP', 'MVP ', '~minimum viable product'], 'MVP'],
+        [['machine learn', '~deep learning'], 'Machine Learning'],
         [[' AI', 'AI ', 'artificial intelligence'], 'Artificial Intelligence'],
         [['risk manag', '~risk manager', '~risk managers'], 'Risk Management'],
         [['data scien', '~data scientist', '~data scientists'], 'Data Science'],
@@ -57,7 +57,7 @@ class TagManualAdditions
         [['real estate, realtor'], 'Real Estate'],
         [['tech', '~tech'], 'Technology'],
         // Consumer related
-        [['recipe', '~recipe'], 'Recipes'],
+        [['recipe', '~recipes'], 'Recipe'],
         [['diy ', ' diy', 'do it yourself', '~do it yourself'], 'DIY'],
         // No parent - could be Parent Company for example
         [['parenting', '~parent'], 'Parenting'],
