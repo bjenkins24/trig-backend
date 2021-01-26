@@ -12,6 +12,10 @@ class TagHypernym
         'white',
     ];
 
+    public const WHITELISTED_HYPERNYMS = [
+        'space', 'soup', 'salad', 'racism',
+    ];
+
     private TagUtils $tagUtils;
     private TagHeuristics $tagHeuristics;
     private TagManualAdditions $tagManualAdditions;

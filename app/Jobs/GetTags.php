@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Card;
 use App\Modules\CardTag\CardTagRepository;
+use App\Modules\Tag\TagService;
 use App\Utils\TagParser\TagHypernym;
 use App\Utils\TagParser\TagParser;
 use Exception;
@@ -43,6 +44,9 @@ class GetTags implements ShouldQueue
         try {
             $tags = app(TagParser::class)->getTags($this->card->title, Str::htmlToMarkdown($this->card->content), $this->card->url);
             $hypernyms = app(TagHypernym::class)->getHypernyms($tags->toArray());
+
+            $hypernymTags = app(TagService::class)->useHypernyms($this->card->workspace_id, $hypernyms);
+            $tags = $tags->merge($hypernymTags);
             app(CardTagRepository::class)->replaceTags($this->card, $tags->toArray(), $hypernyms->toArray());
 
             return true;
