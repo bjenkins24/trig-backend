@@ -85,7 +85,6 @@ class WebsiteExtractionHelper
         $page->setViewport([
             'width'              => 1440,
             'height'             => 900,
-            'deviceScaleFactor'  => 2,
         ]);
         $imagePath = Str::random().'.png';
         $page->screenshot(['path' => $imagePath, 'fullPage' => true]);
