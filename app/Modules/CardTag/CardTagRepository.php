@@ -22,9 +22,9 @@ class CardTagRepository
     /**
      * @throws Throwable
      */
-    public function replaceTags(Card $card, array $tags): Card
+    public function replaceTags(Card $card, array $tags, array $hypernyms): Card
     {
-        DB::transaction(function () use ($tags, $card) {
+        DB::transaction(function () use ($tags, $hypernyms, $card) {
             $cardTags = $card->cardTags();
 
             $cardTags->get()->each(static function ($cardTag) {
@@ -38,16 +38,17 @@ class CardTagRepository
             });
 
             $workspaceId = $card->workspace_id;
-            foreach ($tags as $tagString) {
+            foreach ($tags as $tagKey => $tagString) {
                 if (! $tagString) {
                     continue;
                 }
                 $tag = $this->tagRepository->findSimilar($tagString, $workspaceId);
                 if (! $tag) {
-                    // Add a card_tag
+                    // Add a tag
                     $tag = Tag::create([
                         'workspace_id'    => $workspaceId,
                         'tag'             => $tagString,
+                        'hypernym'        => $hypernyms[$tagKey],
                     ]);
                 }
                 $cardTagExists = CardTag::where('card_id', $card->id)->where('tag_id', $tag->id)->exists();

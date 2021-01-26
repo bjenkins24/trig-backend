@@ -72,4 +72,33 @@ PROMPT;
             'stop'              => '\n',
         ], $engineId);
     }
+
+    public function completeHypernym(string $tag, int $engineId = 1): ?array
+    {
+        $prompt = <<<PROMPT
+Tag: Blue Jay
+Hypernym: Bird
+###
+Tag: UX Audit
+Hypernym: UX
+###
+Tag: Minecraft
+Hypernym: Video Game
+###
+Tag: Java
+Hypernym: Programming Language
+###
+Tag: $tag
+Hypernym:
+PROMPT;
+
+        return $this->gpt3->complete($prompt, [
+            'max_tokens'        => 24,
+            'temperature'       => 0,
+            'top_p'             => 1,
+            'frequency_penalty' => 0,
+            'presence_penalty'  => 0,
+            'stop'              => '###',
+        ], $engineId);
+    }
 }

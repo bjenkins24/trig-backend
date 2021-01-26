@@ -139,4 +139,21 @@ class TagManualAdditions
 
         return array_values($newTags);
     }
+
+    /**
+     * Remove any manually tagged high level tags (hypernyms) from the tag array in case we need to do something
+     * with _just_ the automatically generated tags.
+     */
+    public function removeHighLevelTags(array $tags): array
+    {
+        foreach (self::HIGH_LEVEL_TAGS as $highLevelTag) {
+            foreach ($tags as $tagKey => $tag) {
+                if (strtolower($tag) === strtolower($highLevelTag[1])) {
+                    unset($tags[$tagKey]);
+                }
+            }
+        }
+
+        return $tags;
+    }
 }

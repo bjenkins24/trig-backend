@@ -3,6 +3,7 @@
 namespace Tests\Utils\TagParser;
 
 use App\Utils\Gpt3;
+use App\Utils\TagParser\TagHypernym;
 use App\Utils\TagParser\TagParser;
 use App\Utils\TagParser\TagPrompts;
 use App\Utils\TagParser\TagStringRemoval;
@@ -185,5 +186,12 @@ COMPLETION,
         $results = app(TagParser::class)->getTags('my text', 'document text', 'tag');
         $expectedTags = collect(['drip irrigation', 'water waste']);
         self::assertEquals($expectedTags, $results);
+    }
+
+    public function testHypernyms()
+    {
+//        $result = app(TagHypernym::class)->getHypernyms(['lemon', 'sales', 'Indian spices', 'hiring manager', 'Parsley', 'mushroom soup', 'refrigerator', 'dragon ball z']);
+        $result = app(TagHypernym::class)->getHypernyms(['White Supremacy', 'White Privilege'], 2);
+        dd($result);
     }
 }
