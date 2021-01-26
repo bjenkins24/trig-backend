@@ -23,7 +23,7 @@ class GenericExtractionTest extends TestCase
         $mockWebsite = $this->getMockWebsite($mockHtml);
 
         $this->mock(WebsiteExtractionHelper::class, function ($mock) use ($url, $mockWebsite, $mockHtml) {
-            $mock->shouldReceive('fullFetch')->with($url)->andReturn($mockWebsite);
+            $mock->shouldReceive('fullFetch')->with($url, '35000')->andReturn($mockWebsite);
             $mock->shouldReceive('parseHtml')->with($mockHtml)->andReturn($this->getMockParseHtml($mockWebsite));
         });
         $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite();
