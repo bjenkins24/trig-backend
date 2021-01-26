@@ -31,7 +31,7 @@ class WebsiteExtractionHelper
     private function getHeaders(): array
     {
         $headers = [
-            'Accept-Encoding' => 'gzip, deflate, br',
+            'Accept-Encoding' => 'gzip, deflate',
             'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language' => 'en,en-US;q=0,5',
         ];

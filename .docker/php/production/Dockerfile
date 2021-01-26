@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g \
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g libgbm-dev \
     nodejs npm gconf-service libasound2 libatk1.0-0 libc6 \
     libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 \
     libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
