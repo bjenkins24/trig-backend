@@ -67,7 +67,7 @@ class WebsiteExtractionHelper
      * @throws WebsiteNotFound
      * @throws Exception       - We're going to catch this exception later and retry
      */
-    public function fullFetch(string $url): Website
+    public function fullFetch(string $url, int $timeout = 30000): Website
     {
         $puppeteer = new Puppeteer();
         $browser = $puppeteer->launch([
@@ -79,7 +79,7 @@ class WebsiteExtractionHelper
         $page = $browser->newPage();
         $page->setExtraHTTPHeaders($this->getHeaders());
         $response = $page->goto($url, [
-            'timeout'   => 15,
+            'timeout'   => $timeout,
         ]);
         $content = $page->content();
         $page->setViewport([
