@@ -19,6 +19,7 @@ use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
@@ -383,11 +384,11 @@ class CardRepositoryTest extends TestCase
     public function testGetDuplicates(): void
     {
         $card = Card::find(1);
-        \Http::fake();
+        Http::fake();
         $result = app(CardRepository::class)->getDuplicates($card);
-        \Http::assertSent(static function ($request) use ($card) {
+        Http::assertSent(static function ($request) use ($card) {
             return
-                'http://localhost:5000/dedupe' === $request->url() &&
+                false !== stripos($request->url(), 'dedupe') &&
                 $request['id'] == $card->id &&
                 $request['content'] == $card->content &&
                 $request['workspace_id'] == app(CardRepository::class)->getWorkspace($card)->id;

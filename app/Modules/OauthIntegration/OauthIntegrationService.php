@@ -71,7 +71,7 @@ class OauthIntegrationService
         try {
             return app($fullClassPath);
         } catch (Exception $e) {
-            throw new OauthIntegrationNotFound("The integration key \"$integration\" is not valid. Please check the name and try again.");
+            throw new OauthIntegrationNotFound("There was an error initializing \"$integration\". Please check the name and try again.: $e");
         }
     }
 

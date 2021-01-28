@@ -4,6 +4,7 @@ namespace Tests\Feature\Modules\Card\Integrations\Link;
 
 use App\Models\Card;
 use App\Modules\Card\Integrations\Link\LinkContent;
+use App\Utils\TikaWebClientWrapper;
 use App\Utils\WebsiteExtraction\WebsiteFactory;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
 use Exception;
@@ -19,6 +20,7 @@ class LinkContentTest extends TestCase
      */
     public function testGetCardContentDataFail(): void
     {
+        $this->mock(TikaWebClientWrapper::class);
         $this->mock(GenericExtraction::class, static function ($mock) {
             $mock->shouldReceive('getWebsite')->andThrow(new Exception('Yes!'));
             $mock->shouldReceive('setUrl');
@@ -39,6 +41,7 @@ class LinkContentTest extends TestCase
      */
     public function testGetCardDataContent(): void
     {
+        $this->mock(TikaWebClientWrapper::class);
         $mockWebsite = app(WebsiteFactory::class)
             ->make('cool')
             ->setContent('cool 2')
