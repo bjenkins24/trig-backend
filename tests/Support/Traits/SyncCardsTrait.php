@@ -10,6 +10,7 @@ use App\Modules\Card\Integrations\Link\LinkIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Utils\TikaWebClientWrapper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
@@ -90,6 +91,8 @@ trait SyncCardsTrait
         $this->partialMock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
+
+        $this->mock(TikaWebClientWrapper::class);
 
         return app(OauthIntegrationService::class)->makeSyncCards($service);
     }

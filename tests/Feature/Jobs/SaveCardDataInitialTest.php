@@ -5,6 +5,7 @@ namespace Tests\Feature\Jobs;
 use App\Jobs\SaveCardDataInitial;
 use App\Models\Card;
 use App\Modules\Card\Integrations\SyncCards;
+use App\Utils\TikaWebClientWrapper;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,6 +16,7 @@ class SaveCardDataInitialTest extends TestCase
 
     public function testSaveCardDataInitial(): void
     {
+        $this->mock(TikaWebClientWrapper::class);
         $this->partialMock(SyncCards::class, static function ($mock) {
             $mock->shouldReceive('saveInitialCardData')->once();
         });
@@ -26,6 +28,7 @@ class SaveCardDataInitialTest extends TestCase
 
     public function testSaveCardDataFailedSync(): void
     {
+        $this->mock(TikaWebClientWrapper::class);
         $this->partialMock(SyncCards::class, static function ($mock) {
             $mock->shouldReceive('saveInitialCardData')->andThrow(new Exception());
         });

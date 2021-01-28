@@ -6,6 +6,7 @@ use App\Jobs\SyncCards;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use App\Utils\TikaWebClientWrapper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,6 +22,7 @@ class SyncCardsTest extends TestCase
      */
     public function testSyncCards(): void
     {
+        $this->mock(TikaWebClientWrapper::class);
         $this->partialMock(SyncCardsIntegration::class, static function ($mock) {
             $mock->shouldReceive('syncCards')->once();
         });
