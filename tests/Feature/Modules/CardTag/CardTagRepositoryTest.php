@@ -24,11 +24,11 @@ class CardTagRepositoryTest extends TestCase
      * @throws CardUserIdMustExist
      * @throws Throwable
      */
-    public function testReplaceTags()
+    public function testReplaceTags(): void
     {
         $cardId = 1;
         $card = Card::find($cardId);
-        $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
+        $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3', ''];
         $this->mock(TagRepository::class, static function ($mock) {
             $mock->shouldReceive('findSimilar');
         });
@@ -46,6 +46,9 @@ class CardTagRepositoryTest extends TestCase
         // There are two cool tag 2's so we won't be deleting it later
         app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]]);
         foreach ($firstSetTags as $tag) {
+            if (! $tag) {
+                continue;
+            }
             $this->assertDatabaseHas('tags', [
                 'workspace_id'    => $card->workspace_id,
                 'tag'             => $tag,

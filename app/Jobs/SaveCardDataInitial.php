@@ -33,13 +33,17 @@ class SaveCardDataInitial implements ShouldQueue
         $this->integration = $integration;
     }
 
-    public function handle(): void
+    public function handle(): bool
     {
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
             $syncCardsIntegration->saveInitialCardData($this->card);
+
+            return true;
         } catch (Exception $error) {
             Log::error('Initial card data fetch failed: '.$error->getMessage());
+
+            return false;
         }
     }
 }

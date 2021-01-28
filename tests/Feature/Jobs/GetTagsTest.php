@@ -7,12 +7,15 @@ use App\Models\Card;
 use App\Modules\Tag\TagRepository;
 use App\Utils\TagParser\TagParser;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 use Throwable;
 
 class GetTagsTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws Throwable
      */

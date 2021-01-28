@@ -140,6 +140,7 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testGetAllCardData(): void
@@ -148,8 +149,11 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
 
+        $user = User::find(1);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $googleIntegration = app(GoogleIntegration::class);
-        $cardData = $googleIntegration->getAllCardData(User::find(1), Workspace::find(1), time());
+        $cardData = $googleIntegration->getAllCardData($user, $workspace, time());
         self::assertCount(2, $cardData);
     }
 

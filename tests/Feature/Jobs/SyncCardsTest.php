@@ -6,10 +6,13 @@ use App\Jobs\SyncCards;
 use App\Modules\Card\Exceptions\CardIntegrationCreationValidate;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SyncCardsTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Test sync cards job.
      *

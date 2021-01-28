@@ -249,6 +249,36 @@ class CardControllerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testUpdateCardExists(): void
+    {
+        Queue::fake();
+
+        $firstUrl = 'http://testurl.com';
+        $this->client('POST', 'card', ['url' => $firstUrl]);
+        $response = $this->client('POST', 'card', ['url' => 'http://different.com']);
+        $cardId = $this->getResponseData($response)->get('id');
+        $response = $this->client('PATCH', 'card', ['id' => $cardId, 'url' => $firstUrl]);
+
+        self::assertEquals('exists', $this->getResponseData($response, 'error')->get('error'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testCreateCardExists(): void
+    {
+        Queue::fake();
+
+        $firstUrl = 'http://testurl.com';
+        $this->client('POST', 'card', ['url' => $firstUrl]);
+        $response = $this->client('POST', 'card', ['url' => $firstUrl]);
+
+        self::assertEquals('exists', $this->getResponseData($response, 'error')->get('error'));
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testUpdateCardNullFields(): void
     {
         Queue::fake();
