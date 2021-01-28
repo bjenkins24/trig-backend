@@ -37,8 +37,8 @@ class CardControllerTest extends TestCase
             'updatedAt'          => $now,
         ];
         $response = $this->client('POST', 'card', $data);
-        // Check if the response returns the id
-        self::assertEquals(6, $this->getResponseData($response)->get('id'));
+        // Check if the response returns an id
+        self::assertNotEmpty($this->getResponseData($response)->get('id'));
 
         $data['actual_created_at'] = $now->toDateTimeString();
         $data['actual_updated_at'] = $now->toDateTimeString();
@@ -356,7 +356,7 @@ class CardControllerTest extends TestCase
         $this->assertDatabaseHas('cards', [
             'id' => $cardId,
         ]);
-        $response = $this->client('DELETE', 'card/6');
+        $response = $this->client('DELETE', 'card/'.$cardId);
         self::assertEquals(204, $response->getStatusCode());
         $this->assertDatabaseMissing('cards', [
             'id' => $cardId,
