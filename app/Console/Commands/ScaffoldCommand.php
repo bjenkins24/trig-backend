@@ -51,7 +51,7 @@ class ScaffoldCommand extends Command
         $email = Config::get('constants.seed.email');
         $password = Config::get('constants.seed.password');
 
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'first_name' => Config::get('constants.seed.first_name'),
             'last_name'  => Config::get('constants.seed.last_name'),
             'email'      => $email,

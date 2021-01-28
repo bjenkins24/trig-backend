@@ -6,7 +6,7 @@
 /vendor
 /coverage
 /es-data
-trig_test.db
+trig_test.db*
 clover.xml
 .env
 .env.backup

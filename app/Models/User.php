@@ -8,6 +8,7 @@ use App\Support\Traits\Relationships\HasCardFavorites;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasOauthConnections;
 use App\Support\Traits\Relationships\PermissionTypeable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
@@ -66,6 +67,7 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasOauthConnections;
     use HasCards;
+    use HasFactory;
     use BelongsToManyTeams;
     use HasCardFavorites;
     use PermissionTypeable;

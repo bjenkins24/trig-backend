@@ -10,6 +10,7 @@ use App\Modules\Card\Integrations\Google\GoogleDomains;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use JsonException;
 use Tests\Feature\Modules\Card\Integrations\Google\Fakes\DomainFake;
 use Tests\Support\Traits\CreateOauthConnection;
@@ -18,6 +19,7 @@ use Tests\TestCase;
 class GoogleDomainsTest extends TestCase
 {
     use CreateOauthConnection;
+    use RefreshDatabase;
     public const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
 
     /**
@@ -70,7 +72,6 @@ class GoogleDomainsTest extends TestCase
             'id'         => 1,
             'properties' => json_encode(['google_domains' => $domains], JSON_THROW_ON_ERROR),
         ]);
-        $this->refreshDb();
     }
 
     /**

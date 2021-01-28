@@ -10,11 +10,13 @@ use App\Modules\Card\Integrations\Link\LinkIntegration;
 use App\Modules\Card\Integrations\SyncCards as SyncCardsIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 
 trait SyncCardsTrait
 {
+    use RefreshDatabase;
     use CreateOauthConnection;
 
     private function getMockThumbnail(): Collection
@@ -32,9 +34,6 @@ trait SyncCardsTrait
     private function getSetup(?User $user = null, ?Workspace $workspace = null, ?array $data = null, ?string $service = 'link', ?bool $refreshDb = true): array
     {
         Queue::fake();
-        if ($refreshDb) {
-            $this->refreshDb();
-        }
 
         if (! $workspace) {
             $workspace = Workspace::find(1);

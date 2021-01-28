@@ -6,18 +6,19 @@ use App\Jobs\DeleteUser;
 use App\Models\User;
 use App\Modules\User\UserRepository;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Throwable;
 
 class DeleteUserTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws Throwable
      */
     public function testDeleteUser(): void
     {
-        $this->refreshDb();
-
         $userJob = new DeleteUser(User::find(1));
         $userJob->handle();
 

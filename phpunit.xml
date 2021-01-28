@@ -12,17 +12,17 @@
         <log type="coverage-clover" target="./clover.xml"/>
     </logging>
     <testsuites>
-        <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
-        </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
-        <testsuite name="Utils">
-            <directory suffix="Test.php">./tests/Utils</directory>
-        </testsuite>
         <testsuite name="Observers">
             <directory suffix="Test.php">./tests/Observers</directory>
+        </testsuite>
+        <testsuite name="Support">
+            <directory suffix="Test.php">./tests/Support</directory>
+        </testsuite>
+        <testsuite name="Utils">
+            <directory suffix="Test.php">./tests/Utils</directory>
         </testsuite>
     </testsuites>
     <filter>

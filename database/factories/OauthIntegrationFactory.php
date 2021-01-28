@@ -1,11 +1,28 @@
 <?php
 
-/** @var \Illuminate\Database\Eloquent\Factory $factory */
-use App\Models\OauthIntegration;
-use Faker\Generator as Faker;
+namespace Database\Factories;
 
-$factory->define(OauthIntegration::class, function (Faker $faker) {
-    return [
-        'name'            => 'google',
-    ];
-});
+use App\Models\OauthIntegration;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class OauthIntegrationFactory extends Factory
+{
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = OauthIntegration::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array
+     */
+    public function definition()
+    {
+        return [
+            'name' => 'google',
+        ];
+    }
+}

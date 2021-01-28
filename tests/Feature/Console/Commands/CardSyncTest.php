@@ -5,15 +5,16 @@ namespace Tests\Feature\Console\Commands;
 use App\Console\Commands\CardSync;
 use App\Jobs\SyncCards;
 use App\Models\OauthConnection;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CardSyncTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testCardSync(): void
     {
-        $this->refreshDb();
-
         OauthConnection::create([
             'user_id'              => 1,
             'workspace_id'         => 1,

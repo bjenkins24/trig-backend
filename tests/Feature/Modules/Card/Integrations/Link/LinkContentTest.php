@@ -7,16 +7,18 @@ use App\Modules\Card\Integrations\Link\LinkContent;
 use App\Utils\WebsiteExtraction\WebsiteFactory;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LinkContentTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws Exception
      */
     public function testGetCardContentDataFail(): void
     {
-        $this->refreshDb();
         $this->mock(GenericExtraction::class, static function ($mock) {
             $mock->shouldReceive('getWebsite')->andThrow(new Exception('Yes!'));
             $mock->shouldReceive('setUrl');
@@ -37,7 +39,6 @@ class LinkContentTest extends TestCase
      */
     public function testGetCardDataContent(): void
     {
-        $this->refreshDb();
         $mockWebsite = app(WebsiteFactory::class)
             ->make('cool')
             ->setContent('cool 2')

@@ -7,13 +7,15 @@ use App\Models\Card;
 use App\Modules\Card\Integrations\SyncCards;
 use App\Modules\CardSync\CardSyncRepository;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SaveCardDataTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testSaveCardData(): void
     {
-        $this->refreshDb();
         $this->partialMock(SyncCards::class, static function ($mock) {
             $mock->shouldReceive('saveCardData')->once();
         });
@@ -24,7 +26,6 @@ class SaveCardDataTest extends TestCase
 
     public function testSaveCardDataFailedSync(): void
     {
-        $this->refreshDb();
         $this->partialMock(SyncCards::class, static function ($mock) {
             $mock->shouldReceive('saveCardData')->andThrow(new Exception());
         });

@@ -10,23 +10,25 @@ use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardTag\CardTagRepository;
 use App\Modules\Tag\TagRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Throwable;
 
 class CardTagRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      * @throws Throwable
      */
-    public function testReplaceTags()
+    public function testReplaceTags(): void
     {
-        $this->refreshDb();
         $cardId = 1;
         $card = Card::find($cardId);
-        $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
+        $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3', ''];
         $this->mock(TagRepository::class, static function ($mock) {
             $mock->shouldReceive('findSimilar');
         });
@@ -44,6 +46,9 @@ class CardTagRepositoryTest extends TestCase
         // There are two cool tag 2's so we won't be deleting it later
         app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]]);
         foreach ($firstSetTags as $tag) {
+            if (! $tag) {
+                continue;
+            }
             $this->assertDatabaseHas('tags', [
                 'workspace_id'    => $card->workspace_id,
                 'tag'             => $tag,
@@ -81,8 +86,6 @@ class CardTagRepositoryTest extends TestCase
             'workspace_id'       => $cardId,
             'tag_id'             => $secondTagId,
         ]);
-
-        $this->refreshDb();
     }
 
     /**
@@ -99,6 +102,5 @@ class CardTagRepositoryTest extends TestCase
         $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
 
         self::assertEquals(collect($firstSetTags), $denormalized);
-        $this->refreshDb();
     }
 }

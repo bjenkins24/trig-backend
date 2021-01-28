@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\User\Helpers\ResetPasswordHelper;
 use Illuminate\Auth\Passwords\PasswordBroker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,8 @@ use Tests\TestCase;
 
 class UserControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     private function getResetToken()
     {
         $user = User::where('email', Config::get('constants.seed.email'))->first();
@@ -60,7 +63,6 @@ class UserControllerTest extends TestCase
      */
     public function testRegistrationSucceed(): void
     {
-        $this->refreshDb();
         \Queue::fake();
         $email = 'sam_sung@example.com';
         $params = [
@@ -81,7 +83,6 @@ class UserControllerTest extends TestCase
      */
     public function testRegistrationUserExists(): void
     {
-        $this->refreshDb();
         $params = [
             'email'    => Config::get('constants.seed.email'),
             'password' => Config::get('constants.seed.password'),
@@ -109,7 +110,6 @@ class UserControllerTest extends TestCase
 
     public function testUpdate(): void
     {
-        $this->refreshDb();
         $firstName = 'Brian';
         $lastName = 'Jenkins';
         $email = 'john@john.com';
@@ -157,8 +157,6 @@ class UserControllerTest extends TestCase
      */
     public function testPasswordFailed(): void
     {
-        $this->refreshDb();
-
         $response = $this->client('PATCH', 'me', [
             'old_password'  => 'not_correct',
             'new_password'  => 'hellothisis8chars',
@@ -172,7 +170,6 @@ class UserControllerTest extends TestCase
      */
     public function testDeleteUser(): void
     {
-        $this->refreshDb();
         Queue::fake();
         $email = User::find(1)->email;
         $response = $this->client('DELETE', 'me');
@@ -197,8 +194,6 @@ class UserControllerTest extends TestCase
      */
     public function testNoOldPassword(): void
     {
-        $this->refreshDb();
-
         $response = $this->client('PATCH', 'me', [
             'new_password'  => 'hellothisis8chars',
         ]);
@@ -384,7 +379,6 @@ class UserControllerTest extends TestCase
      */
     public function testGoogleSso(): void
     {
-        $this->refreshDb();
         \Queue::fake();
         $email = 'sam_sung@example.com';
         $this->partialMock(GoogleConnection::class, static function ($mock) use ($email) {

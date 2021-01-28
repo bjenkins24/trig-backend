@@ -7,11 +7,14 @@ use App\Jobs\SyncCards;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class SetupGoogleIntegrationTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Test sync cards job.
      */

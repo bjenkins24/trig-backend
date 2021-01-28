@@ -30,6 +30,7 @@ class TagStringRemoval
      */
     private const BANNED_TAGS = [
         'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new',
+        'cookies', /* cookies is not so horrible but it comes up for "we use cookies" websites so gotta remove it */
     ];
 
     public function removeBadWords(array $tags): array

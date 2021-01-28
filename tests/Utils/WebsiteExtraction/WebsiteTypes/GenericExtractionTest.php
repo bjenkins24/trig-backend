@@ -40,18 +40,18 @@ class GenericExtractionTest extends TestCase
         $url = 'https://medium.com/@sachinrekhi/designing-your-products-continuous-feedback-loop-4a7bb31141fe';
         $content = 'my html';
         $mockWebsite = $this->getMockWebsite($content);
-        $this->mock(WebsiteExtractionHelper::class, function ($mock) use ($url, $content, $mockWebsite) {
-            $mock->shouldReceive('simpleFetch')->with($url)->andReturn($mockWebsite);
+        $this->mock(WebsiteExtractionHelper::class, function ($mock) use ($content, $mockWebsite) {
+            $mock->shouldReceive('fullFetch')->andReturn($mockWebsite);
             $mock->shouldReceive('parseHtml')->with($content)->andReturn($this->getMockParseHtml($mockWebsite));
         });
-        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(2);
+        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(1);
         self::assertEquals($mockWebsite, $website);
 
         $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($url, $mockWebsite) {
             $mock->shouldReceive('downloadAndExtract')->with($url)->andReturn($mockWebsite);
         });
 
-        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(3);
+        $website = app(WebsiteExtractionFactory::class)->make($url)->getWebsite(2);
         self::assertEquals($mockWebsite, $website);
     }
 }

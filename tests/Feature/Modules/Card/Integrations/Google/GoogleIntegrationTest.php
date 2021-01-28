@@ -11,6 +11,7 @@ use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\Card\Integrations\Google\GoogleDomains;
 use App\Modules\Card\Integrations\Google\GoogleIntegration;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use JsonException;
 use Tests\Feature\Modules\Card\Integrations\Google\Fakes\DomainFake;
 use Tests\Feature\Modules\Card\Integrations\Google\Fakes\FakeGoogleServiceDrive;
@@ -21,6 +22,7 @@ use Tests\TestCase;
 class GoogleIntegrationTest extends TestCase
 {
     use CreateOauthConnection;
+    use RefreshDatabase;
 
     public const DOMAIN_NAMES = ['trytrig.com', 'yourmusiclessons.com'];
 
@@ -36,7 +38,7 @@ class GoogleIntegrationTest extends TestCase
             $user = User::find(1);
             $this->createOauthConnection($user, $workspace);
         }
-        $card = factory(Card::class)->create([
+        $card = Card::factory()->create([
             'user_id' => $user->id,
         ]);
         $file = new FileFake();
@@ -138,6 +140,7 @@ class GoogleIntegrationTest extends TestCase
 
     /**
      * @throws OauthIntegrationNotFound
+     * @throws OauthMissingTokens
      * @throws OauthUnauthorizedRequest
      */
     public function testGetAllCardData(): void
@@ -146,8 +149,11 @@ class GoogleIntegrationTest extends TestCase
             $mock->shouldReceive('getDriveService')->andReturn(new FakeGoogleServiceDrive());
         });
 
+        $user = User::find(1);
+        $workspace = Workspace::find(1);
+        $this->createOauthConnection($user, $workspace);
         $googleIntegration = app(GoogleIntegration::class);
-        $cardData = $googleIntegration->getAllCardData(User::find(1), Workspace::find(1), time());
+        $cardData = $googleIntegration->getAllCardData($user, $workspace, time());
         self::assertCount(2, $cardData);
     }
 

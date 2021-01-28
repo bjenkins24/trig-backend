@@ -5,11 +5,14 @@ namespace Tests\Feature\Modules\CardSync;
 use App\Models\Card;
 use App\Models\CardSync;
 use App\Modules\CardSync\CardSyncRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CardSyncRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Test syncing all integrations.
      */
@@ -30,7 +33,6 @@ class CardSyncRepositoryTest extends TestCase
      */
     public function testGetLastAttempt(): void
     {
-        $this->refreshDb();
         $cardId = 1;
         app(CardSyncRepository::class)->create([
             'card_id' => $cardId,
@@ -48,7 +50,6 @@ class CardSyncRepositoryTest extends TestCase
 
     public function testSecondsSinceLastAttempt(): void
     {
-        $this->refreshDb();
         $cardId = 1;
         $cardSyncRepository = app(CardSyncRepository::class);
         $testCreate = '2020-11-20 00:00:00';
@@ -69,7 +70,6 @@ class CardSyncRepositoryTest extends TestCase
 
     public function testShouldGetTags(): void
     {
-        $this->refreshDb();
         $cardSyncRepository = app(CardSyncRepository::class);
         $card = Card::find(1);
 
@@ -100,7 +100,5 @@ class CardSyncRepositoryTest extends TestCase
         // much work for the lift here.
         $shouldGetTags = $cardSyncRepository->shouldGetTags($card, $card->content.' that\'s it');
         self::assertFalse($shouldGetTags);
-
-        $this->refreshDb();
     }
 }

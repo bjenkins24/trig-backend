@@ -5,14 +5,16 @@ namespace Tests\Feature\Modules\CardView;
 use App\Models\Card;
 use App\Models\CardView;
 use App\Modules\CardView\CardViewRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CardViewRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testDenormalizeCardViews(): void
     {
-        $this->refreshDb();
         $card = Card::find(1);
         $createdAt = Carbon::parse('2010-01-01 00:00:00')->timestamp;
         $userId1 = 1;

@@ -4,10 +4,13 @@ namespace Tests\Feature\Modules\CardType;
 
 use App\Models\Card;
 use App\Modules\CardType\CardTypeRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CardTypeRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @dataProvider cardTypeProvider
      */
