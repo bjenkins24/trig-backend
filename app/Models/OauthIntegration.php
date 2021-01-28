@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasOauthConnections;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -30,6 +31,7 @@ class OauthIntegration extends Model
 {
     use HasOauthConnections;
     use HasCardIntegration;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

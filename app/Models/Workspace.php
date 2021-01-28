@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Traits\Relationships\BelongsToManyUsers;
 use App\Support\Traits\Relationships\HasCards;
 use App\Support\Traits\Relationships\HasTags;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -31,6 +32,7 @@ class Workspace extends Model
     use BelongsToManyUsers;
     use HasTags;
     use HasCards;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

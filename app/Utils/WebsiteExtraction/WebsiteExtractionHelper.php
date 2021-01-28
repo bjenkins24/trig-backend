@@ -69,7 +69,9 @@ class WebsiteExtractionHelper
      */
     public function fullFetch(string $url, int $timeout = 30000): Website
     {
-        $puppeteer = new Puppeteer();
+        $puppeteer = new Puppeteer([
+            'read_timeout' => 60,
+        ]);
         $browser = $puppeteer->launch([
             'headless'        => true,
             'args'            => ['--no-sandbox', '--start-maximized', '--disable-dev-shm-usage'],

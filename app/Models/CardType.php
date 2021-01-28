@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Traits\Relationships\HasCards;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 class CardType extends Model
 {
     use HasCards;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

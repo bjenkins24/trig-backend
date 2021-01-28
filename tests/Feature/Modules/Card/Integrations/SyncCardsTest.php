@@ -11,6 +11,7 @@ use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
 use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GenericExtraction;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\Support\Traits\SyncCardsTrait;
 use Tests\TestCase;
@@ -19,6 +20,7 @@ class SyncCardsTest extends TestCase
 {
     use CreateOauthConnection;
     use SyncCardsTrait;
+    use RefreshDatabase;
 
     /**
      * @throws OauthIntegrationNotFound
@@ -197,7 +199,7 @@ class SyncCardsTest extends TestCase
 //     */
 //    public function testSave(): void
 //    {
-//        $this->refreshDb();
+//
 //        $initialData = $this->getMockData();
 //        $initialData['data']['url'] = 'https://www.khoslaventures.com/wp-content/uploads/Good-Group-Product-Manager.pdf';
 //        $initialData['data']['title'] = 'Hello there';

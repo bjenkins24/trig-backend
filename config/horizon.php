@@ -177,14 +177,14 @@ return [
         'local' => [
             'supervisor-1' => [
                 'connection' => 'redis',
-                'queue'      => ['default', 'sync-cards', 'card-data', 'card-dedupe', 'get-tags', 'main-general'],
+                'queue'      => ['default', 'sync-cards', 'card-data', 'card-dedupe', 'get-tags', 'main-general', 'save-card-data', 'save-card-data-initial'],
                 'balance'    => 'simple',
                 'processes'  => 20,
                 'tries'      => 1,
             ],
             'supervisor-2' => [
                 'connection' => 'redis',
-                'queue'      => ['default', 'sync-cards', 'card-data', 'card-dedupe', 'get-tags', 'main-general'],
+                'queue'      => ['default', 'sync-cards', 'card-data', 'card-dedupe', 'get-tags', 'save-card-data', 'save-card-data-initial'],
                 'balance'    => 'simple',
                 'processes'  => 20,
                 'tries'      => 1,

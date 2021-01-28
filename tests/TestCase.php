@@ -16,9 +16,9 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
-    public function refreshDb(): void
+    public function setUp(): void
     {
-        Artisan::call('migrate:fresh');
+        parent::setUp();
         Artisan::call('passport:install');
         Artisan::call('db:seed', ['--class' => 'ScaffoldSeeder']);
     }

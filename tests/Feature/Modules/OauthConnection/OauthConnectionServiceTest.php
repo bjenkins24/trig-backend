@@ -9,12 +9,14 @@ use App\Modules\Card\Exceptions\OauthUnauthorizedRequest;
 use App\Modules\Card\Integrations\Google\GoogleConnection;
 use App\Modules\OauthConnection\OauthConnectionService;
 use App\Modules\OauthIntegration\Exceptions\OauthIntegrationNotFound;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
 
 class OauthConnectionServiceTest extends TestCase
 {
     use CreateOauthConnection;
+    use RefreshDatabase;
 
     /**
      * Get access token.
@@ -25,13 +27,11 @@ class OauthConnectionServiceTest extends TestCase
      */
     public function testGetAccessToken(): void
     {
-        $this->refreshDb();
         $user = User::find(1);
         $workspace = Workspace::find(1);
         $this->createOauthConnection($user, $workspace);
         $accessToken = app(OauthConnectionService::class)->getAccessToken($user, $workspace, 'google');
         self::assertEquals($accessToken, self::$ACCESS_TOKEN);
-        $this->refreshDb();
     }
 
     /**

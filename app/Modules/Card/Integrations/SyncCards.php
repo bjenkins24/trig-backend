@@ -2,9 +2,9 @@
 
 namespace App\Modules\Card\Integrations;
 
-use App\Jobs\CardDedupe;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
+use App\Jobs\SaveCardDataInitial;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\CardType;
@@ -154,8 +154,50 @@ class SyncCards
         $this->savePermissions($cardData->get('permissions'), $card);
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
-            SaveCardData::dispatch($card, $this->integrationKey)->onQueue('card-data');
+            if ($existingCard) {
+                SaveCardData::dispatch($card, $this->integrationKey)->onQueue('save-card-data');
+            } else {
+                SaveCardDataInitial::dispatch($card, $this->integrationKey)->onQueue('save-card-data-initial');
+            }
         }
+    }
+
+    public function saveInitialCardData(Card $card): void
+    {
+        $data = $this->contentIntegration->getCardInitialData($card);
+        if (! $data->isEmpty()) {
+            $this->saveData($card, $data);
+        }
+        SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+    }
+
+    private function saveData(Card $card, Collection $data): bool
+    {
+        if ($data->get('image') || $data->get('screenshot')) {
+            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
+            $data->forget('image');
+            $data->forget('screenshot');
+        }
+
+        // If we return any of these fields, we want to save them in full fledged columns not in properties
+        $saveableFields = collect([
+            'content',
+            'title',
+            'description',
+        ]);
+
+        $saveableFields->each(static function ($field) use ($card, $data) {
+            $card->{$field} = $data->get($field);
+            $data->forget($field);
+        });
+
+        $data = $data->reject(static function ($value) {
+            return ! $value;
+        });
+
+        $this->cardRepository->setProperties($card, $data->toArray());
+
+        return $card->save();
     }
 
     /**
@@ -184,33 +226,11 @@ class SyncCards
             return false;
         }
 
-        if ($data->get('image') || $data->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
-            $data->forget('image');
-            $data->forget('screenshot');
-        }
-
         // We need to know if it's synced in the PAST for deciding if we should get the tags for this card
         // We have to do this _before_ saving the card
         $shouldGetTags = $this->cardSyncRepository->shouldGetTags($card, $data->get('content'));
 
-        // If we return any of these fields, we want to save them in full fledged columns not in properties
-        $saveableFields = collect([
-            'content',
-            'title',
-            'description',
-        ]);
-
-        $saveableFields->each(static function ($field) use ($card, $data) {
-            $card->{$field} = $data->get($field);
-            $data->forget($field);
-        });
-
-        $data = $data->reject(static function ($value) {
-            return ! $value;
-        });
-        $this->cardRepository->setProperties($card, $data->toArray());
-        $result = $card->save();
+        $result = $this->saveData($card, $data);
 
         if ($result) {
             $this->cardSyncRepository->create([

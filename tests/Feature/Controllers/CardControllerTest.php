@@ -3,10 +3,12 @@
 namespace Tests\Feature\Controllers;
 
 use App\Jobs\SaveCardData;
+use App\Jobs\SaveCardDataInitial;
 use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\CardSync\CardSyncRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
 use JsonException;
@@ -15,12 +17,13 @@ use Tests\TestCase;
 
 class CardControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws JsonException
      */
     public function testCreateCard(): void
     {
-        $this->refreshDb();
         Queue::fake();
 
         Carbon::setTestNow('2020-11-20 00:00:20');
@@ -44,7 +47,7 @@ class CardControllerTest extends TestCase
         unset($data['createdAt'], $data['updatedAt']);
 
         $this->assertDatabaseHas('cards', $data);
-        Queue::assertPushed(SaveCardData::class, 1);
+        Queue::assertPushed(SaveCardDataInitial::class, 1);
     }
 
     /**
@@ -53,7 +56,6 @@ class CardControllerTest extends TestCase
     public function testCreateCardNoProtocol(): void
     {
         Queue::fake();
-        $this->refreshDb();
         $response = $this->client('POST', 'card', ['url' => 'google.com']);
         self::assertEquals('http://google.com', $this->getResponseData($response)->get('url'));
         $this->assertDatabaseHas('cards', [
@@ -88,13 +90,10 @@ class CardControllerTest extends TestCase
 
         self::assertEquals('bad_request', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(422, $response->getStatusCode());
-        $this->refreshDb();
     }
 
     public function testCreateCardDifferentCardType(): void
     {
-        $this->refreshDb();
-
         $data = [
             'url'       => 'http://google.com',
             'card_type' => 'twitter',
@@ -114,7 +113,6 @@ class CardControllerTest extends TestCase
      */
     public function testGetCardSuccess(): void
     {
-        $this->refreshDb();
         Queue::fake();
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $cardId = $this->getResponseData($response)->get('id');
@@ -163,11 +161,11 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardSaveData(): void
     {
-        $this->refreshDb();
         Queue::fake();
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $newCard = $this->getResponseData($response);
+
         // This is what would happen if we weren't faking the queue
         app(CardSyncRepository::class)->create([
             'card_id' => $newCard->get('id'),
@@ -189,7 +187,9 @@ class CardControllerTest extends TestCase
 
         $this->client('PATCH', 'card', $newData);
 
-        Queue::assertPushed(SaveCardData::class, 1);
+        Queue::assertPushed(SaveCardDataInitial::class, 1);
+        // It shouldn't sync because it already did when we created it above
+        Queue::assertPushed(SaveCardData::class, 0);
     }
 
     /**
@@ -197,7 +197,6 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardSuccess(): void
     {
-        $this->refreshDb();
         Queue::fake();
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
@@ -243,7 +242,8 @@ class CardControllerTest extends TestCase
             'card_id' => $newCard->get('id'),
             'user_id' => $favoritedById,
         ]);
-        Queue::assertPushed(SaveCardData::class, 1);
+        Queue::assertPushed(SaveCardDataInitial::class, 1);
+        Queue::assertPushed(SaveCardData::class, 0);
     }
 
     /**
@@ -252,7 +252,6 @@ class CardControllerTest extends TestCase
     public function testUpdateCardNullFields(): void
     {
         Queue::fake();
-        $this->refreshDb();
         $original = [
             'url'         => 'https://asdasd.com',
             'title'       => 'old title',
@@ -322,7 +321,6 @@ class CardControllerTest extends TestCase
     {
         Queue::fake();
         Storage::fake();
-        $this->refreshDb();
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $cardId = $this->getResponseData($response)->get('id');
         $this->assertDatabaseHas('cards', [

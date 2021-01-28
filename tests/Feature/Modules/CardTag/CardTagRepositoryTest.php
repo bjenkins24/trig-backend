@@ -10,11 +10,14 @@ use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardTag\CardTagRepository;
 use App\Modules\Tag\TagRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Throwable;
 
 class CardTagRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
@@ -23,7 +26,6 @@ class CardTagRepositoryTest extends TestCase
      */
     public function testReplaceTags()
     {
-        $this->refreshDb();
         $cardId = 1;
         $card = Card::find($cardId);
         $firstSetTags = ['cool tag', 'cool tag 2', 'cool tag 3'];
@@ -81,8 +83,6 @@ class CardTagRepositoryTest extends TestCase
             'workspace_id'       => $cardId,
             'tag_id'             => $secondTagId,
         ]);
-
-        $this->refreshDb();
     }
 
     /**
@@ -99,6 +99,5 @@ class CardTagRepositoryTest extends TestCase
         $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
 
         self::assertEquals(collect($firstSetTags), $denormalized);
-        $this->refreshDb();
     }
 }

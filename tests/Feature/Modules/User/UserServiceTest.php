@@ -9,6 +9,7 @@ use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\User\UserRepository;
 use App\Modules\User\UserService;
 use Config;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Queue;
 use Tests\Support\Traits\CreateOauthConnection;
 use Tests\TestCase;
@@ -16,6 +17,7 @@ use Tests\TestCase;
 class UserServiceTest extends TestCase
 {
     use CreateOauthConnection;
+    use RefreshDatabase;
 
     public function setUp(): void
     {
@@ -58,7 +60,6 @@ class UserServiceTest extends TestCase
      */
     public function testSyncAll(): void
     {
-        $this->refreshDb();
         Queue::fake();
 
         $user = User::find(1);

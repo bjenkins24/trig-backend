@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
 use App\Jobs\SaveCardData;
+use App\Jobs\SaveCardDataInitial;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Modules\Card\CardRepository;
@@ -81,7 +82,7 @@ class CardController extends Controller
         }
 
         if ($this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
-            SaveCardData::dispatch($card, $cardTypeKey);
+            SaveCardDataInitial::dispatch($card, $cardTypeKey);
         }
 
         return response()->json([
@@ -166,7 +167,7 @@ class CardController extends Controller
         }
 
         if ($this->cardSyncRepository->shouldSync($card)) {
-            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name);
+            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
         }
 
         return response()->json([], 204);
