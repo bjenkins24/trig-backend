@@ -82,7 +82,7 @@ class CardController extends Controller
         }
 
         if ($this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
-            SaveCardDataInitial::dispatch($card, $cardTypeKey);
+            SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
         }
 
         return response()->json([
