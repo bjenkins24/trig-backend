@@ -31,7 +31,7 @@ class WebsiteExtractionHelper
     private function getHeaders(): array
     {
         $headers = [
-            'Accept-Encoding' => 'gzip, deflate, br',
+            'Accept-Encoding' => 'gzip, deflate',
             'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language' => 'en,en-US;q=0,5',
         ];
@@ -69,7 +69,9 @@ class WebsiteExtractionHelper
      */
     public function fullFetch(string $url, int $timeout = 30000): Website
     {
-        $puppeteer = new Puppeteer();
+        $puppeteer = new Puppeteer([
+            'read_timeout' => 60,
+        ]);
         $browser = $puppeteer->launch([
             'headless'        => true,
             'args'            => ['--no-sandbox', '--start-maximized', '--disable-dev-shm-usage'],
@@ -85,7 +87,6 @@ class WebsiteExtractionHelper
         $page->setViewport([
             'width'              => 1440,
             'height'             => 900,
-            'deviceScaleFactor'  => 2,
         ]);
         $imagePath = Str::random().'.png';
         $page->screenshot(['path' => $imagePath, 'fullPage' => true]);

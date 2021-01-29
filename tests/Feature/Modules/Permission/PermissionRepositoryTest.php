@@ -4,10 +4,13 @@ namespace Tests\Feature\Modules\Permission;
 
 use App\Models\Card;
 use App\Modules\Permission\PermissionRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PermissionRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Test creating a permission for a person with createEmail.
      *

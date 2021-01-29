@@ -64,10 +64,8 @@ class GoogleContent implements ContentInterface
     /**
      * @throws OauthUnauthorizedRequest
      * @throws OauthIntegrationNotFound
-     *
-     * @return string
      */
-    public function getCardContent(Card $card, string $id, ?string $mimeType = null)
+    public function getCardContent(Card $card, string $id, ?string $mimeType = null): string
     {
         $service = $this->googleConnection->getDriveService($this->cardRepository->getUser($card));
 
@@ -83,6 +81,11 @@ class GoogleContent implements ContentInterface
         }
 
         return $content->getBody();
+    }
+
+    public function getCardInitialData(Card $card): Collection
+    {
+        return collect([]);
     }
 
     /**

@@ -5,11 +5,14 @@ namespace Tests\Utils;
 use App\Utils\ExtractDataHelper;
 use App\Utils\TikaWebClientWrapper;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ExtractDataHelperTest extends TestCase
 {
+    use RefreshDatabase;
+
     private function mockGetData($withTitle = true): array
     {
         $content = '<div><img alt="statue" height="240" src="https://sachin-rekhi.s3-us-west-1.amazonaws.com/blog/decision-making.jpg" width="179"><p>Product managers have to make many decisions every day, including product prioritization decisions, product design decisions, bug triage decisions, and many more. And the process by which a product manager makes such decisions can result either in an extremely well functioning team dynamic or quite the opposite. Product managers</p></div>';

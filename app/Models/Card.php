@@ -19,6 +19,7 @@ use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use ElasticScoutDriverPlus\CustomSearch;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
@@ -85,6 +86,7 @@ class Card extends Model
     use LinkShareable;
     use Searchable;
     use CustomSearch;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

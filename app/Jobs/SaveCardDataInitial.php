@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Card;
-use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -13,7 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class SaveCardData implements ShouldQueue
+class SaveCardDataInitial implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -22,8 +21,6 @@ class SaveCardData implements ShouldQueue
 
     public string $integration;
     public Card $card;
-
-    public int $timeout = 90;
 
     /**
      * Create a new job instance.
@@ -36,19 +33,17 @@ class SaveCardData implements ShouldQueue
         $this->integration = $integration;
     }
 
-    public function handle(): void
+    public function handle(): bool
     {
-        // Puppeteer can take a lot of memory
-        ini_set('memory_limit', '1024M');
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-            $syncCardsIntegration->saveCardData($this->card);
+            $syncCardsIntegration->saveInitialCardData($this->card);
+
+            return true;
         } catch (Exception $error) {
-            Log::error($error->getMessage());
-            app(CardSyncRepository::class)->create([
-              'card_id' => $this->card->id,
-              'status'  => 0,
-            ]);
+            Log::error('Initial card data fetch failed: '.$error->getMessage());
+
+            return false;
         }
     }
 }

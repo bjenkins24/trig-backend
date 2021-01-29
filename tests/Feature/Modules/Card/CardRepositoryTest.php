@@ -18,10 +18,14 @@ use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     public const MOCK_SEARCH_RESPONSE = [
         'took'      => 1,
         'timed_out' => false,
@@ -163,7 +167,6 @@ class CardRepositoryTest extends TestCase
      */
     public function testSearchCards(): void
     {
-        $this->refreshDb();
         $this->partialMock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCardsRaw')->andReturn(self::MOCK_SEARCH_RESPONSE)->once();
         });
@@ -269,7 +272,6 @@ class CardRepositoryTest extends TestCase
             ['type' => Person::class, 'id' => 1],
             ['type' => null, 'id' => null],
         ], $permissions);
-        $this->refreshDb();
     }
 
     public function testDenormalizePermissionsNoPermissions(): void
@@ -352,7 +354,6 @@ class CardRepositoryTest extends TestCase
             'primary_card_id'   => 3,
             'duplicate_card_id' => 2,
         ]);
-        $this->refreshDb();
     }
 
     public function testDedupeNoContent(): void
@@ -383,11 +384,11 @@ class CardRepositoryTest extends TestCase
     public function testGetDuplicates(): void
     {
         $card = Card::find(1);
-        \Http::fake();
+        Http::fake();
         $result = app(CardRepository::class)->getDuplicates($card);
-        \Http::assertSent(static function ($request) use ($card) {
+        Http::assertSent(static function ($request) use ($card) {
             return
-                'http://localhost:5000/dedupe' === $request->url() &&
+                false !== stripos($request->url(), 'dedupe') &&
                 $request['id'] == $card->id &&
                 $request['content'] == $card->content &&
                 $request['workspace_id'] == app(CardRepository::class)->getWorkspace($card)->id;
@@ -447,7 +448,6 @@ class CardRepositoryTest extends TestCase
      */
     public function testNoActualCreatedUpdateOrInsert(): void
     {
-        $this->refreshDb();
         $knownDate = Carbon::create(2001, 5, 21, 12);
         Carbon::setTestNow($knownDate);
 
@@ -477,7 +477,7 @@ class CardRepositoryTest extends TestCase
     public function testCardExists(string $testUrl, bool $expectedExist): void
     {
         $url = 'https://www.mycooltest.com';
-        $this->refreshDb();
+
         app(CardRepository::class)->updateOrInsert([
             'url'          => $url,
             'title'        => 'my cool test',
@@ -511,7 +511,6 @@ class CardRepositoryTest extends TestCase
      */
     public function testUpdateOrInsert(): void
     {
-        $this->refreshDb();
         $card = Card::find(1);
         $title = 'my cool title';
         $this->mock(ThumbnailHelper::class, static function ($mock) {
@@ -626,8 +625,6 @@ class CardRepositoryTest extends TestCase
         } catch (CardWorkspaceIdMustExist $exception) {
             self::assertTrue(true);
         }
-
-        $this->refreshDb();
     }
 
     public function testRemovePermissions(): void

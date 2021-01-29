@@ -26,9 +26,6 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
             $website = $this->websiteExtractionHelper->fullFetch($this->url, $timeout);
         }
         if (2 === $currentRetryAttempt) {
-            $website = $this->websiteExtractionHelper->simpleFetch($this->url);
-        }
-        if (3 === $currentRetryAttempt) {
             return $this->websiteExtractionHelper->downloadAndExtract($this->url);
         }
 

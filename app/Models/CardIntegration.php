@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\Relationships\BelongsToCard;
 use App\Support\Traits\Relationships\BelongsToOauthIntegration;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -33,6 +34,7 @@ class CardIntegration extends Model
 {
     use BelongsToOauthIntegration;
     use BelongsToCard;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

@@ -13,7 +13,6 @@ class TagRepositoryTest extends TestCase
 
 //    public function seedTags(): void
 //    {
-//        $this->refreshDb();
 //        Tag::create([
 //            'workspace_id' => 1,
 //            'tag'          => 'the games',

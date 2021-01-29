@@ -8,10 +8,13 @@ use App\Models\User;
 use App\Models\Workspace;
 use App\Modules\Card\Exceptions\OauthMissingTokens;
 use App\Modules\OauthConnection\OauthConnectionRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class OauthConnectionRepositoryTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Get access token.
      */
@@ -23,8 +26,6 @@ class OauthConnectionRepositoryTest extends TestCase
 
     public function testGetAllActiveConnections(): void
     {
-        $this->refreshDb();
-
         $confluenceId = OauthIntegration::create([
             'name' => 'confluence',
         ])->id;
