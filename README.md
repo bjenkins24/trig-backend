@@ -6,13 +6,13 @@
 If you want to avoid docker locally you can do all of this:
 * `brew update`
 * `brew install mysql && brew services start mysql`
-* `brew install php`
+* `brew install php@7.4`
 * `brew install redis && ln -sfv /usr/local/opt/redis/*.plist ~/Library/LaunchAgents && launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist`
 * `brew tap elastic/tap && brew install elastic/tap/elasticsearch-full` run elastic search locally with `elasticsearch` then access it at `localhost:9200`
 * `brew install elastic/tap/kibana-full` (it hung on downloading for around 45 minutes for me but finally finished) then run kibana (make sure elasticsearch is running first) with `kibana` it can be accessed at `localhost:5601`
 * `brew install maven` - For installing apache tika
 * `brew install tesseract` - For use with apache tika (required for OCR)
-  
+* `brew install jpegoptim && brew install optipng && brew install pngquant && brew install svgo && brew install gifsicle && brew install webp` - For optimizing images
 ## Composer
 * Download: https://getcomposer.org/download/ 
 * `mv composer.phar /usr/local/bin/composer`
