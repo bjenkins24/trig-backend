@@ -6,6 +6,7 @@ use App\Utils\TagParser\TagHypernym;
 use App\Utils\TagParser\TagPrompts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Throwable;
 
 class TagHypernymTest extends TestCase
 {
@@ -31,9 +32,13 @@ class TagHypernymTest extends TestCase
         });
     }
 
+    /**
+     * @throws Throwable
+     */
     public function testGetHypernyms(): void
     {
         $this->mockPrompt('Appliance');
+
         $tags = [
             0 => 'Refrigerator',
             1 => 'Mushroom Soup',

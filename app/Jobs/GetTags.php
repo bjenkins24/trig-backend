@@ -47,7 +47,9 @@ class GetTags implements ShouldQueue
 
             $hypernymTags = app(TagService::class)->useHypernyms($this->card->workspace_id, $hypernyms);
             $tags = $tags->merge($hypernymTags);
-            app(CardTagRepository::class)->replaceTags($this->card, $tags->toArray(), $hypernyms->toArray());
+            $cardTagRepository = app(CardTagRepository::class);
+            $cardTagRepository->addHypernymsToOldCards($tags, $this->card->workspace_id);
+            $cardTagRepository->replaceTags($this->card, $tags->toArray(), $hypernyms->toArray());
 
             return true;
         } catch (Exception $e) {

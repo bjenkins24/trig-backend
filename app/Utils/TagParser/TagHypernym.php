@@ -14,7 +14,7 @@ class TagHypernym
 
     // These hypernyms will become tags right away
     public const WHITELISTED_HYPERNYMS = [
-        'space', 'soup', 'salad', 'racism',
+        'space', 'soup', 'salad', 'racism', 'anime',
     ];
 
     private TagUtils $tagUtils;

@@ -65,6 +65,39 @@ class CardTagRepository
         return $card;
     }
 
+    public function addHypernymsToOldCards(Collection $tags, int $workspaceId): void
+    {
+        $tags->each(static function ($tag) use ($workspaceId) {
+            $tags = Tag::where(['hypernym' => $tag, 'workspace_id' => $workspaceId])->get();
+            $tagIds = [];
+            foreach ($tags as $hyponymTag) {
+                $tagIds[] = $hyponymTag->id;
+            }
+            if (empty($tagIds)) {
+                return;
+            }
+
+            // Cards that have this tag as a hypernym
+            $cardTags = CardTag::whereIn('tag_id', $tagIds)->get();
+            if ($cardTags->isEmpty()) {
+                return;
+            }
+            $newTag = Tag::where(['tag' => $tag])->first();
+            if (! $newTag) {
+                $newTag = Tag::create([
+                   'tag'           => $tag,
+                   'workspace_id'  => $workspaceId,
+               ]);
+            }
+            $cardTags->each(static function ($cardTag) use ($newTag) {
+                CardTag::create([
+                    'card_id' => $cardTag->card_id,
+                    'tag_id'  => $newTag->id,
+                ]);
+            });
+        });
+    }
+
     public function denormalizeTags(Card $card): Collection
     {
         $cardTags = $card->cardTags()->get();

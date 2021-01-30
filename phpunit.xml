@@ -7,6 +7,7 @@
     <exclude>
       <file>./app/Http/Middleware/Authenticate.php</file>
       <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
+      <file>./app/Http/Controllers/WebController.php</file>
       <file>./app/Providers/BroadcastServiceProvider.php</file>
       <file>./app/Exceptions/Handler.php</file>
       <file>./app/Jobs/SendMail.php</file>
@@ -14,6 +15,7 @@
       <file>./app/Nova/User.php</file>
       <file>./app/Jobs/SendMail.php</file>
       <file>./app/Utils/FileHelper.php</file>
+      <file>./app/Utils/TikaWebClientWrapper.php</file>
       <file>./app/Utils/WebsiteExtraction/WebsiteExtractionHelper.php</file>
       <file>./app/Http/Controllers/WebController</file>
       <file>./app/Modules/Card/Integrations/Google/GoogleConnection.php</file>
