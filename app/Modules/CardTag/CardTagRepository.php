@@ -48,9 +48,10 @@ class CardTagRepository
                     $tag = Tag::create([
                         'workspace_id'    => $workspaceId,
                         'tag'             => $tagString,
-                        'hypernym'        => $hypernyms[$tagKey] ?? '',
+                        'hypernym'        => $hypernyms[$tagKey] ?? null,
                     ]);
                 }
+
                 $cardTagExists = CardTag::where('card_id', $card->id)->where('tag_id', $tag->id)->exists();
                 if (! $cardTagExists) {
                     CardTag::create([

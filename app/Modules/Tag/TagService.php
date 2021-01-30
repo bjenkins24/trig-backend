@@ -20,7 +20,12 @@ class TagService
             if (in_array(strtolower($hypernym), TagHypernym::WHITELISTED_HYPERNYMS, true)) {
                 $newTags->add($hypernym);
             }
-            Tag::where('workspace_id', $workspaceId)->where('tag', $hypernym);
+            $exists = Tag::where('workspace_id', $workspaceId)->where('tag', $hypernym)->exists();
+            if ($exists) {
+                $newTags->add($hypernym);
+            }
         });
+
+        return $newTags;
     }
 }

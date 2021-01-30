@@ -14,7 +14,7 @@ class AddHypernymTagColumn extends Migration
     public function up()
     {
         Schema::table('tags', static function (Blueprint $table) {
-            $table->string('hypernym')->after('tag')->index();
+            $table->string('hypernym')->after('tag')->nullable()->index();
             $table->index('tag');
         });
     }

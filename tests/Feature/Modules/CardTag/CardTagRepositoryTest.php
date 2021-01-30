@@ -33,7 +33,7 @@ class CardTagRepositoryTest extends TestCase
             $mock->shouldReceive('findSimilar');
         });
 
-        app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $firstSetTags, []);
 
         $card2 = app(CardRepository::class)->updateOrInsert([
             'workspace_id'    => $card->workspace_id,
@@ -44,7 +44,7 @@ class CardTagRepositoryTest extends TestCase
         ]);
 
         // There are two cool tag 2's so we won't be deleting it later
-        app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]]);
+        app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]], []);
         foreach ($firstSetTags as $tag) {
             if (! $tag) {
                 continue;
@@ -65,7 +65,7 @@ class CardTagRepositoryTest extends TestCase
         $firstTagId = Tag::where('tag', $firstSetTags[0])->first()->id;
         $secondTagId = Tag::where('tag', $firstSetTags[1])->first()->id;
 
-        app(CardTagRepository::class)->replaceTags($card, $secondSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $secondSetTags, []);
 
         $this->assertDatabaseMissing('tags', [
             'workspace_id'    => $card->workspace_id,
@@ -98,7 +98,7 @@ class CardTagRepositoryTest extends TestCase
         $this->mock(TagRepository::class, static function ($mock) {
             $mock->shouldReceive('findSimilar');
         });
-        app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $firstSetTags, []);
         $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
 
         self::assertEquals(collect($firstSetTags), $denormalized);

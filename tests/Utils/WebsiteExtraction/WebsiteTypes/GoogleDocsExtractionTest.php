@@ -8,11 +8,13 @@ use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use App\Utils\WebsiteExtraction\WebsiteTypes\GoogleDocsExtraction;
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class GoogleDocsExtractionTest extends TestCase
 {
     use MockWebsiteTrait;
+    use RefreshDatabase;
 //    /**
 //     * @throws BindingResolutionException
 //     * @group n

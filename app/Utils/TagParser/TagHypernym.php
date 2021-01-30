@@ -12,6 +12,7 @@ class TagHypernym
         'white',
     ];
 
+    // These hypernyms will become tags right away
     public const WHITELISTED_HYPERNYMS = [
         'space', 'soup', 'salad', 'racism',
     ];
