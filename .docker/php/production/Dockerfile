@@ -21,7 +21,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-xpm --with-we
 RUN docker-php-ext-install pcntl bcmath mysqli pdo pdo_mysql sockets gd
 
 # Needs to be installed globally
-npm install -g svgo
+RUN npm install -g svgo
 
 RUN yes "" | pecl install redis \
     && rm -rf /tmp/pear \
