@@ -38,7 +38,7 @@ class TagHypernym
     {
         $response = $this->tagPrompts->completeHypernym($tag, $engineId);
         if (! isset($response['choices'][0]['text']) || null === $response) {
-            $hypernyms[] = '';
+            return '';
         }
 
         $completion = $response['choices'][0]['text'];
