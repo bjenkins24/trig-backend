@@ -18,5 +18,5 @@ class Tag extends Model
     /**
      * @var array
      */
-    protected $fillable = ['tag', 'workspace_id'];
+    protected $fillable = ['tag', 'hypernym', 'workspace_id'];
 }

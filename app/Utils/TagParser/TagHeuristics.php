@@ -178,4 +178,21 @@ class TagHeuristics
 
         return $newTags;
     }
+
+    /**
+     * Remove any manually tagged heuristics from the tag array in case we need to do something
+     * with _just_ the automatically generated tags.
+     */
+    public function removeHeuristicTags(array $tags): array
+    {
+        foreach (self::HEURISTICS as $heuristic) {
+            foreach ($tags as $tagKey => $tag) {
+                if (strtolower($heuristic['tag']) === strtolower($tag)) {
+                    unset($tags[$tagKey]);
+                }
+            }
+        }
+
+        return $tags;
+    }
 }

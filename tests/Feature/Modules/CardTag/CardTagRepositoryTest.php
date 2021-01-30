@@ -3,6 +3,7 @@
 namespace Tests\Feature\Modules\CardTag;
 
 use App\Models\Card;
+use App\Models\CardTag;
 use App\Models\Tag;
 use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
@@ -33,7 +34,7 @@ class CardTagRepositoryTest extends TestCase
             $mock->shouldReceive('findSimilar');
         });
 
-        app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $firstSetTags, []);
 
         $card2 = app(CardRepository::class)->updateOrInsert([
             'workspace_id'    => $card->workspace_id,
@@ -44,7 +45,7 @@ class CardTagRepositoryTest extends TestCase
         ]);
 
         // There are two cool tag 2's so we won't be deleting it later
-        app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]]);
+        app(CardTagRepository::class)->replaceTags($card2, [$firstSetTags[1]], []);
         foreach ($firstSetTags as $tag) {
             if (! $tag) {
                 continue;
@@ -65,7 +66,7 @@ class CardTagRepositoryTest extends TestCase
         $firstTagId = Tag::where('tag', $firstSetTags[0])->first()->id;
         $secondTagId = Tag::where('tag', $firstSetTags[1])->first()->id;
 
-        app(CardTagRepository::class)->replaceTags($card, $secondSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $secondSetTags, []);
 
         $this->assertDatabaseMissing('tags', [
             'workspace_id'    => $card->workspace_id,
@@ -98,9 +99,39 @@ class CardTagRepositoryTest extends TestCase
         $this->mock(TagRepository::class, static function ($mock) {
             $mock->shouldReceive('findSimilar');
         });
-        app(CardTagRepository::class)->replaceTags($card, $firstSetTags);
+        app(CardTagRepository::class)->replaceTags($card, $firstSetTags, []);
         $denormalized = app(CardTagRepository::class)->denormalizeTags($card);
 
         self::assertEquals(collect($firstSetTags), $denormalized);
+    }
+
+    /**
+     * @group n
+     */
+    public function testAddHypernymsToOldCardsTest(): void
+    {
+        $card = Card::find(1);
+        $tag = Tag::create([
+            'tag'          => 'Refrigerator',
+            'hypernym'     => 'Appliance',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        CardTag::create([
+            'card_id' => $card->id,
+            'tag_id'  => $tag->id,
+        ]);
+        $this->assertDatabaseMissing('tags', [
+            'tag'          => 'Appliance',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        app(CardTagRepository::class)->addHypernymsToOldCards(collect(['Appliance', 'Furniture']), $card->workspace_id);
+        $this->assertDatabaseHas('tags', [
+            'tag'          => 'Appliance',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        $this->assertDatabaseHas('card_tags', [
+            'card_id' => $card->id,
+            'tag_id'  => Tag::where('tag', 'Appliance')->first()->id,
+        ]);
     }
 }

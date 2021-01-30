@@ -14,41 +14,22 @@ class TagParser
     private TagManualAdditions $tagManualAdditions;
     private TagStringRemoval $tagStringRemoval;
     private TagPrompts $tagPrompts;
+    private TagUtils $tagUtils;
 
     public function __construct(
         Gpt3 $gpt3,
         TagHeuristics $tagHeuristics,
         TagManualAdditions $tagManualAdditions,
         TagStringRemoval $tagStringRemoval,
-        TagPrompts $tagPrompts
+        TagPrompts $tagPrompts,
+        TagUtils $tagUtils
     ) {
         $this->gpt3 = $gpt3;
         $this->tagHeuristics = $tagHeuristics;
         $this->tagManualAdditions = $tagManualAdditions;
         $this->tagStringRemoval = $tagStringRemoval;
         $this->tagPrompts = $tagPrompts;
-    }
-
-    private function completionToArray(string $completion): array
-    {
-        $completion = trim(preg_replace("/[\r|\n].*/", '', $completion));
-        $potentialTags = explode(',', $completion);
-        // It wasn't able to explode it correctly let's try spaces
-        if (1 === count($potentialTags)) {
-            $potentialTags = explode(' ', $completion);
-        }
-        $tags = [];
-
-        foreach ($potentialTags as $tag) {
-            $cleanedTag = trim($tag);
-            if ($cleanedTag) {
-                $tags[] = $cleanedTag;
-            } else {
-                break;
-            }
-        }
-
-        return $tags;
+        $this->tagUtils = $tagUtils;
     }
 
     private function increaseEngine(int $engineId, string $completion, string $input, string $title, string $documentText, ?string $url, string $promptType): Collection
@@ -151,7 +132,7 @@ class TagParser
         }
 
         $completion = $response['choices'][0]['text'];
-        $tags = $this->completionToArray($completion);
+        $tags = $this->tagUtils->completionToArray($completion);
 
         $isCounting = count($this->tagStringRemoval->removeConsecutiveNumbers($tags)) !== count($tags);
         $hasBadWords = count($this->tagStringRemoval->removeBadWords($tags)) !== count($tags);

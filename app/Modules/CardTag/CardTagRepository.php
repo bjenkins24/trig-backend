@@ -22,9 +22,9 @@ class CardTagRepository
     /**
      * @throws Throwable
      */
-    public function replaceTags(Card $card, array $tags): Card
+    public function replaceTags(Card $card, array $tags, array $hypernyms): Card
     {
-        DB::transaction(function () use ($tags, $card) {
+        DB::transaction(function () use ($tags, $hypernyms, $card) {
             $cardTags = $card->cardTags();
 
             $cardTags->get()->each(static function ($cardTag) {
@@ -38,18 +38,20 @@ class CardTagRepository
             });
 
             $workspaceId = $card->workspace_id;
-            foreach ($tags as $tagString) {
+            foreach ($tags as $tagKey => $tagString) {
                 if (! $tagString) {
                     continue;
                 }
                 $tag = $this->tagRepository->findSimilar($tagString, $workspaceId);
                 if (! $tag) {
-                    // Add a card_tag
+                    // Add a tag
                     $tag = Tag::create([
                         'workspace_id'    => $workspaceId,
                         'tag'             => $tagString,
+                        'hypernym'        => $hypernyms[$tagKey] ?? null,
                     ]);
                 }
+
                 $cardTagExists = CardTag::where('card_id', $card->id)->where('tag_id', $tag->id)->exists();
                 if (! $cardTagExists) {
                     CardTag::create([
@@ -61,6 +63,39 @@ class CardTagRepository
         });
 
         return $card;
+    }
+
+    public function addHypernymsToOldCards(Collection $tags, int $workspaceId): void
+    {
+        $tags->each(static function ($tag) use ($workspaceId) {
+            $tags = Tag::where(['hypernym' => $tag, 'workspace_id' => $workspaceId])->get();
+            $tagIds = [];
+            foreach ($tags as $hyponymTag) {
+                $tagIds[] = $hyponymTag->id;
+            }
+            if (empty($tagIds)) {
+                return;
+            }
+
+            // Cards that have this tag as a hypernym
+            $cardTags = CardTag::whereIn('tag_id', $tagIds)->get();
+            if ($cardTags->isEmpty()) {
+                return;
+            }
+            $newTag = Tag::where(['tag' => $tag])->first();
+            if (! $newTag) {
+                $newTag = Tag::create([
+                   'tag'           => $tag,
+                   'workspace_id'  => $workspaceId,
+               ]);
+            }
+            $cardTags->each(static function ($cardTag) use ($newTag) {
+                CardTag::create([
+                    'card_id' => $cardTag->card_id,
+                    'tag_id'  => $newTag->id,
+                ]);
+            });
+        });
     }
 
     public function denormalizeTags(Card $card): Collection
