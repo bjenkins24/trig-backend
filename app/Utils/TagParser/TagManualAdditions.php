@@ -46,7 +46,6 @@ class TagManualAdditions
         [['economic', '~economic'], 'Economics'],
         [['coach', '~coach', '~coaches', '~coachable'], 'Coaching'],
         [['brand', '-brands', '~brand'], 'Branding'],
-        [['budget', '~budget'], 'Budgeting'],
         [['divers', '~diverse'], 'Diversity'],
         [['educat', '~educator'], 'Education'],
         ['health', 'Health'],

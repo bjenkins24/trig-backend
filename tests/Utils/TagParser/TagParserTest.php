@@ -114,7 +114,17 @@ COMPLETION_EXAMPLE,
 Risk Managers, Making an MVP, Budget,
 
 COMPLETION_EXAMPLE,
-                ['Risk Management', 'MVP', 'Budgeting', 'Making an MVP'],
+                ['Risk Management', 'MVP', 'Making an MVP', 'Budget'],
+            ],
+            [
+                'fake',
+                'fake',
+                'https://www.foxnews.com/politics/biden-says-he-will-get-covid-relief-passed-no-ifs-and-or-buts',
+                <<<COMPLETION_EXAMPLE
+Budget Reconciliation, COVID-19 Relief Bill, Stimulus Package,
+
+COMPLETION_EXAMPLE,
+                ['Budget Reconciliation', 'COVID-19 Relief Bill', 'Stimulus Package', 'News'],
             ],
             [
                 'fake',

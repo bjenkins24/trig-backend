@@ -17,11 +17,11 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
         $website = $this->websiteFactory->make();
         // Full fetch will intermittently timeout. So let's try it twice.
         if ($currentRetryAttempt < 2) {
-            $timeout = 35000;
+            $timeout = 15000;
             if (1 === $currentRetryAttempt) {
                 // If the first one times out at 35 we'll probably end up just timing out period
                 // So we'll make the second one short in case it wasn't a problem of how hard it is to load the site
-                $timeout = 15000;
+                $timeout = 35000;
             }
             $website = $this->websiteExtractionHelper->fullFetch($this->url, $timeout);
         }
