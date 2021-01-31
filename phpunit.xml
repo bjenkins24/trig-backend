@@ -6,6 +6,7 @@
     </include>
     <exclude>
       <file>./app/Http/Middleware/Authenticate.php</file>
+      <file>./app/Http/Middleware/SetNovaGuard.php</file>
       <file>./app/Http/Middleware/RedirectIfAuthenticated.php</file>
       <file>./app/Http/Controllers/WebController.php</file>
       <file>./app/Providers/BroadcastServiceProvider.php</file>

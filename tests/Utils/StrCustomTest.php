@@ -2,11 +2,14 @@
 
 namespace Tests\Utils;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StrCustomTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testHtmlToMarkdown(): void
     {
         $testString = <<<EOD

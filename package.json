@@ -2,7 +2,7 @@
     "private": true,
     "scripts": {
         "coverage": "open-cli coverage/dashboard.html",
-        "test": "php artisan test --parallel && vendor/bin/coverage-check clover.xml 84",
+        "test": "php artisan test --parallel && vendor/bin/coverage-check clover.xml 83",
         "scaffold": "php artisan app:scaffold --env=testing && php artisan app:scaffold && php artisan horizon:clear",
         "bootstrap": "composer install && php artisan storage:link && php artisan horizon:install && npm run scaffold",
         "elastic": "php artisan elastic:migrate:refresh && php artisan scout:import \"App\\Models\\Card\"",

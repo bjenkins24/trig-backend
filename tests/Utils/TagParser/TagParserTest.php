@@ -104,7 +104,7 @@ COMPLETION_EXAMPLE,
 ~Cool Tag, Fan, Amazon.com, HR Personel
 
 COMPLETION_EXAMPLE,
-                ['Human Resources', 'Book', 'Cool Tag', 'Fan', 'Amazon', 'HR Personel'],
+                ['Human Resources', 'Cool Tag', 'Fan', 'Amazon', 'HR Personel', 'Book'],
             ],
             [
                 'fake',
