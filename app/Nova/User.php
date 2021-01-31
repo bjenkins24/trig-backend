@@ -3,10 +3,12 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
+use Nova\Impersonation\Impersonation;
 
 class User extends Resource
 {
@@ -22,7 +24,7 @@ class User extends Resource
      *
      * @var string
      */
-    public static $title = 'name';
+    public static $title = 'email';
 
     /**
      * The columns that should be searched.
@@ -63,7 +65,14 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', 'string', 'min:8')
                 ->updateRules('nullable', 'string', 'min:8'),
+
+            Impersonation::make($this->id)->withMeta(['canImpersonate' => $this->canImpersonate()]),
         ];
+    }
+
+    private function canImpersonate(): bool
+    {
+        return Gate::allows('can-impersonate', $this);
     }
 
     /**

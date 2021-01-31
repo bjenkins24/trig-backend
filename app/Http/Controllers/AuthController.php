@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\Auth\NoAccessTokenSet;
 use App\Http\Requests\Auth\Login;
+use App\Models\User;
+use App\Modules\User\ImpersonationService;
 use App\Modules\User\UserRepository;
 use App\Support\Traits\HandlesAuth;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -15,11 +19,15 @@ class AuthController extends Controller
 {
     use HandlesAuth;
 
-    public UserRepository $userRepo;
+    private UserRepository $userRepo;
+    private ImpersonationService $impersonationService;
 
-    public function __construct(UserRepository $userRepo)
-    {
+    public function __construct(
+        UserRepository $userRepo,
+        ImpersonationService $impersonationService
+    ) {
         $this->userRepo = $userRepo;
+        $this->impersonationService = $impersonationService;
     }
 
     /**
@@ -51,5 +59,17 @@ class AuthController extends Controller
         $user = $this->userRepo->getMe($this->userRepo->findByEmail($request->get('email')));
 
         return response()->json(['data' => compact('authToken', 'user')], 200);
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function impersonate(Request $request)
+    {
+        $userIdToImpersonate = $request->input('user_id');
+        $user = User::find($userIdToImpersonate);
+        $tokenData = $this->impersonationService->impersonate($user);
+
+        return redirect(env('CLIENT_URL').'/impersonate/?'.$tokenData['access_token']);
     }
 }

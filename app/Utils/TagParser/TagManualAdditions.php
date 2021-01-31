@@ -22,7 +22,7 @@ class TagManualAdditions
         ['sale', 'Sales'],
         ['marketing', 'Marketing'],
         [['culture', '~cultures'], 'Culture'],
-        [['book', '~books'], 'Book'],
+        [['~book', '~books'], 'Book'],
         ['customer support', 'Customer Support'],
         [['cognitive bias', '~cognitive bias', '~cognitive biases'], 'Cognitive Bias'],
         [['confirmation bias', '~confirmation bias', '~confirmation biases'], 'Confirmation Bias'],

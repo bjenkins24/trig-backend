@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetNovaGuard;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,3 +16,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'WebController@home');
 Route::get('/health', 'WebController@health');
+Route::get('/impersonate', 'AuthController@impersonate')->middleware([SetNovaGuard::class]);

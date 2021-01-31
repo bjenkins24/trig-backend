@@ -112,4 +112,9 @@ return [
     */
 
     'password_timeout' => 10800,
+
+    /* User whitelist for Nova */
+    'admin_access' => [
+        'brian@trytrig.com',
+    ],
 ];

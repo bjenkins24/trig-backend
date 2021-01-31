@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetNovaGuard;
 use Laravel\Nova\Actions\ActionResource;
 use Laravel\Nova\Http\Middleware\Authenticate;
 use Laravel\Nova\Http\Middleware\Authorize;
@@ -44,7 +45,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', '/'),
+    'url' => env('APP_URL', '/').'/nova',
 
     /*
     |--------------------------------------------------------------------------
@@ -98,6 +99,7 @@ return [
 
     'middleware' => [
         'web',
+        SetNovaGuard::class,
         Authenticate::class,
         DispatchServingNovaEvent::class,
         BootTools::class,
