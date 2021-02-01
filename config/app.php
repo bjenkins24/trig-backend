@@ -56,7 +56,7 @@ return [
     /*
      * Application client URL
      */
-    'client_url' => env('CLIENT_URL', 'http://localhost:8080'),
+    'client_url' => env('CLIENT_URL', 'https://app.trytrig.com'),
 
     /*
      * Apache Tika URL

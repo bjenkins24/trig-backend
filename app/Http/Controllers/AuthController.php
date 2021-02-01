@@ -13,6 +13,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthController extends Controller
@@ -70,6 +71,6 @@ class AuthController extends Controller
         $user = User::find($userIdToImpersonate);
         $tokenData = $this->impersonationService->impersonate($user);
 
-        return redirect(env('CLIENT_URL').'/impersonate/?'.$tokenData['access_token']);
+        return redirect(Config::get('app.client_url').'/impersonate/?'.$tokenData['access_token']);
     }
 }
