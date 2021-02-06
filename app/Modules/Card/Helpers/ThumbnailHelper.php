@@ -9,12 +9,10 @@ use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
 use Spatie\ImageOptimizer\Optimizers\Jpegoptim;
-use Spatie\ImageOptimizer\Optimizers\Optipng;
 use Spatie\ImageOptimizer\Optimizers\Pngquant;
 use Spatie\ImageOptimizer\Optimizers\Svgo;
 
@@ -80,7 +78,6 @@ class ThumbnailHelper
                     '--all-progressive',
                 ]))
                 ->addOptimizer(new Pngquant())
-                ->addOptimizer(new Optipng())
                 ->addOptimizer(new Svgo())
                 ->addOptimizer(new Gifsicle())
                 ->addOptimizer(new Cwebp());
