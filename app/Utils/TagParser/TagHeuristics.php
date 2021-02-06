@@ -33,6 +33,7 @@ class TagHeuristics
                 'turkishfood',
                 'cooked.com',
                 'gimmesomeoven.com',
+                'cooking.nytimes.com',
             ],
             'tag' => 'Recipe',
         ],
@@ -40,7 +41,7 @@ class TagHeuristics
             'url' => [
                 'washingtonpost.com',
                 'cnn.com',
-                'nytimes.com',
+                ['include' => ['nytimes.com'], 'exclude' => ['cooking.nytimes.com']],
                 'huffpost.com',
                 'foxnews.com',
                 'usatoday.com',
@@ -169,7 +170,21 @@ class TagHeuristics
             }
             if (! empty($heuristic['url'])) {
                 foreach ($heuristic['url'] as $testUrl) {
-                    if (false !== stripos($url, $testUrl)) {
+                    if (is_array($testUrl)) {
+                        foreach ($testUrl['include'] as $includeUrl) {
+                            if (false !== stripos($url, $includeUrl)) {
+                                $isExcluded = false;
+                                foreach ($testUrl['exclude'] as $excludedUrl) {
+                                    if (false !== stripos($url, $excludedUrl)) {
+                                        $isExcluded = true;
+                                    }
+                                }
+                                if (! $isExcluded) {
+                                    $newTags[] = $heuristic['tag'];
+                                }
+                            }
+                        }
+                    } elseif (false !== stripos($url, $testUrl)) {
                         $newTags[] = $heuristic['tag'];
                     }
                 }

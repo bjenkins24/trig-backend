@@ -119,6 +119,16 @@ COMPLETION_EXAMPLE,
             [
                 'fake',
                 'fake',
+                'https://cooking.nytimes.com/recipes/1019406-herby-pork-larb-with-chile',
+                <<<COMPLETION_EXAMPLE
+Chile, Chile Powder, Chile
+
+COMPLETION_EXAMPLE,
+                ['Recipe', 'Chile', 'Chile Powder'],
+            ],
+            [
+                'fake',
+                'fake',
                 'https://www.foxnews.com/politics/biden-says-he-will-get-covid-relief-passed-no-ifs-and-or-buts',
                 <<<COMPLETION_EXAMPLE
 Budget Reconciliation, COVID-19 Relief Bill, Stimulus Package,

@@ -105,9 +105,6 @@ class CardTagRepositoryTest extends TestCase
         self::assertEquals(collect($firstSetTags), $denormalized);
     }
 
-    /**
-     * @group n
-     */
     public function testAddHypernymsToOldCardsTest(): void
     {
         $card = Card::find(1);
