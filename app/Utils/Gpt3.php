@@ -22,6 +22,53 @@ class Gpt3
         return $engines[$id];
     }
 
+    /**
+     * @return int|null 0 - Safe, 1 - Sensitive, 2 - Unsafe [https://beta.openai.com/docs/engines/content-filter]
+     */
+    public function getFilterLevel(string $prompt): ?int
+    {
+        try {
+            $options = [
+                'max_tokens'  => 1,
+                'temperature' => 0.0,
+                'top_p'       => 0,
+                'prompt'      => '<|endoftext|>['.$prompt.']\n--\nLabel:',
+            ];
+            $response = Http::retry(3, 1000)->withOptions([
+                'connect_timeout' => 5,
+                'timeout'         => 10,
+                'headers'         => [
+                    'Content-Type'  => 'application/json',
+                    'Authorization' => 'Bearer '.Config::get('app.gpt3_api_key'),
+                ],
+            ])->post('https://api.openai.com/v1/engines/content-filter-alpha-c4/completions', $options);
+        } catch (RequestException $exception) {
+            Log::error('GPT has failed to load: '.$exception->getMessage());
+
+            return null;
+        } catch (Exception $exception) {
+            Log::error('There was unexpected problem with the response from GTP3: '.$exception->getMessage());
+
+            return null;
+        }
+
+        try {
+            $response = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            Log::error('The json from GPT-3 could not be decoded: '.$exception->getMessage());
+
+            return null;
+        }
+
+        if (! isset($response['choices'][0]['text'])) {
+            Log::notice('There was an empty response from GPT-3: '.json_encode($response));
+
+            return null;
+        }
+
+        return (int) $response['choices']['0']['text'];
+    }
+
     public function complete(string $prompt, array $options, int $engineId = 1): ?array
     {
         $options['prompt'] = $prompt;

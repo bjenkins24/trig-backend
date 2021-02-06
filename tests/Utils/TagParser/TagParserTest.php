@@ -14,6 +14,7 @@ class TagParserTest extends TestCase
     {
         $this->mock(Gpt3::class, static function ($mock) {
             $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('getFilterLevel')->andReturn(1);
         });
         $this->mock(TagPrompts::class, static function ($mock) use ($completion) {
             $mock->shouldReceive('completeWithExamples')->andReturn([
@@ -161,11 +162,24 @@ COMPLETION_EXAMPLE,
         $this->mock(Gpt3::class, static function ($mock) {
             $mock->shouldReceive('getEngine')->andReturn('babbage');
             $mock->shouldReceive('complete')->andReturn(['no results']);
+            $mock->shouldReceive('getFilterLevel')->andReturn(0);
         });
 
         $results = app(TagParser::class)->getTags('my text', 'hello');
         $expectedTags = collect([]);
         self::assertEquals($expectedTags, $results);
+    }
+
+    public function testGptContentFilterFail(): void
+    {
+        $this->mockResponse('hello, test');
+        $this->mock(Gpt3::class, static function ($mock) {
+            $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('getFilterLevel')->andReturn(2);
+        });
+
+        $results = app(TagParser::class)->getTags('my text', 'hello');
+        self::assertEquals(collect([]), $results);
     }
 
     public function testGtpNoInput(): void
@@ -179,6 +193,7 @@ COMPLETION_EXAMPLE,
     {
         $this->mock(Gpt3::class, static function ($mock) {
             $mock->shouldReceive('getEngine')->andReturn('babbage');
+            $mock->shouldReceive('getFilterLevel')->andReturn(0);
             $mock->shouldReceive('complete')->andReturn([
                 'id'      => 'cmpl-kDXQjsjXU4Ng08GaJVU6svan',
                 'object'  => 'text_completion',

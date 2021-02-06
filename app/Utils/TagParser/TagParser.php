@@ -157,6 +157,12 @@ class TagParser
             }
         }
 
+        if ($this->gpt3->getFilterLevel($completion) > 1) {
+            Log::notice('The tags were not used because they failed GPT3\'s content filter. Completion deemed unsage: '.$completion.' - URL: '.$url);
+
+            return collect([]);
+        }
+
         return $this->cleanTags($tags, $title, $documentText, $url);
     }
 }
