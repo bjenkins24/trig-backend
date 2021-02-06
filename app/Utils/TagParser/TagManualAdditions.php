@@ -29,7 +29,6 @@ class TagManualAdditions
         [['customer service', '~customer services'], 'Customer Service'],
         [[' MVP', 'MVP ', '~minimum viable product'], 'MVP'],
         [['machine learn', '~deep learning'], 'Machine Learning'],
-        [[' AI', 'AI ', 'artificial intelligence'], 'Artificial Intelligence'],
         [['risk manag', '~risk manager', '~risk managers'], 'Risk Management'],
         [['data scien', '~data scientist', '~data scientists'], 'Data Science'],
         [['software engineer', 'software develop', '~software engineer', '~software engineers', '~software developer', '~software developers', '~software developing', '~software development'], 'Software Engineering'],
