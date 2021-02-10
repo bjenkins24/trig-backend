@@ -35,6 +35,7 @@ class SaveCardDataInitial implements ShouldQueue
 
     public function handle(): bool
     {
+        ini_set('memory_limit', '1024M');
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
             $syncCardsIntegration->saveInitialCardData($this->card);
