@@ -53,13 +53,21 @@ class AuthController extends Controller
             ]);
         }
 
-        if (empty(Arr::get($authToken, 'access_token'))) {
+        $token = Arr::get($authToken, 'access_token');
+        if (empty($token)) {
             throw new NoAccessTokenSet('No access token set');
         }
 
         $user = $this->userRepo->getMe($this->userRepo->findByEmail($request->get('email')));
 
-        return response()->json(['data' => compact('authToken', 'user')], 200);
+        return response()
+            ->json(['data' => compact('authToken', 'user')], 200)
+            ->withCookie(cookie()->forever('access_token', $token));
+    }
+
+    public function logout(): JsonResponse
+    {
+        return response()->json(['data' => 'success'])->withoutCookie('access_token');
     }
 
     /**

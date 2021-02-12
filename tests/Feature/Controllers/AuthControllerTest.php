@@ -11,10 +11,8 @@ class AuthControllerTest extends TestCase
 {
     /**
      * Validation fails on login endpoint.
-     *
-     * @return void
      */
-    public function testLoginValidation()
+    public function testLoginValidation(): void
     {
         $response = $this->json('POST', 'login');
         $response->assertStatus(422);
@@ -28,10 +26,8 @@ class AuthControllerTest extends TestCase
 
     /**
      * Login failed.
-     *
-     * @return void
      */
-    public function testLoginIncorrect()
+    public function testLoginIncorrect(): void
     {
         $response = $this->json('POST', 'login', [
             'email'    => 'fakeemail@fake.com',
@@ -42,10 +38,8 @@ class AuthControllerTest extends TestCase
 
     /**
      * Login succeeded.
-     *
-     * @return void
      */
-    public function testLoginSucceeded()
+    public function testLoginSucceeded(): void
     {
         $user = [
             'email'    => Config::get('constants.seed.email'),
@@ -55,18 +49,16 @@ class AuthControllerTest extends TestCase
         $response = $this->json('POST', 'login', $user);
 
         $response->assertStatus(200);
-        $this->assertTrue(Arr::has($response->json(), 'data.authToken.access_token'));
-        $this->assertTrue(
-            Arr::get($response->json(), 'data.user.email') === Config::get('constants.seed.email')
+        self::assertTrue(Arr::has($response->json(), 'data.authToken.access_token'));
+        self::assertSame(
+            Config::get('constants.seed.email'), Arr::get($response->json(), 'data.user.email')
         );
     }
 
     /**
      * No access token returned.
-     *
-     * @return void
      */
-    public function testLoginNoAccessToken()
+    public function testLoginNoAccessToken(): void
     {
         $this->partialMock(AuthController::class, function ($mock) {
             $mock->shouldReceive('authRequest')->andReturn([])->once();
