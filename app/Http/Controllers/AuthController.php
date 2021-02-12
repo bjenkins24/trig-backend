@@ -62,7 +62,7 @@ class AuthController extends Controller
 
         return response()
             ->json(['data' => compact('authToken', 'user')], 200)
-            ->withCookie(cookie()->forever('access_token', $token));
+            ->withCookie(cookie()->forever('access_token', $token, null, null, true, true, false, 'none'));
     }
 
     public function logout(): JsonResponse
