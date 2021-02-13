@@ -538,7 +538,7 @@ class CardRepository
      * @throws CardUserIdMustExist
      * @throws Exception
      */
-    public function updateOrInsert(array $fields, ?Card $card = null): ?Card
+    public function upsert(array $fields, ?Card $card = null): ?Card
     {
         $newFields = collect($fields);
         if ($card) {
@@ -572,7 +572,7 @@ class CardRepository
         $existingCardId = $this->getExistingCardId($newFields->get('url'), $newFields->get('user_id'));
         // If a card with this url already exists, then just update the card instead
         if ($existingCardId && $newFields->get('url')) {
-            return $this->updateOrInsert($fields, Card::find($existingCardId));
+            return $this->upsert($fields, Card::find($existingCardId));
         }
 
         if (! $newFields->get('actual_created_at')) {

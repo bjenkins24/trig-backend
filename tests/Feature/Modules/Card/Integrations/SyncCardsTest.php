@@ -204,7 +204,7 @@ class SyncCardsTest extends TestCase
 //        $initialData['data']['url'] = 'https://www.khoslaventures.com/wp-content/uploads/Good-Group-Product-Manager.pdf';
 //        $initialData['data']['title'] = 'Hello there';
 //        [$syncCards, $data, $user] = $this->getSetup(null, $initialData, 'link');
-//        $card = app(CardRepository::class)->updateOrInsert([
+//        $card = app(CardRepository::class)->upsert([
 //            'title'        => $initialData['data']['url'],
 //            'url'          => $initialData['data']['url'],
 //            'user_id'      => $user->id,

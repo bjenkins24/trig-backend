@@ -130,7 +130,7 @@ class SyncCards
 
         $cardType = $this->cardTypeRepository->firstOrCreate($data->get('card_type'));
 
-        $card = $this->cardRepository->updateOrInsert([
+        $card = $this->cardRepository->upsert([
             'actual_created_at'         => $data->get('actual_created_at'),
             'actual_updated_at'         => $data->get('actual_updated_at'),
             'card_type_id'              => $cardType->id,

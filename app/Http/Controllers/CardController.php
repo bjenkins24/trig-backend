@@ -51,7 +51,7 @@ class CardController extends Controller
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
         try {
-            $card = $this->cardRepository->updateOrInsert([
+            $card = $this->cardRepository->upsert([
                 'card_type_id'      => $cardType->id,
                 'user_id'           => $user->id,
                 'url'               => $request->url,
@@ -156,7 +156,7 @@ class CardController extends Controller
         });
 
         try {
-            $card = $this->cardRepository->updateOrInsert(
+            $card = $this->cardRepository->upsert(
                 array_merge(['user_id' => $user->id], $data),
                 $card
             );

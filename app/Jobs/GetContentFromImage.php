@@ -49,7 +49,7 @@ class GetContentFromImage implements ShouldQueue
                 $fields['description'] = $data['excerpt'];
             }
 
-            app(CardRepository::class)->updateOrInsert($fields, $this->card);
+            app(CardRepository::class)->upsert($fields, $this->card);
 
             return true;
         } catch (Exception $error) {

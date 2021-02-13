@@ -69,7 +69,7 @@ class CardControllerTest extends TestCase
     public function testCreateCardFail(): void
     {
         $this->mock(CardRepository::class, static function ($mock) {
-            $mock->shouldReceive('updateOrInsert')->andReturn(null);
+            $mock->shouldReceive('upsert')->andReturn(null);
         });
 
         $response = $this->client('POST', 'card', ['url' => 'http://google.com']);

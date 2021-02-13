@@ -446,7 +446,7 @@ class CardRepositoryTest extends TestCase
      * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      */
-    public function testNoActualCreatedUpdateOrInsert(): void
+    public function testNoActualCreatedupsert(): void
     {
         $knownDate = Carbon::create(2001, 5, 21, 12);
         Carbon::setTestNow($knownDate);
@@ -455,7 +455,7 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('saveThumbnail');
         });
         $title = 'mycooltitle';
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'image'        => 'cool_image',
             'title'        => $title,
             'url'          => 'https://coolurl',
@@ -478,7 +478,7 @@ class CardRepositoryTest extends TestCase
     {
         $url = 'https://www.mycooltest.com';
 
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'url'          => $url,
             'title'        => 'my cool test',
             'user_id'      => 1,
@@ -509,7 +509,7 @@ class CardRepositoryTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testUpdateOrInsert(): void
+    public function testupsert(): void
     {
         $card = Card::find(1);
         $title = 'my cool title';
@@ -519,7 +519,7 @@ class CardRepositoryTest extends TestCase
         $firstCardUrl = 'https://firstCardUrl.com';
         $favoritedById = 1;
         $viewedById = 1;
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'url'          => $firstCardUrl,
             'title'        => $title,
             'image'        => 'cool_image',
@@ -548,7 +548,7 @@ class CardRepositoryTest extends TestCase
             'user_id' => $viewedById,
         ]);
 
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'title'          => $title,
             'image'          => 'cool_image',
             'unfavorited_by' => $favoritedById,
@@ -565,7 +565,7 @@ class CardRepositoryTest extends TestCase
         ]);
 
         $newCardTitle = 'my new card';
-        $newCard = app(CardRepository::class)->updateOrInsert([
+        $newCard = app(CardRepository::class)->upsert([
             'title'              => $newCardTitle,
             'user_id'            => 1,
             'card_type_id'       => 2,
@@ -582,7 +582,7 @@ class CardRepositoryTest extends TestCase
 
         // Try an existing card with a url that already exists
         try {
-            app(CardRepository::class)->updateOrInsert([
+            app(CardRepository::class)->upsert([
                 'user_id'            => 1,
                 'url'                => $firstCardUrl,
             ], $newCard);
@@ -594,7 +594,7 @@ class CardRepositoryTest extends TestCase
 
         // Try a new card with a url that already exists - it should throw an error
         try {
-            $result = app(CardRepository::class)->updateOrInsert([
+            $result = app(CardRepository::class)->upsert([
                 'user_id' => 1,
                 'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
                 'title'   => $newCardTitle,
@@ -616,7 +616,7 @@ class CardRepositoryTest extends TestCase
             'name' => 'test org',
         ]);
         try {
-            app(CardRepository::class)->updateOrInsert([
+            app(CardRepository::class)->upsert([
                 'user_id' => 1,
                 'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
                 'title'   => $newCardTitle,
