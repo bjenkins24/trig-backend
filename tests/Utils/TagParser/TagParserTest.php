@@ -6,10 +6,13 @@ use App\Utils\Gpt3;
 use App\Utils\TagParser\TagParser;
 use App\Utils\TagParser\TagPrompts;
 use App\Utils\TagParser\TagStringRemoval;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TagParserTest extends TestCase
 {
+    use RefreshDatabase;
+
     private function mockResponse(string $completion): void
     {
         $this->mock(Gpt3::class, static function ($mock) {
