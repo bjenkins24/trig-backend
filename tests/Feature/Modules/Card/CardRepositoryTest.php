@@ -474,7 +474,7 @@ class CardRepositoryTest extends TestCase
      * @throws Exception
      * @dataProvider urlProvider
      */
-    public function testCardExists(string $testUrl, bool $expectedExist): void
+    public function testGetExistingCardId(string $testUrl, ?int $expectedId): void
     {
         $url = 'https://www.mycooltest.com';
 
@@ -484,25 +484,25 @@ class CardRepositoryTest extends TestCase
             'user_id'      => 1,
             'card_type_id' => 1,
         ]);
-        $exists = app(CardRepository::class)->cardExists($testUrl, 1);
-        self::assertEquals($exists, $expectedExist);
-        $exists = app(CardRepository::class)->cardExists($url, 2);
-        self::assertFalse($exists);
+        $existingCardId = app(CardRepository::class)->getExistingCardId($testUrl, 1);
+        self::assertEquals($expectedId, $existingCardId);
+        $existingCardId = app(CardRepository::class)->getExistingCardId($url, 2);
+        self::assertNull($existingCardId);
     }
 
     public function urlProvider(): array
     {
         return [
-            ['https://www.mycooltest.com', true],
-            ['https://mycooltest.com', true],
-            ['http://www.mycooltest.com', true],
-            ['http://mycooltest.com', true],
-            ['www.mycooltest.com', true],
-            ['mycooltest.com', true],
-            ['mycooltest', false],
+            ['https://www.mycooltest.com', 6],
+            ['https://mycooltest.com', 6],
+            ['http://www.mycooltest.com', 6],
+            ['http://mycooltest.com', 6],
+            ['www.mycooltest.com', 6],
+            ['mycooltest.com', 6],
+            ['mycooltest', null],
             // We're allowing duplicate urls with a hash because some JS routers use a hash instead of a normal url to route to different internal pages
-            ['mycooltest.com#mytag', false],
-            ['mycooltest.net', false],
+            ['mycooltest.com#mytag', null],
+            ['mycooltest.net', null],
         ];
     }
 

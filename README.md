@@ -51,7 +51,7 @@ the full path. Use that. Make sure you restart your terminal too.
 ## Laravel Valet
 * `composer global require laravel/valet`
 * `valet install`
-* Navigate to the folder you cloned this repo in and run `valet park`
+* Navigate to the folder you cloned this repo in and run `valet park && valet secure`
 
 ## Bootstrapping
 * I'm not sure why, but I think you have to run `php artisan queue:work` at least once before the redis queue will work locally

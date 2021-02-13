@@ -62,11 +62,6 @@ class CardController extends Controller
                 'image'             => $request->get('image'),
                 'favorited'         => $request->get('is_favorited'),
             ]);
-        } catch (CardExists $exception) {
-            return response()->json([
-                'error'   => 'exists',
-                'message' => $exception->getMessage(),
-            ], 409);
         } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {
             return response()->json([
                 'error'   => 'bad_request',
@@ -81,8 +76,13 @@ class CardController extends Controller
             ]);
         }
 
-        if ($this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
+        $getContentFromImage = $request->get('getContentFromImage');
+        if (! $getContentFromImage && $this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
             SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
+        }
+
+        if ($getContentFromImage) {
+            GetContentFromImage::dispatch($card)->onQueue('save-card-data');
         }
 
         return response()->json([
