@@ -272,7 +272,9 @@ class CardRepository
         $newFields = [];
         foreach ($fields as $field => $fieldValue) {
             if ('actual_created_at' === $field) {
-                $newFields['created_at'] = $card->actual_created_at->toIso8601String();
+                if ($card->actual_created_at) {
+                    $newFields['created_at'] = $card->actual_created_at->toIso8601String();
+                }
                 continue;
             }
 
@@ -506,7 +508,7 @@ class CardRepository
             });
 
         if ($cardId) {
-            $query::where('id', '!=', $cardId);
+            $query->where('id', '!=', $cardId);
         }
 
         $card = $query->first();

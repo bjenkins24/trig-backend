@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
+use App\Jobs\GetContentFromImage;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
 use App\Models\Card;

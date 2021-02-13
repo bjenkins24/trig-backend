@@ -594,20 +594,20 @@ class CardRepositoryTest extends TestCase
 
         // Try a new card with a url that already exists - it should throw an error
         try {
-            app(CardRepository::class)->updateOrInsert([
+            $result = app(CardRepository::class)->updateOrInsert([
                 'user_id' => 1,
                 'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
                 'title'   => $newCardTitle,
             ], null);
-            self::assertFalse(true);
+            self::assertEquals((int) $newCard->id, (int) $result->id);
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
 
         $this->assertDatabaseHas('cards', [
             'title'        => $newCardTitle,
-            'url'          => 'https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
-            'card_type_id' => 2,
+            'url'          => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+            'card_type_id' => '2',
         ]);
         self::assertEquals($newCard->title, $newCardTitle);
 

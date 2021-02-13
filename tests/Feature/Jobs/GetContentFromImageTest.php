@@ -6,6 +6,7 @@ use App\Jobs\GetContentFromImage;
 use App\Models\Card;
 use App\Modules\Card\CardRepository;
 use App\Utils\ExtractDataHelper;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,6 +39,19 @@ class GetContentFromImageTest extends TestCase
     public function testGetContentFromImageFail(): void
     {
         $card = Card::find(1);
+
+        $getContentFromImageJob = new GetContentFromImage($card);
+        $result = $getContentFromImageJob->handle();
+        self::assertFalse($result);
+    }
+
+    public function testGetContentFromImageError(): void
+    {
+        $card = Card::find(1);
+
+        $this->mock(ExtractDataHelper::class, static function ($mock) {
+            $mock->shouldReceive('getData')->andThrow(new Exception('hello'));
+        });
 
         $getContentFromImageJob = new GetContentFromImage($card);
         $result = $getContentFromImageJob->handle();

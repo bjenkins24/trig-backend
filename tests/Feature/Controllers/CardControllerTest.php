@@ -262,9 +262,6 @@ class CardControllerTest extends TestCase
         self::assertEquals('exists', $this->getResponseData($response, 'error')->get('error'));
     }
 
-    /**
-     * @throws JsonException
-     */
     public function testCreateCardExists(): void
     {
         Queue::fake();
@@ -273,7 +270,7 @@ class CardControllerTest extends TestCase
         $this->client('POST', 'card', ['url' => $firstUrl]);
         $response = $this->client('POST', 'card', ['url' => $firstUrl]);
 
-        self::assertEquals('exists', $this->getResponseData($response, 'error')->get('error'));
+        self::assertSame($response->json()['data']['url'], $firstUrl);
     }
 
     /**
