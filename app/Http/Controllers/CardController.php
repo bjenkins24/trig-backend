@@ -16,6 +16,7 @@ use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Utils\WebsiteExtraction\WebsiteFactory;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,16 +28,19 @@ class CardController extends Controller
     private CardTypeRepository $cardTypeRepository;
     private CardSyncRepository $cardSyncRepository;
     private OauthIntegrationService $oauthIntegrationService;
+    private WebsiteFactory $websiteFactory;
 
     public function __construct(
         CardRepository $cardRepo,
         CardTypeRepository $cardTypeRepository,
         CardSyncRepository $cardSyncRepository,
+        WebsiteFactory $websiteFactory,
         OauthIntegrationService $oauthIntegrationService
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->cardSyncRepository = $cardSyncRepository;
+        $this->websiteFactory = $websiteFactory;
         $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
@@ -50,17 +54,20 @@ class CardController extends Controller
         $cardTypeKey = $request->get('card_type') ?? 'link';
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
+        $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+
         try {
             $card = $this->cardRepository->upsert([
                 'card_type_id'      => $cardType->id,
                 'user_id'           => $user->id,
                 'url'               => $request->url,
-                'title'             => $request->get('title') ?? $request->get('url'),
-                'description'       => $request->get('description'),
-                'content'           => $request->get('content'),
+                'title'             => $request->get('title') ?? $website->getTitle() ?? $request->get('url'),
+                'description'       => $request->get('description') ?? $website->getExcerpt(),
+                'content'           => $request->get('content') ?? $website->getContent(),
                 'actual_created_at' => $request->get('created_at'),
                 'actual_updated_at' => $request->get('updated_at'),
-                'image'             => $request->get('image'),
+                'image'             => $request->get('image') ?? $website->getImage(),
+                'screenshot'        => $request->get('screenshot'),
                 'favorited'         => $request->get('is_favorited'),
             ]);
         } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {

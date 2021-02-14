@@ -120,8 +120,11 @@ class WebsiteExtractionHelper
     /**
      * @throws ParseException
      */
-    public function parseHtml(string $html): Collection
+    public function parseHtml(?string $html): Collection
     {
+        if (! $html) {
+            return collect([]);
+        }
         $readability = new Readability(new ReadabilityConfiguration());
         $readability->parse($html);
 
