@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card;
 
+use App\Jobs\SaveImage;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
@@ -548,7 +549,7 @@ class CardRepository
             }
             $card->update($fields);
             if ($newFields->get('image') || $newFields->get('screenshot')) {
-                $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $newFields->get('screenshot'), $card);
+                SaveImage::dispatch($newFields->get('image'), $newFields->get('screenshot'), $card)->onQueue('save-card-data');
             }
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
@@ -591,7 +592,7 @@ class CardRepository
 
         $card = Card::create($newFields->toArray());
         if ($newFields->get('image') || $newFields->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $newFields->get('screenshot'), $card);
+            SaveImage::dispatch($newFields->get('image'), $newFields->get('screenshot'), $card)->onQueue('save-card-data');
         }
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);

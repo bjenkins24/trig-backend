@@ -6,15 +6,15 @@ use andreskrey\Readability\ParseException;
 
 class Website
 {
-    private string $rawContent;
+    private ?string $rawContent = null;
     private ?string $image = null;
     private ?string $screenshot = null;
-    private ?string $author;
-    private ?string $excerpt;
-    private ?string $title;
-    private ?string $content;
+    private ?string $author = null;
+    private ?string $excerpt = null;
+    private ?string $title = null;
+    private ?string $content = null;
 
-    public function setRawContent(string $rawContent): Website
+    public function setRawContent(?string $rawContent): Website
     {
         $this->rawContent = $rawContent;
 

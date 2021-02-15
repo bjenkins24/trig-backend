@@ -49,12 +49,6 @@ class ThumbnailHelper
         ]);
     }
 
-    public function testsomething(string $thing)
-    {
-        $image = $this->getImage($thing);
-        $result = Storage::put('public/card-images/test/hello.png', file_get_contents($thing));
-    }
-
     /**
      * This will save the image with compression - we are preferring quality over smaller size
      * please only compress images in a lossless format.

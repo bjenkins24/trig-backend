@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card;
 
+use App\Jobs\SaveImage;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\Permission;
@@ -20,6 +21,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
@@ -509,13 +511,11 @@ class CardRepositoryTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testupsert(): void
+    public function testUpsert(): void
     {
         $card = Card::find(1);
         $title = 'my cool title';
-        $this->mock(ThumbnailHelper::class, static function ($mock) {
-            $mock->shouldReceive('saveThumbnail');
-        });
+        Queue::fake();
         $firstCardUrl = 'https://firstCardUrl.com';
         $favoritedById = 1;
         $viewedById = 1;
@@ -548,11 +548,15 @@ class CardRepositoryTest extends TestCase
             'user_id' => $viewedById,
         ]);
 
+        Queue::assertPushed(SaveImage::class, 1);
+
         app(CardRepository::class)->upsert([
             'title'          => $title,
             'image'          => 'cool_image',
             'unfavorited_by' => $favoritedById,
         ], $card);
+
+        Queue::assertPushed(SaveImage::class, 2);
 
         $this->assertDatabaseHas('cards', [
             'id'              => 1,
@@ -579,6 +583,7 @@ class CardRepositoryTest extends TestCase
             'card_id' => 6,
             'user_id' => 1,
         ]);
+        Queue::assertPushed(SaveImage::class, 2);
 
         // Try an existing card with a url that already exists
         try {
@@ -591,6 +596,7 @@ class CardRepositoryTest extends TestCase
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
+        Queue::assertPushed(SaveImage::class, 2);
 
         // Try a new card with a url that already exists - it should throw an error
         try {
@@ -603,6 +609,7 @@ class CardRepositoryTest extends TestCase
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
+        Queue::assertPushed(SaveImage::class, 2);
 
         $this->assertDatabaseHas('cards', [
             'title'        => $newCardTitle,
@@ -622,6 +629,7 @@ class CardRepositoryTest extends TestCase
                 'title'   => $newCardTitle,
             ], null);
             self::assertFalse(true);
+            Queue::assertPushed(SaveImage::class, 2);
         } catch (CardWorkspaceIdMustExist $exception) {
             self::assertTrue(true);
         }

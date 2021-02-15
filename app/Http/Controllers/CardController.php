@@ -44,6 +44,11 @@ class CardController extends Controller
         $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
+    public function createScreenshot($request)
+    {
+        $user = $request->user();
+    }
+
     /**
      * @throws Exception
      */
@@ -54,7 +59,10 @@ class CardController extends Controller
         $cardTypeKey = $request->get('card_type') ?? 'link';
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
-        $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+        $website = $this->websiteFactory->make(null);
+        if ($request->get('rawHtml')) {
+            $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+        }
 
         try {
             $card = $this->cardRepository->upsert([

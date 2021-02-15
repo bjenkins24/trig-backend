@@ -4,6 +4,7 @@ namespace Tests\Feature\Controllers;
 
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
+use App\Jobs\SaveImage;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
@@ -1066,7 +1067,7 @@ FakeContent;
 
         $cardId = $response->json()['data']['id'];
         $card = Card::find($cardId);
-        self::assertNotEmpty($card->properties->get('full_image'));
+        Queue::assertPushed(SaveImage::class, 1);
         self::assertNotEmpty($card->content);
         self::assertNotEmpty($card->description);
         self::assertNotEmpty($card->title);
