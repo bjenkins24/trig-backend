@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Jobs;
 
-use App\Jobs\GetContentFromImage;
+use App\Jobs\GetContentFromScreenshot;
 use App\Models\Card;
 use App\Modules\Card\CardRepository;
 use App\Utils\ExtractDataHelper;
@@ -10,7 +10,7 @@ use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class GetContentFromImageTest extends TestCase
+class GetContentFromScreenshotTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -29,7 +29,7 @@ class GetContentFromImageTest extends TestCase
             $mock->shouldReceive('getData')->andReturn($mockData);
         });
 
-        $getContentFromImageJob = new GetContentFromImage($card);
+        $getContentFromImageJob = new GetContentFromScreenshot($card);
         $result = $getContentFromImageJob->handle();
 
         $this->assertDatabaseHas('cards', ['id' => $card->id, 'content' => $mockData['content']]);
@@ -40,7 +40,7 @@ class GetContentFromImageTest extends TestCase
     {
         $card = Card::find(1);
 
-        $getContentFromImageJob = new GetContentFromImage($card);
+        $getContentFromImageJob = new GetContentFromScreenshot($card);
         $result = $getContentFromImageJob->handle();
         self::assertFalse($result);
     }
@@ -53,7 +53,7 @@ class GetContentFromImageTest extends TestCase
             $mock->shouldReceive('getData')->andThrow(new Exception('hello'));
         });
 
-        $getContentFromImageJob = new GetContentFromImage($card);
+        $getContentFromImageJob = new GetContentFromScreenshot($card);
         $result = $getContentFromImageJob->handle();
         self::assertFalse($result);
     }

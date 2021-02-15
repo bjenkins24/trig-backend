@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Controllers;
 
+use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
 use App\Jobs\SaveImage;
@@ -1068,9 +1069,23 @@ FakeContent;
         $cardId = $response->json()['data']['id'];
         $card = Card::find($cardId);
         Queue::assertPushed(SaveImage::class, 1);
+        Queue::assertPushed(GetTags::class, 1);
         self::assertNotEmpty($card->content);
         self::assertNotEmpty($card->description);
         self::assertNotEmpty($card->title);
+    }
+
+    public function testWithNoTags(): void
+    {
+        Queue::fake();
+
+        $this->client('POST', 'card', [
+            'url'      => 'https://fail.com',
+            'content'  => 'cool content',
+            'withTags' => false,
+        ]);
+
+        Queue::assertPushed(GetTags::class, 0);
     }
 
     /**

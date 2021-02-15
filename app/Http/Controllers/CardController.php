@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
-use App\Jobs\GetContentFromImage;
+use App\Jobs\GetContentFromScreenshot;
+use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
 use App\Models\Card;
@@ -60,7 +61,7 @@ class CardController extends Controller
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
         $website = $this->websiteFactory->make(null);
-        if ($request->get('rawHtml')) {
+        if ('link' === $cardTypeKey && $request->get('rawHtml')) {
             $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
         }
 
@@ -92,13 +93,27 @@ class CardController extends Controller
             ]);
         }
 
-        $getContentFromImage = $request->get('getContentFromImage');
-        if (! $getContentFromImage && $this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
+        if (
+            // If we were sent the raw html we will likely get the picture, content, title, and description from it
+            // No need to get anything with curl or puppeteer
+            ('link' === $cardTypeKey && ! $request->get('rawHtml')) &&
+            $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
+            (! $request->get('image') && ! $request->get('content') && ! $request->get('title'))
+        ) {
             SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
         }
 
-        if ($getContentFromImage) {
-            GetContentFromImage::dispatch($card)->onQueue('save-card-data');
+        $withTags = true;
+        if (false === $request->get('withTags')) {
+            $withTags = false;
+        }
+
+        // We likely have the content (we may not be curling/puppeteer) so we have to get tags here
+        if (
+            $withTags &&
+            (($request->get('rawHtml') && 'link' === $cardTypeKey) || $request->get('content'))
+        ) {
+            GetTags::dispatch($card);
         }
 
         return response()->json([
@@ -166,6 +181,10 @@ class CardController extends Controller
             if ('updatedAt' === $field) {
                 return $data['actual_updated_at'] = $fieldValue;
             }
+            // Don't map some fields
+            if ('getContentFromScreenshot' === $field) {
+                return false;
+            }
 
             return $data[$field] = $fieldValue;
         });
@@ -180,6 +199,10 @@ class CardController extends Controller
                 'error'   => 'exists',
                 'message' => $exception->getMessage(),
             ], 409);
+        }
+
+        if ($request->get('getContentFromScreenshot')) {
+            GetContentFromScreenshot::dispatch($card);
         }
 
         if ($this->cardSyncRepository->shouldSync($card)) {

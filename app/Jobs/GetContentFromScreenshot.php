@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Card;
 use App\Modules\Card\CardRepository;
+use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class GetContentFromImage implements ShouldQueue
+class GetContentFromScreenshot implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -42,6 +43,9 @@ class GetContentFromImage implements ShouldQueue
                 return false;
             }
             $data = app(ExtractDataHelper::class)->getData(env('CDN_URL').$screenshot);
+
+            $shouldGetTags = app(CardSyncRepository::class)->shouldGetTags($this->card, $data['content']);
+
             $fields = [
                 'content' => $data['content'],
             ];
@@ -50,6 +54,10 @@ class GetContentFromImage implements ShouldQueue
             }
 
             app(CardRepository::class)->upsert($fields, $this->card);
+
+            if ($shouldGetTags) {
+                app(GetTags::dispatch($this->card));
+            }
 
             return true;
         } catch (Exception $error) {
