@@ -3,19 +3,22 @@
 namespace Tests\Feature\Jobs;
 
 use App\Jobs\GetContentFromScreenshot;
+use App\Jobs\GetTags;
 use App\Models\Card;
 use App\Modules\Card\CardRepository;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class GetContentFromScreenshotTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testGetContentFromImage(): void
+    public function testGetContentFromScreenshot(): void
     {
+        Queue::fake();
         $card = Card::find(1);
         app(CardRepository::class)->setProperties($card, ['full_screenshot' => 'image']);
         $card->save();
@@ -29,14 +32,15 @@ class GetContentFromScreenshotTest extends TestCase
             $mock->shouldReceive('getData')->andReturn($mockData);
         });
 
-        $getContentFromImageJob = new GetContentFromScreenshot($card);
-        $result = $getContentFromImageJob->handle();
+        $getContentFromScreenshot = new GetContentFromScreenshot($card);
+        $result = $getContentFromScreenshot->handle();
 
+        Queue::assertPushed(GetTags::class, 1);
         $this->assertDatabaseHas('cards', ['id' => $card->id, 'content' => $mockData['content']]);
         self::assertTrue($result);
     }
 
-    public function testGetContentFromImageFail(): void
+    public function testGetContentFromScreenshotFail(): void
     {
         $card = Card::find(1);
 
@@ -45,7 +49,7 @@ class GetContentFromScreenshotTest extends TestCase
         self::assertFalse($result);
     }
 
-    public function testGetContentFromImageError(): void
+    public function testGetContentFromScreenshotError(): void
     {
         $card = Card::find(1);
 

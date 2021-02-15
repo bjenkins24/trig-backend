@@ -56,12 +56,12 @@ class GetContentFromScreenshot implements ShouldQueue
             app(CardRepository::class)->upsert($fields, $this->card);
 
             if ($shouldGetTags) {
-                app(GetTags::dispatch($this->card));
+                GetTags::dispatch($this->card);
             }
 
             return true;
         } catch (Exception $error) {
-            Log::error('Getting content from the image failed: '.$error->getMessage());
+            Log::error('Getting content from the image failed: '.$error);
 
             return false;
         }

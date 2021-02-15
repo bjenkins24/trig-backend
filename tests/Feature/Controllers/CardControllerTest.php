@@ -35,8 +35,8 @@ class CardControllerTest extends TestCase
         $data = [
             'url'                => 'https://google.com',
             'title'              => 'Google',
-            'description'        => 'Description',
             'content'            => 'content',
+            'description'        => 'Description',
             'createdAt'          => $now,
             'updatedAt'          => $now,
         ];

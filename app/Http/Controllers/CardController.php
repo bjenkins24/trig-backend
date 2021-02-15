@@ -98,7 +98,7 @@ class CardController extends Controller
             // No need to get anything with curl or puppeteer
             ('link' === $cardTypeKey && ! $request->get('rawHtml')) &&
             $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
-            (! $request->get('image') && ! $request->get('content') && ! $request->get('title'))
+            (! $request->get('image') || ! $request->get('content') || ! $request->get('title'))
         ) {
             SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
         }
