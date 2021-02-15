@@ -93,6 +93,13 @@ class CardController extends Controller
             ]);
         }
 
+        if (('link' === $cardTypeKey && $request->get('rawHtml'))) {
+            $this->cardRepository->setProperties($card, [
+                'should_sync' => false,
+            ]);
+            $card->save();
+        }
+
         if (
             // If we were sent the raw html we will likely get the picture, content, title, and description from it
             // No need to get anything with curl or puppeteer

@@ -48,6 +48,7 @@ class CardControllerTest extends TestCase
         $data['actual_updated_at'] = $now->toDateTimeString();
         $cardTypeId = CardType::where('name', '=', 'link')->first()->id;
         $data['card_type_id'] = $cardTypeId;
+        $data['properties'] = null;
         unset($data['createdAt'], $data['updatedAt']);
 
         $this->assertDatabaseHas('cards', $data);
@@ -1070,9 +1071,12 @@ FakeContent;
         $card = Card::find($cardId);
         Queue::assertPushed(SaveImage::class, 1);
         Queue::assertPushed(GetTags::class, 1);
-        self::assertNotEmpty($card->content);
-        self::assertNotEmpty($card->description);
-        self::assertNotEmpty($card->title);
+        $this->assertDatabaseHas('cards', [
+            'content'     => $card->content,
+            'description' => $card->description,
+            'title'       => $card->title,
+            'properties'  => json_encode(['should_sync' => false], JSON_THROW_ON_ERROR),
+        ]);
     }
 
     public function testWithNoTags(): void
