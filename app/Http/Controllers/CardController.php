@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use andreskrey\Readability\ParseException;
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
 use App\Jobs\GetContentFromScreenshot;
@@ -17,6 +18,8 @@ use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
+use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use App\Utils\WebsiteExtraction\WebsiteFactory;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +32,7 @@ class CardController extends Controller
     private CardTypeRepository $cardTypeRepository;
     private CardSyncRepository $cardSyncRepository;
     private OauthIntegrationService $oauthIntegrationService;
+    private WebsiteExtractionHelper $websiteExtractionHelper;
     private WebsiteFactory $websiteFactory;
 
     public function __construct(
@@ -36,18 +40,50 @@ class CardController extends Controller
         CardTypeRepository $cardTypeRepository,
         CardSyncRepository $cardSyncRepository,
         WebsiteFactory $websiteFactory,
+        WebsiteExtractionHelper $websiteExtractionHelper,
         OauthIntegrationService $oauthIntegrationService
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->cardSyncRepository = $cardSyncRepository;
         $this->websiteFactory = $websiteFactory;
+        $this->websiteExtractionHelper = $websiteExtractionHelper;
         $this->oauthIntegrationService = $oauthIntegrationService;
     }
 
-    public function createScreenshot($request)
+    /**
+     * With some given raw html make an educated guess as to whether or not the user is currently viewing that page
+     * as an authenticated user. If the user is authenticated in some way, we'll need to take a full screenshot,
+     * as the only way to access the content of that page is in our chrome extension.
+     *
+     * @throws Exception
+     */
+    public function checkAuthed(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $isAuthed = false;
+        try {
+            $fetchedWebsite = $this->websiteExtractionHelper->simpleFetch($request->get('url'))->parseContent();
+        } catch (WebsiteNotFound | ParseException | Exception $exception) {
+            // If you get a 404 that's pretty odd - the user is literally sending it FROM that url
+            // So we're going to just say if curl 404's you ARE likely authed. Same thing can be said if
+            // readability cannot parse the text - it's likely an authed page
+            $isAuthed = true;
+        }
+
+        if (! $isAuthed && isset($fetchedWebsite)) {
+            $rawHtmlWebsite = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+            $percentSimilar = 0;
+            similar_text($rawHtmlWebsite->getContent(), $fetchedWebsite->getContent(), $percentSimilar);
+            if ($percentSimilar < 80) {
+                $isAuthed = true;
+            }
+        }
+
+        return response()->json([
+          'data' => [
+              'isAuthed' => $isAuthed,
+          ],
+        ]);
     }
 
     /**

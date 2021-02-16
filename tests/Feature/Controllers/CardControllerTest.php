@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Controllers;
 
+use andreskrey\Readability\ParseException;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
@@ -12,6 +13,9 @@ use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\ExtractDataHelper;
+use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
+use App\Utils\WebsiteExtraction\WebsiteFactory;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
@@ -276,6 +280,45 @@ class CardControllerTest extends TestCase
         $response = $this->client('POST', 'card', ['url' => $firstUrl]);
 
         self::assertSame($response->json()['data']['url'], $firstUrl);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws BindingResolutionException
+     */
+    public function testCheckAuthedTest(): void
+    {
+        $this->mock(ExtractDataHelper::class);
+        $website = app(WebsiteFactory::class)->make('hello');
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) use ($website) {
+            $mock->shouldReceive('simpleFetch')->andReturn($website);
+            $mock->shouldReceive('parseHtml')->andReturn(collect([
+               'image'    => '1',
+               'author'   => '1',
+               'excerpt'  => '1',
+               'title'    => '1',
+               'html'     => '1',
+            ]));
+        });
+
+        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://www.w3schools.com/php/func_string_levenshtein.asp']);
+        $response = $this->getResponseData($response);
+        self::assertEquals(false, $response->get('isAuthed'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testCheckAuthedTestCurlFailed(): void
+    {
+        $this->mock(ExtractDataHelper::class);
+        $this->mock(WebsiteExtractionHelper::class, static function ($mock) {
+            $mock->shouldReceive('simpleFetch')->andThrow(new ParseException());
+        });
+
+        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://www.w3schools.com/php/func_string_levenshtein.asp']);
+        $response = $this->getResponseData($response);
+        self::assertEquals(true, $response->get('isAuthed'));
     }
 
     public function testGetImageWithContent(): void
