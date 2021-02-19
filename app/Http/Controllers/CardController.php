@@ -72,9 +72,17 @@ class CardController extends Controller
 
         if (! $isAuthed && isset($fetchedWebsite)) {
             $rawHtmlWebsite = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
-            $percentSimilar = 0;
-            similar_text($rawHtmlWebsite->getContent(), $fetchedWebsite->getContent(), $percentSimilar);
-            if ($percentSimilar < 80) {
+            $percentSimilarContent = 0;
+            $percentSimilarTitle = 0;
+            similar_text($rawHtmlWebsite->getContent(), $fetchedWebsite->getContent(), $percentSimilarContent);
+            similar_text($rawHtmlWebsite->getTitle(), $fetchedWebsite->getTitle(), $percentSimilarTitle);
+            $contentThreshold = 80;
+            // If the titles are almost identical that's a good indication that we're not logged in
+            // so we can lower our content threshold of similarity
+            if ($percentSimilarTitle > 90) {
+                $contentThreshold = 65;
+            }
+            if ($percentSimilarContent < $contentThreshold) {
                 $isAuthed = true;
             }
         }
