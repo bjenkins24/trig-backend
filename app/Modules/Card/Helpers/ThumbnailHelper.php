@@ -30,7 +30,7 @@ class ThumbnailHelper
     private function getImage(string $imageUri): Collection
     {
         try {
-            $image = $this->fileHelper->makeImage($imageUri);
+            $image = $this->fileHelper->makeImage(file_get_contents($imageUri));
         } catch (Exception $e) {
             Log::notice("Couldn't get a thumbnail: $imageUri - {$e->getMessage()}");
 
