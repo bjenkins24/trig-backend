@@ -102,7 +102,8 @@ class ThumbnailHelper
         $screenshotPath = '/'.self::IMAGE_FOLDER.'/full-screenshot/'.$card->token;
         $screenshot = $this->saveImage($screenshotUri, $screenshotPath);
         if ($screenshot->get('successful')) {
-            return $cardRepository->setProperties($card, ['full_screenshot' => $screenshotPath.'.'.$screenshot->get('extension')]);
+            $cardRepository->setProperties($card, ['full_screenshot' => $screenshotPath.'.'.$screenshot->get('extension')]);
+            $card->save();
         }
 
         return $card;
