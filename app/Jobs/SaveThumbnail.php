@@ -12,39 +12,38 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class SaveImage implements ShouldQueue
+class SaveThumbnail implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
 
-    public ?Card $card;
-    public ?string $image;
-    public ?string $screenshot;
+    public Card $card;
+    public string $image;
+    public string $imageType;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(?string $image, ?string $screenshot, ?Card $card = null)
+    public function __construct(string $image, string $imageType, Card $card)
     {
         $this->image = $image;
-        $this->screenshot = $screenshot;
+        $this->imageType = $imageType;
         $this->card = $card;
     }
 
     public function handle(): bool
     {
-        // Tika can take a lot of memory
         ini_set('memory_limit', '1024M');
         try {
-            app(ThumbnailHelper::class)->saveThumbnail($this->image, $this->screenshot, $this->card);
+            app(ThumbnailHelper::class)->saveThumbnail($this->image, $this->imageType, $this->card);
 
             return true;
         } catch (Exception $error) {
-            Log::error('Getting content from the image failed: '.$error->getMessage());
+            Log::error('Saving the thumbnail failed '.$error);
 
             return false;
         }

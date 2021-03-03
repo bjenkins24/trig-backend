@@ -6,7 +6,7 @@ use andreskrey\Readability\ParseException;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
-use App\Jobs\SaveImage;
+use App\Jobs\SaveThumbnail;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
@@ -35,6 +35,7 @@ class CardControllerTest extends TestCase
         Queue::fake();
 
         Carbon::setTestNow('2020-11-20 00:00:20');
+        $this->mock(ExtractDataHelper::class);
         $now = Carbon::now();
         $data = [
             'url'                => 'https://google.com',
@@ -65,6 +66,7 @@ class CardControllerTest extends TestCase
     public function testCreateCardNoProtocol(): void
     {
         Queue::fake();
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('POST', 'card', ['url' => 'google.com']);
         self::assertEquals('http://google.com', $this->getResponseData($response)->get('url'));
         $this->assertDatabaseHas('cards', [
@@ -77,6 +79,7 @@ class CardControllerTest extends TestCase
      */
     public function testCreateCardFail(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $this->mock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('upsert')->andReturn(null);
         });
@@ -91,6 +94,7 @@ class CardControllerTest extends TestCase
      */
     public function testCreateCardNoWorkspace(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $userId = 1;
         User::find($userId)->workspaces()->create([
             'name' => 'second 1',
@@ -103,6 +107,7 @@ class CardControllerTest extends TestCase
 
     public function testCreateCardDifferentCardType(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $data = [
             'url'       => 'http://google.com',
             'card_type' => 'twitter',
@@ -122,7 +127,9 @@ class CardControllerTest extends TestCase
      */
     public function testGetCardSuccess(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
         $cardId = $this->getResponseData($response)->get('id');
         $response = $this->client('GET', "card/$cardId");
@@ -134,6 +141,7 @@ class CardControllerTest extends TestCase
      */
     public function testGetAll(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $this->mock(CardRepository::class, static function ($mock) {
             $mock->shouldReceive('searchCards')->andReturn(collect([
                 'cards'   => 'cards',
@@ -152,6 +160,7 @@ class CardControllerTest extends TestCase
      */
     public function testGetCardNotFound(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('GET', 'card/100');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
     }
@@ -161,6 +170,7 @@ class CardControllerTest extends TestCase
      */
     public function testGetCardForbidden(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('GET', 'card/5');
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
     }
@@ -170,6 +180,7 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardSaveData(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
@@ -206,6 +217,7 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardSuccess(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
 
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);
@@ -260,6 +272,7 @@ class CardControllerTest extends TestCase
      */
     public function testUpdateCardExists(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
 
         $firstUrl = 'http://testurl.com';
@@ -273,6 +286,7 @@ class CardControllerTest extends TestCase
 
     public function testCreateCardExists(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
 
         $firstUrl = 'http://testurl.com';
@@ -301,7 +315,7 @@ class CardControllerTest extends TestCase
             ]));
         });
 
-        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://www.w3schools.com/php/func_string_levenshtein.asp']);
+        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max']);
         $response = $this->getResponseData($response);
         self::assertEquals(false, $response->get('isAuthed'));
     }
@@ -1112,7 +1126,7 @@ FakeContent;
 
         $cardId = $response->json()['data']['id'];
         $card = Card::find($cardId);
-        Queue::assertPushed(SaveImage::class, 1);
+        Queue::assertPushed(SaveThumbnail::class, 1);
         Queue::assertPushed(GetTags::class, 1);
         $this->assertDatabaseHas('cards', [
             'content'     => $card->content,
@@ -1140,6 +1154,7 @@ FakeContent;
      */
     public function testUpdateCardNullFields(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
         $original = [
             'url'         => 'https://asdasd.com',
@@ -1168,6 +1183,7 @@ FakeContent;
      */
     public function testUpdateCardNotFound(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('PATCH', 'card', ['id' => '12000']);
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(400, $response->getStatusCode());
@@ -1178,6 +1194,7 @@ FakeContent;
      */
     public function testUpdateCardForbidden(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('PATCH', 'card', ['id' => '5']);
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(403, $response->getStatusCode());
@@ -1188,6 +1205,7 @@ FakeContent;
      */
     public function testDeleteCardNotFound(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('DELETE', 'card/12000');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(400, $response->getStatusCode());
@@ -1198,6 +1216,7 @@ FakeContent;
      */
     public function testDeleteCardForbidden(): void
     {
+        $this->mock(ExtractDataHelper::class);
         $response = $this->client('DELETE', 'card/5');
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(403, $response->getStatusCode());
@@ -1208,6 +1227,7 @@ FakeContent;
      */
     public function testDeleteCardSuccess(): void
     {
+        $this->mock(ExtractDataHelper::class);
         Queue::fake();
         Storage::fake();
         $response = $this->client('POST', 'card', ['url' => 'http://testurl.com']);

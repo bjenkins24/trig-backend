@@ -41,7 +41,7 @@ class LinkContent implements ContentInterface
             'content'      => $website->getContent(),
             'author'       => $website->getAuthor(),
             'description'  => $website->getExcerpt(),
-            'image'        => $website->getImage() ?? $website->getScreenshot(),
+            'image'        => $website->getImage(),
             'screenshot'   => $website->getScreenshot(),
         ]);
     }

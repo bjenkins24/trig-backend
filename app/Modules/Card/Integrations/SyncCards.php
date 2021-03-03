@@ -149,7 +149,7 @@ class SyncCards
         }
 
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
+            $this->cardRepository->saveImages($data, $card);
         }
         $this->savePermissions($cardData->get('permissions'), $card);
 
@@ -174,7 +174,7 @@ class SyncCards
     private function saveData(Card $card, Collection $data): bool
     {
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
+            $this->cardRepository->saveImages($data, $card);
             $data->forget('image');
             $data->forget('screenshot');
         }

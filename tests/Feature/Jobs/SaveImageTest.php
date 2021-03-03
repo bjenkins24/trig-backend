@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Jobs;
 
-use App\Jobs\SaveImage;
+use App\Jobs\SaveThumbnail;
 use App\Models\Card;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use Exception;
@@ -18,7 +18,7 @@ class SaveImageTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
-        $syncCards = new SaveImage('hello', 'goodbye', Card::find(1));
+        $syncCards = new SaveThumbnail('hello', 'goodbye', Card::find(1));
         $result = $syncCards->handle();
         self::assertTrue($result);
     }
@@ -28,7 +28,7 @@ class SaveImageTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail')->andThrow(new Exception('test'));
         });
-        $syncCards = new SaveImage('hello', 'goodbye', Card::find(1));
+        $syncCards = new SaveThumbnail('hello', 'goodbye', Card::find(1));
         $result = $syncCards->handle();
         self::assertFalse($result);
     }

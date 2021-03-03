@@ -2,7 +2,7 @@
 
 namespace App\Modules\Card;
 
-use App\Jobs\SaveImage;
+use App\Jobs\SaveThumbnail;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
@@ -533,6 +533,16 @@ class CardRepository
         return $card;
     }
 
+    public function saveImages(Collection $fields, Card $card): void
+    {
+        if ($fields->get('image')) {
+            SaveThumbnail::dispatch($fields->get('image'), 'image', $card)->onQueue('save-card-data');
+        }
+        if ($fields->get('screenshot')) {
+            SaveThumbnail::dispatch($fields->get('screenshot'), 'screenshot', $card)->onQueue('save-card-data');
+        }
+    }
+
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
@@ -548,9 +558,8 @@ class CardRepository
                 throw new CardExists('This user already has a card with this url. The update was unsuccessful.');
             }
             $card->update($fields);
-            if ($newFields->get('image') || $newFields->get('screenshot')) {
-                SaveImage::dispatch($newFields->get('image'), $newFields->get('screenshot'), $card)->onQueue('save-card-data');
-            }
+
+            $this->saveImages($newFields, $card);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
 
@@ -591,9 +600,8 @@ class CardRepository
         $newFields->put('token', bin2hex(random_bytes(24)));
 
         $card = Card::create($newFields->toArray());
-        if ($newFields->get('image') || $newFields->get('screenshot')) {
-            SaveImage::dispatch($newFields->get('image'), $newFields->get('screenshot'), $card)->onQueue('save-card-data');
-        }
+
+        $this->saveImages($newFields, $card);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
 
