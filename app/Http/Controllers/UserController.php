@@ -24,6 +24,7 @@ use Error;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -115,12 +116,15 @@ class UserController extends Controller
             return response()->json(['error' => 'unexpected', 'message' => $e->getMessage()]);
         }
 
+        $token = Arr::get($authToken, 'access_token');
+        $tenYears = 60 * 24 * 365 * 10;
+
         return response()->json([
             'data' => [
                 'authToken' => $authToken,
                 'user'      => $this->userRepo->getMe($user),
             ],
-        ], 201);
+        ], 201)->withCookie(cookie('access_token', $token, $tenYears, null, null, true, true, false, 'none'));
     }
 
     /**

@@ -541,10 +541,10 @@ class CardRepository
     public function saveImages(Collection $fields, Card $card): void
     {
         if ($fields->get('image')) {
-            SaveThumbnail::dispatch($fields->get('image'), 'images', $card)->onQueue('save-card-data');
+            SaveThumbnail::dispatch($fields->get('image'), 'image', $card)->onQueue('save-card-data');
         }
         if ($fields->get('screenshot')) {
-            SaveThumbnail::dispatch($fields->get('screenshot'), 'screenshots', $card)->onQueue('save-card-data');
+            SaveThumbnail::dispatch($fields->get('screenshot'), 'screenshot', $card)->onQueue('save-card-data');
         }
     }
 
