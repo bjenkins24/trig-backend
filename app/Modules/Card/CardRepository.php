@@ -109,7 +109,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
+            ->source(['user_id', 'token', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($filterLimit);
@@ -232,10 +232,15 @@ class CardRepository
             $fields['id'] = (int) $hit['_id'];
             $fields['tags'] = $hit['_source']['tags'];
             $fields['url'] = $hit['_source']['url'];
-            $fields['thumbnail'] = [
+            $fields['image'] = [
                 'path'   => $hit['_source']['thumbnail'],
                 'width'  => $hit['_source']['thumbnail_width'],
                 'height' => $hit['_source']['thumbnail_height'],
+            ];
+            $fields['screenshot'] = [
+                'path'   => $hit['_source']['screenshot_thumbnail'],
+                'width'  => $hit['_source']['screenshot_thumbnail_width'],
+                'height' => $hit['_source']['screenshot_thumbnail_height'],
             ];
             $fields['token'] = $hit['_source']['token'];
             $fields['description'] = $hit['_source']['description'];
