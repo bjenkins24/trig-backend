@@ -155,9 +155,9 @@ class SyncCards
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
             if ($existingCard) {
-                SaveCardData::dispatch($card, $this->integrationKey)->onQueue('save-card-data');
+                SaveCardData::dispatch($card->id, $this->integrationKey)->onQueue('save-card-data');
             } else {
-                SaveCardDataInitial::dispatch($card, $this->integrationKey)->onQueue('save-card-data-initial');
+                SaveCardDataInitial::dispatch($card->id, $this->integrationKey)->onQueue('save-card-data-initial');
             }
         }
     }
@@ -168,7 +168,7 @@ class SyncCards
         if (! $data->isEmpty()) {
             $this->saveData($card, $data);
         }
-        SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+        SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
     }
 
     private function saveData(Card $card, Collection $data): bool

@@ -16,8 +16,11 @@ class CardObserver
         if (empty($card->properties)) {
             return;
         }
-        $extension = substr($card->properties->get('thumbnail'), strpos($card->properties->get('thumbnail'), $card->token) + strlen($card->token));
-        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/thumbnail/{$card->token}{$extension}");
-        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/full/{$card->token}{$extension}");
+        $extension = substr($card->properties->get('image_thumbnail'), strpos($card->properties->get('image_thumbnail'), $card->token) + strlen($card->token));
+        $extensionScreenshot = substr($card->properties->get('screenshot_thumbnail'), strpos($card->properties->get('screenshot_thumbnail'), $card->token) + strlen($card->token));
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/images/{$card->token}{$extension}");
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/image_thumbnails/{$card->token}{$extension}");
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/screenshots/{$card->token}{$extensionScreenshot}");
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/screenshot_thumbnails/{$card->token}{$extensionScreenshot}");
     }
 }

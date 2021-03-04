@@ -527,12 +527,14 @@ class CardRepository
 
     public function setProperties(Card $card, array $properties): Card
     {
-        if (empty($card->properties)) {
+        // Before we set properties find the most up to date properties. There could be race conditions
+        $newCard = Card::find($card->id);
+        if (empty($newCard->properties)) {
             $newProperties = collect($properties);
-            $card->properties = $newProperties;
+            $newCard->properties = $newProperties;
         }
         foreach ($properties as $propertyKey => $property) {
-            $card->properties = $card->properties->put($propertyKey, $property);
+            $card->properties = $newCard->properties->put($propertyKey, $property);
         }
 
         return $card;

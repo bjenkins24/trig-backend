@@ -151,7 +151,7 @@ class CardController extends Controller
             $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
             (! $request->get('image') || ! $request->get('content') || ! $request->get('title'))
         ) {
-            SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
+            SaveCardDataInitial::dispatch($card->id, $cardTypeKey)->onQueue('save-card-data-initial');
         }
 
         $withTags = true;
@@ -257,7 +257,7 @@ class CardController extends Controller
         }
 
         if ($this->cardSyncRepository->shouldSync($card)) {
-            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+            SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
         }
 
         return response()->json([], 204);

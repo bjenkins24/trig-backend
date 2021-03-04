@@ -335,6 +335,9 @@ class CardControllerTest extends TestCase
         self::assertEquals(true, $response->get('isAuthed'));
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testGetImageWithContent(): void
     {
         Queue::fake();
