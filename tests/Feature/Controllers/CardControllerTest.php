@@ -315,7 +315,10 @@ class CardControllerTest extends TestCase
             ]));
         });
 
-        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max']);
+        $response = $this->client('POST', 'extension/check-authed', [
+            'url'     => 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max',
+            'rawHtml' => '<div></div>',
+        ]);
         $response = $this->getResponseData($response);
         self::assertEquals(false, $response->get('isAuthed'));
     }
@@ -330,7 +333,10 @@ class CardControllerTest extends TestCase
             $mock->shouldReceive('simpleFetch')->andThrow(new ParseException());
         });
 
-        $response = $this->client('POST', 'extension/check-authed', ['url' => 'https://www.w3schools.com/php/func_string_levenshtein.asp']);
+        $response = $this->client('POST', 'extension/check-authed', [
+            'url'     => 'https://www.w3schools.com/php/func_string_levenshtein.asp',
+            'rawHtml' => '<div></div>',
+        ]);
         $response = $this->getResponseData($response);
         self::assertEquals(true, $response->get('isAuthed'));
     }

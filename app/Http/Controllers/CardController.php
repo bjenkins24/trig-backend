@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use andreskrey\Readability\ParseException;
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
 use App\Jobs\GetContentFromScreenshot;
@@ -15,11 +14,10 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
+use App\Modules\Card\Integrations\Link\LinkIntegration;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
-use App\Utils\WebsiteExtraction\Exceptions\WebsiteNotFound;
-use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
 use App\Utils\WebsiteExtraction\WebsiteFactory;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -32,23 +30,23 @@ class CardController extends Controller
     private CardTypeRepository $cardTypeRepository;
     private CardSyncRepository $cardSyncRepository;
     private OauthIntegrationService $oauthIntegrationService;
-    private WebsiteExtractionHelper $websiteExtractionHelper;
     private WebsiteFactory $websiteFactory;
+    private LinkIntegration $linkIntegration;
 
     public function __construct(
         CardRepository $cardRepo,
         CardTypeRepository $cardTypeRepository,
         CardSyncRepository $cardSyncRepository,
         WebsiteFactory $websiteFactory,
-        WebsiteExtractionHelper $websiteExtractionHelper,
-        OauthIntegrationService $oauthIntegrationService
+        OauthIntegrationService $oauthIntegrationService,
+        LinkIntegration $linkIntegration
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->cardSyncRepository = $cardSyncRepository;
         $this->websiteFactory = $websiteFactory;
-        $this->websiteExtractionHelper = $websiteExtractionHelper;
         $this->oauthIntegrationService = $oauthIntegrationService;
+        $this->linkIntegration = $linkIntegration;
     }
 
     /**
@@ -60,36 +58,9 @@ class CardController extends Controller
      */
     public function checkAuthed(Request $request): JsonResponse
     {
-        $isAuthed = false;
-        try {
-            $fetchedWebsite = $this->websiteExtractionHelper->simpleFetch($request->get('url'))->parseContent();
-        } catch (WebsiteNotFound | ParseException | Exception $exception) {
-            // If you get a 404 that's pretty odd - the user is literally sending it FROM that url
-            // So we're going to just say if curl 404's you ARE likely authed. Same thing can be said if
-            // readability cannot parse the text - it's likely an authed page
-            $isAuthed = true;
-        }
-
-        if (! $isAuthed && isset($fetchedWebsite)) {
-            $rawHtmlWebsite = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
-            $percentSimilarContent = 0;
-            $percentSimilarTitle = 0;
-            similar_text($rawHtmlWebsite->getContent(), $fetchedWebsite->getContent(), $percentSimilarContent);
-            similar_text($rawHtmlWebsite->getTitle(), $fetchedWebsite->getTitle(), $percentSimilarTitle);
-            $contentThreshold = 80;
-            // If the titles are almost identical that's a good indication that we're not logged in
-            // so we can lower our content threshold of similarity
-            if ($percentSimilarTitle > 90) {
-                $contentThreshold = 65;
-            }
-            if ($percentSimilarContent < $contentThreshold) {
-                $isAuthed = true;
-            }
-        }
-
         return response()->json([
           'data' => [
-              'isAuthed' => $isAuthed,
+              'isAuthed' => $this->linkIntegration->checkAuthed($request->get('url'), $request->get('rawHtml')),
           ],
         ]);
     }
