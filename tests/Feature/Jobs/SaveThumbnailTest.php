@@ -2,14 +2,14 @@
 
 namespace Tests\Feature\Jobs;
 
-use App\Jobs\SaveThumbnail;
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Modules\Card\Helpers\ThumbnailHelper;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class SaveImageTest extends TestCase
+class SaveThumbnailTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class SaveImageTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail');
         });
-        $syncCards = new SaveThumbnail('hello', 'goodbye', Card::find(1));
+        $syncCards = new SaveThumbnails(collect(['image' => 'sds']), Card::find(1));
         $result = $syncCards->handle();
         self::assertTrue($result);
     }
@@ -28,7 +28,7 @@ class SaveImageTest extends TestCase
         $this->mock(ThumbnailHelper::class, static function ($mock) {
             $mock->shouldReceive('saveThumbnail')->andThrow(new Exception('test'));
         });
-        $syncCards = new SaveThumbnail('hello', 'goodbye', Card::find(1));
+        $syncCards = new SaveThumbnails(collect(['image' => 'sds']), Card::find(1));
         $result = $syncCards->handle();
         self::assertFalse($result);
     }

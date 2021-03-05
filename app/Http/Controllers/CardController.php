@@ -84,6 +84,7 @@ class CardController extends Controller
             $card = $this->cardRepository->upsert([
                 'card_type_id'      => $cardType->id,
                 'user_id'           => $user->id,
+                // Don't use get here getting it with url will get it with the protocol if it didn't already exist
                 'url'               => $request->url,
                 'title'             => $request->get('title') ?? $website->getTitle() ?? $request->get('url'),
                 'description'       => $request->get('description') ?? $website->getExcerpt(),
@@ -108,7 +109,12 @@ class CardController extends Controller
             ]);
         }
 
-        if (('link' === $cardTypeKey && $request->get('rawHtml'))) {
+        $isAuthed = false;
+        if ('link' === $cardTypeKey && $request->get('rawHtml')) {
+            $isAuthed = $this->linkIntegration->checkAuthed($request->get('url'), $request->get('rawHtml'));
+        }
+
+        if ($isAuthed && $request->get('rawHtml')) {
             $this->cardRepository->setProperties($card, [
                 'should_sync' => false,
             ]);
@@ -118,23 +124,16 @@ class CardController extends Controller
         if (
             // If we were sent the raw html we will likely get the picture, content, title, and description from it
             // No need to get anything with curl or puppeteer
-            ('link' === $cardTypeKey && ! $request->get('rawHtml')) &&
+            ! $request->get('rawHtml') &&
             $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
             (! $request->get('image') || ! $request->get('content') || ! $request->get('title'))
         ) {
             SaveCardDataInitial::dispatch($card->id, $cardTypeKey)->onQueue('save-card-data-initial');
         }
 
-        $withTags = true;
-        if (false === $request->get('withTags')) {
-            $withTags = false;
-        }
-
-        // We likely have the content (we may not be curling/puppeteer) so we have to get tags here
-        if (
-            $withTags &&
-            (($request->get('rawHtml') && 'link' === $cardTypeKey) || $request->get('content'))
-        ) {
+        // If we have rawHtml then we have the content and we're NOT going to do the initial data sync. So let's just
+        // get the tags right away
+        if ($request->get('rawHtml')) {
             GetTags::dispatch($card);
         }
 

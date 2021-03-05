@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Modules\Card;
 
-use App\Jobs\SaveThumbnail;
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\Permission;
@@ -558,7 +558,7 @@ class CardRepositoryTest extends TestCase
             'user_id' => $viewedById,
         ]);
 
-        Queue::assertPushed(SaveThumbnail::class, 1);
+        Queue::assertPushed(SaveThumbnails::class, 1);
 
         app(CardRepository::class)->upsert([
             'title'          => $title,
@@ -566,7 +566,7 @@ class CardRepositoryTest extends TestCase
             'unfavorited_by' => $favoritedById,
         ], $card);
 
-        Queue::assertPushed(SaveThumbnail::class, 2);
+        Queue::assertPushed(SaveThumbnails::class, 2);
 
         $this->assertDatabaseHas('cards', [
             'id'              => 1,
@@ -593,7 +593,7 @@ class CardRepositoryTest extends TestCase
             'card_id' => 6,
             'user_id' => 1,
         ]);
-        Queue::assertPushed(SaveThumbnail::class, 2);
+        Queue::assertPushed(SaveThumbnails::class, 3);
 
         // Try an existing card with a url that already exists
         try {
@@ -606,7 +606,7 @@ class CardRepositoryTest extends TestCase
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
-        Queue::assertPushed(SaveThumbnail::class, 2);
+        Queue::assertPushed(SaveThumbnails::class, 3);
 
         // Try a new card with a url that already exists - it should throw an error
         try {
@@ -619,7 +619,7 @@ class CardRepositoryTest extends TestCase
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
-        Queue::assertPushed(SaveThumbnail::class, 2);
+        Queue::assertPushed(SaveThumbnails::class, 4);
 
         $this->assertDatabaseHas('cards', [
             'title'        => $newCardTitle,
@@ -639,7 +639,6 @@ class CardRepositoryTest extends TestCase
                 'title'   => $newCardTitle,
             ], null);
             self::assertFalse(true);
-            Queue::assertPushed(SaveThumbnail::class, 2);
         } catch (CardWorkspaceIdMustExist $exception) {
             self::assertTrue(true);
         }

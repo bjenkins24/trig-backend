@@ -2,7 +2,7 @@
 
 namespace App\Modules\Card;
 
-use App\Jobs\SaveThumbnail;
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
@@ -540,16 +540,6 @@ class CardRepository
         return $card;
     }
 
-    public function saveImages(Collection $fields, Card $card): void
-    {
-        if ($fields->get('image')) {
-            SaveThumbnail::dispatch($fields->get('image'), 'image', $card)->onQueue('save-card-data');
-        }
-        if ($fields->get('screenshot')) {
-            SaveThumbnail::dispatch($fields->get('screenshot'), 'screenshot', $card)->onQueue('save-card-data');
-        }
-    }
-
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
@@ -566,7 +556,7 @@ class CardRepository
             }
             $card->update($fields);
 
-            $this->saveImages($newFields, $card);
+            SaveThumbnails::dispatch($newFields, $card);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
 
@@ -608,7 +598,7 @@ class CardRepository
 
         $card = Card::create($newFields->toArray());
 
-        $this->saveImages($newFields, $card);
+        SaveThumbnails::dispatch($newFields, $card);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
 

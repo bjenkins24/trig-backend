@@ -10,36 +10,41 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-class SaveThumbnail implements ShouldQueue
+class SaveThumbnails implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
 
+    public Collection $fields;
     public Card $card;
-    public string $image;
-    public string $imageType;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(string $image, string $imageType, Card $card)
+    public function __construct(Collection $fields, Card $card)
     {
-        $this->image = $image;
-        $this->imageType = $imageType;
+        $this->fields = $fields;
         $this->card = $card;
     }
 
     public function handle(): bool
     {
         ini_set('memory_limit', '1024M');
+        $thumbnailHelper = app(ThumbnailHelper::class);
         try {
-            app(ThumbnailHelper::class)->saveThumbnail($this->image, $this->imageType, $this->card);
+            if ($this->fields->get('image')) {
+                $thumbnailHelper->saveThumbnail($this->fields->get('image'), 'image', $this->card);
+            }
+            if ($this->fields->get('screenshot')) {
+                $thumbnailHelper->saveThumbnail($this->fields->get('screenshot'), 'screenshot', $this->card);
+            }
 
             return true;
         } catch (Exception $error) {

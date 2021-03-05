@@ -14,7 +14,7 @@ class CardObserverTest extends TestCase
     {
         Storage::fake();
         $card = Card::find(1);
-        $imagePath = 'public/'.ThumbnailHelper::IMAGE_FOLDER.'/image_thumbnails/'.$card->token.'.jpg';
+        $imagePath = 'public/'.ThumbnailHelper::IMAGE_FOLDER.'/image-thumbnails/'.$card->token.'.jpg';
         Storage::put($imagePath, 'coolthing.jpg');
         Storage::assertExists($imagePath);
 

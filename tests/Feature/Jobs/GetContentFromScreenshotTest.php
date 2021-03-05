@@ -20,7 +20,7 @@ class GetContentFromScreenshotTest extends TestCase
     {
         Queue::fake();
         $card = Card::find(1);
-        app(CardRepository::class)->setProperties($card, ['full_screenshot' => 'image']);
+        app(CardRepository::class)->setProperties($card, ['screenshot' => 'image']);
         $card->save();
 
         $mockData = [

@@ -19,8 +19,8 @@ class CardObserver
         $extension = substr($card->properties->get('image_thumbnail'), strpos($card->properties->get('image_thumbnail'), $card->token) + strlen($card->token));
         $extensionScreenshot = substr($card->properties->get('screenshot_thumbnail'), strpos($card->properties->get('screenshot_thumbnail'), $card->token) + strlen($card->token));
         Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/images/{$card->token}{$extension}");
-        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/image_thumbnails/{$card->token}{$extension}");
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/image-thumbnails/{$card->token}{$extension}");
         Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/screenshots/{$card->token}{$extensionScreenshot}");
-        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/screenshot_thumbnails/{$card->token}{$extensionScreenshot}");
+        Storage::delete('public/'.ThumbnailHelper::IMAGE_FOLDER."/screenshot-thumbnails/{$card->token}{$extensionScreenshot}");
     }
 }

@@ -5,6 +5,7 @@ namespace App\Modules\Card\Integrations;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
+use App\Jobs\SaveThumbnails;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\CardType;
@@ -149,7 +150,7 @@ class SyncCards
         }
 
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->cardRepository->saveImages($data, $card);
+            SaveThumbnails::dispatch($data, $card);
         }
         $this->savePermissions($cardData->get('permissions'), $card);
 
@@ -174,7 +175,7 @@ class SyncCards
     private function saveData(Card $card, Collection $data): bool
     {
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->cardRepository->saveImages($data, $card);
+            SaveThumbnails::dispatch($data, $card);
             $data->forget('image');
             $data->forget('screenshot');
         }

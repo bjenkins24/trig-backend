@@ -6,7 +6,7 @@ use andreskrey\Readability\ParseException;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
-use App\Jobs\SaveThumbnail;
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
@@ -1135,7 +1135,7 @@ FakeContent;
 
         $cardId = $response->json()['data']['id'];
         $card = Card::find($cardId);
-        Queue::assertPushed(SaveThumbnail::class, 1);
+        Queue::assertPushed(SaveThumbnails::class, 1);
         Queue::assertPushed(GetTags::class, 1);
         $this->assertDatabaseHas('cards', [
             'content'     => $card->content,
