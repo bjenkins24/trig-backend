@@ -3,7 +3,6 @@
 namespace App\Modules\Card\Helpers;
 
 use App\Models\Card;
-use App\Modules\Card\CardRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Illuminate\Support\Collection;
@@ -99,10 +98,9 @@ class ThumbnailHelper
             return false;
         }
         $fullResult = $this->saveImage($imagePath, $thumbnail);
-        $cardRepository = app(CardRepository::class);
 
         if ($fullResult->get('successful')) {
-            $card = $cardRepository->setProperties($card, [$type => $imagePath.'.'.$fullResult->get('extension')]);
+            $card->setProperties([$type => $imagePath.'.'.$fullResult->get('extension')]);
         }
 
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
@@ -116,7 +114,7 @@ class ThumbnailHelper
         }
 
         if ($result->get('successful')) {
-            $card = $cardRepository->setProperties($card, [
+            $card->setProperties([
                 $type.'_thumbnail'        => $thumbnailPathWithExtension,
                 $type.'_thumbnail_width'  => $resizedImage->width(),
                 $type.'_thumbnail_height' => $resizedImage->height(),

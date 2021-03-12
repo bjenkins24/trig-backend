@@ -196,7 +196,7 @@ class SyncCards
             return ! $value;
         });
 
-        $this->cardRepository->setProperties($card, $data->toArray());
+        $card->setProperties($data->toArray());
 
         return $card->save();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToOauthIntegration;
 use App\Support\Traits\Relationships\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,7 @@ class OauthConnection extends Model
 {
     use BelongsToUser;
     use BelongsToOauthIntegration;
+    use HandlesProperties;
 
     /**
      * The attributes that are mass assignable.

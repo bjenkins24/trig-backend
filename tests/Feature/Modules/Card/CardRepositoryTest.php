@@ -163,16 +163,6 @@ class CardRepositoryTest extends TestCase
         app(CardRepository::class)->createIntegration(Card::find(1), 123, 'google');
     }
 
-    public function testSetProperties(): void
-    {
-        $card = Card::find(1);
-        $value = 1;
-        $card = app(CardRepository::class)->setProperties($card, ['test' => $value]);
-        $card->save();
-
-        self::assertEquals($value, $card->properties->get('test'));
-    }
-
     /**
      * Test if search for cards returns card objects.
      */

@@ -7,6 +7,7 @@ use App\Modules\CardFavorite\CardFavoriteRepository;
 use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\CardView\CardViewRepository;
+use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\BelongsToWorkspace;
@@ -87,6 +88,7 @@ class Card extends Model
     use Searchable;
     use CustomSearch;
     use HasFactory;
+    use HandlesProperties;
 
     /**
      * The attributes that are mass assignable.

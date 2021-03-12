@@ -115,9 +115,7 @@ class CardController extends Controller
         }
 
         if ($isAuthed && $request->get('rawHtml')) {
-            $this->cardRepository->setProperties($card, [
-                'should_sync' => false,
-            ]);
+            $card->setProperties(['should_sync' => false]);
             $card->save();
         }
 

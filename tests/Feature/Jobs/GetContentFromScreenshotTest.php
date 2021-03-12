@@ -5,7 +5,6 @@ namespace Tests\Feature\Jobs;
 use App\Jobs\GetContentFromScreenshot;
 use App\Jobs\GetTags;
 use App\Models\Card;
-use App\Modules\Card\CardRepository;
 use App\Utils\ExtractDataHelper;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,7 +19,7 @@ class GetContentFromScreenshotTest extends TestCase
     {
         Queue::fake();
         $card = Card::find(1);
-        app(CardRepository::class)->setProperties($card, ['screenshot' => 'image']);
+        $card->setProperties(['screenshot' => 'image']);
         $card->save();
 
         $mockData = [
