@@ -63,6 +63,40 @@ class ExtractDataHelper
     }
 
     /**
+     * Post processing for all of the OCR output. We want to remove common things that will
+     * be pulled out that don't make sense as part of our content.
+     */
+    public function cleanOCR(string $filename, string $output): string
+    {
+        if (! $this->fileHelper->isImage($filename)) {
+            return $output;
+        }
+
+        // Remove the entire first line in a google doc - it's just the title - we have that in the title
+        $content = preg_replace('/.*?yx.*?\n/', '', $output);
+
+        // Remove share button in google doc
+        $content = preg_replace('/@ Share.*?\n/', '', $content);
+
+        // Remove File/View/Edit Bar
+        $content = preg_replace('/File Edit.*?\n/', '', $content);
+
+        // Remove WYSIWYG Bar (Bold Italic Underline)
+        $content = preg_replace('/.*?B[TI]U.*?\n/', '', $content);
+
+        // Remove ruler in google doc
+        $content = preg_replace('/.*?1 2 3 4 5 6.*?\n/', '', $content);
+
+        // Remove all _single_ line breaks, these are not needed unless it's a list which
+        // we will handle later
+        $content = preg_replace('/(?<!\n)\r?\n(?!\r?\n)/', ' ', $content);
+
+        $content = trim($content);
+
+        return $content;
+    }
+
+    /**
      * @throws JsonException
      * @throws Exception
      */
@@ -77,6 +111,8 @@ class ExtractDataHelper
         $meta = collect($data->get('meta'));
 
         $content = trim(Str::purifyHtml($this->client->getHtml($file)));
+
+        $content = $this->cleanOCR($file, $content);
 
         $title = (string) Str::toSingleSpace(Str::of(trim($meta->get('dc:title')))->snake()->replace('_', ' ')->title());
         $fromHeadingTitle = null;

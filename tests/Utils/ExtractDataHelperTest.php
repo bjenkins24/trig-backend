@@ -82,6 +82,138 @@ class ExtractDataHelperTest extends TestCase
         return $correctResult;
     }
 
+    /**
+     * @group n
+     */
+    public function testCleanOCR(): void
+    {
+        $output = <<<HTML
+On Deck Founder Questionnaire: Self-Reflection yx eo a ®
+
+File Edit View Insert Format Tools Add-ons Help Last edit was 11 days ago
+
+
+
+
+
+
+
+
+
+i 1 ep A, FF 100% ~ Heading 1 ~ Arial ~ - 2@ + BIUA #&amp; @o@HPRry SSEBE TE EV EYEE X @Z Editing yoa
+1 = 1 2 3 4 5 6 v 7
+
+On Deck “
+
+On Deck ‘
+
+Founder Questionnaire: Self-Reflection
+
+As you begin the early stages of idea exploration or seeking out co-founders, we suggest you
+invest time in better understanding yourself and your goals.
+
+This self-reflection exercise will inform which ideas you may choose to pursue (i.e.those you
+have “Founder Market Fit” with), and the other roles you'll need to add to your founding team.
+
+Objectives of this exercise:
+
+e Increase self-awareness
+o Learn about yourself: what are your motivations, fears, unique edges.
+e Define your goals
+o What kind of business do you want to build? What lifestyle, financial, and risk
+tradeoffs do you want to optimize for?
+e Align on values
+o Determine whether you agree on first principles with prospective co-founders
+e Identify your critical risks
+o What gaps do you have on your founding team that are existential to your
+success?
+e Be vulnerable and honest with each other
+o Understanding motivations, fears, and working styles is critical to working
+together effectively and building trust quickly. This guide can serve as a tool for
+easing into those conversations.
+e Highlight what roles you need on your founding team
+o Developing an understanding of your collective weak spots can be useful for both
+making those early hires to add to your team and for identifying your own
+personal areas of growth.
+
+On Deck
+
+Ikigai: the pursuit of purpose
+
+There’s a Japanese concept called Jkigai. It refers to finding a direction or purpose in life, that
+which makes one's life worthwhile, and towards which an individual takes spontaneous and
+willing actions giving them satisfaction and a sense of meaning to life. Ikigai comes at the
+intersection of four things: what you’re good at, what can make you money, what the world
+needs, and what you’re passionate about. For example, your passion lies at the intersection of
+what you’re good at, and what you love.
+
+It's possible to spreadsheet this out, list all the things you’ve ever thought about doing and score
+
+them on these four axes. For example, if there’s two things that you’re neutral on, but one of
+them pays more than the other, or it’s something the world needs, you may choose that one.
+
+Try listing these below, and ranking them FINDING YOUR IKIGAI
+
+1. What do you love?
+
+a. Product WHAT | LOVE
+b. Marketing
+c. Analytics
+d. Technology
+e. Programming wearin z WORLD NEEDS
+f. Music
+2. What does the world need? WHAT | CAN
+
+BE PAID FOR
+
+3. What can you be paid for?
+
+4. What are you good at?
+HTML;
+
+        $expectedCleaned = <<<HTML
+On Deck “
+
+On Deck ‘
+
+Founder Questionnaire: Self-Reflection
+
+As you begin the early stages of idea exploration or seeking out co-founders, we suggest you invest time in better understanding yourself and your goals.
+
+This self-reflection exercise will inform which ideas you may choose to pursue (i.e.those you have “Founder Market Fit” with), and the other roles you'll need to add to your founding team.
+
+Objectives of this exercise:
+
+<ul><li>Increase self-awareness<li>Learn about yourself: what are your motivations, fears, unique edges.</li></li><li>Define your goals o What kind of business do you want to build? What lifestyle, financial, and risk tradeoffs do you want to optimize for?</li><li>Align on values<li>Determine whether you agree on first principles with prospective co-founders</li></li><li>Identify your critical risks<li>What gaps do you have on your founding team that are existential to your success?</li></li><li>Be vulnerable and honest with each other<li>Understanding motivations, fears, and working styles is critical to working together effectively and building trust quickly. This guide can serve as a tool for easing into those conversations.</li></li><li>Highlight what roles you need on your founding team<li>Developing an understanding of your collective weak spots can be useful for both making those early hires to add to your team and for identifying your own personal areas of growth.</li></li></ul>
+
+On Deck
+
+Ikigai: the pursuit of purpose
+
+There’s a Japanese concept called Jkigai. It refers to finding a direction or purpose in life, that which makes one's life worthwhile, and towards which an individual takes spontaneous and willing actions giving them satisfaction and a sense of meaning to life. Ikigai comes at the intersection of four things: what you’re good at, what can make you money, what the world needs, and what you’re passionate about. For example, your passion lies at the intersection of what you’re good at, and what you love.
+
+It's possible to spreadsheet this out, list all the things you’ve ever thought about doing and score
+
+them on these four axes. For example, if there’s two things that you’re neutral on, but one of them pays more than the other, or it’s something the world needs, you may choose that one.
+
+Try listing these below, and ranking them FINDING YOUR IKIGAI
+
+1. What do you love?
+
+a. Product WHAT | LOVE b. Marketing c. Analytics d. Technology e. Programming wearin z WORLD NEEDS f. Music 2. What does the world need? WHAT | CAN
+
+BE PAID FOR
+
+3. What can you be paid for?
+
+4. What are you good at?
+HTML;
+        $filename = 'sup.png';
+
+        $result = app(ExtractDataHelper::class)->cleanOCR($filename, $output);
+        self::assertEquals($expectedCleaned, $result);
+    }
+
     public function testGetFileData(): void
     {
         Storage::fake();
