@@ -43,8 +43,8 @@ class GetContentFromScreenshotTest extends TestCase
     {
         $card = Card::find(1);
 
-        $getContentFromImageJob = new GetContentFromScreenshot($card);
-        $result = $getContentFromImageJob->handle();
+        $getContentFromScreenshot = new GetContentFromScreenshot($card);
+        $result = $getContentFromScreenshot->handle();
         self::assertFalse($result);
     }
 
@@ -56,8 +56,8 @@ class GetContentFromScreenshotTest extends TestCase
             $mock->shouldReceive('getData')->andThrow(new Exception('hello'));
         });
 
-        $getContentFromImageJob = new GetContentFromScreenshot($card);
-        $result = $getContentFromImageJob->handle();
+        $getContentFromScreenshot = new GetContentFromScreenshot($card);
+        $result = $getContentFromScreenshot->handle();
         self::assertFalse($result);
     }
 }

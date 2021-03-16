@@ -22,16 +22,18 @@ class SaveThumbnails implements ShouldQueue
 
     public Collection $fields;
     public Card $card;
+    public bool $getContentFromScreenshot;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Collection $fields, Card $card)
+    public function __construct(Collection $fields, Card $card, bool $getContentFromScreenshot = false)
     {
         $this->fields = $fields;
         $this->card = $card;
+        $this->getContentFromScreenshot = $getContentFromScreenshot;
     }
 
     public function handle(): bool
@@ -44,6 +46,10 @@ class SaveThumbnails implements ShouldQueue
             }
             if ($this->fields->get('screenshot')) {
                 $thumbnailHelper->saveThumbnail($this->fields->get('screenshot'), 'screenshot', $this->card);
+            }
+
+            if ($this->getContentFromScreenshot) {
+                GetContentFromScreenshot::dispatch($this->card);
             }
 
             return true;

@@ -38,12 +38,14 @@ class GetContentFromScreenshot implements ShouldQueue
         // Tika can take a lot of memory
         ini_set('memory_limit', '1024M');
         try {
-            $screenshot = $this->card->properties;
+            $screenshot = $this->card->properties->get('screenshot');
             if (! $screenshot) {
                 return false;
             }
             $data = app(ExtractDataHelper::class)->getData(env('CDN_URL').$screenshot);
 
+            // This has to run BEFORE the card is saved with the new content so we can tell if the content has changed
+            // enough to get new tags
             $shouldGetTags = app(CardSyncRepository::class)->shouldGetTags($this->card, $data['content']);
 
             $fields = [

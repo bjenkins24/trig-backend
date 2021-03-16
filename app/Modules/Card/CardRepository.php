@@ -531,7 +531,7 @@ class CardRepository
      * @throws CardUserIdMustExist
      * @throws Exception
      */
-    public function upsert(array $fields, ?Card $card = null): ?Card
+    public function upsert(array $fields, ?Card $card = null, bool $getContentFromScreenshot = false): ?Card
     {
         $newFields = collect($fields);
         if ($card) {
@@ -541,7 +541,7 @@ class CardRepository
             }
             $card->update($fields);
 
-            SaveThumbnails::dispatch($newFields, $card);
+            SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
 
@@ -583,7 +583,7 @@ class CardRepository
 
         $card = Card::create($newFields->toArray());
 
-        SaveThumbnails::dispatch($newFields, $card);
+        SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
 

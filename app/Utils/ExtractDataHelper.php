@@ -93,7 +93,48 @@ class ExtractDataHelper
 
         $content = trim($content);
 
-        return $content;
+        // Handle unordered list. They typically come in as `e` for the first bullet and `o` for the second
+        $result = preg_split('/(^|\n| )e /', $content);
+        $list = [];
+        $count = 0;
+        foreach ($result as $bulletKey => $bullet) {
+            if (0 === $bulletKey) {
+                continue;
+            }
+            $subBullets = explode(' o ', $bullet);
+            $list[$count]['item'] = array_shift($subBullets);
+            $list[$count]['subItems'] = $subBullets;
+            ++$count;
+        }
+
+        $listString = '<ul>';
+        foreach ($list as $listItem) {
+            if ($listItem['item']) {
+                $item = preg_replace('/\n\n.*/', '', $listItem['item']);
+                $listString .= '<li>'.$item;
+            }
+            foreach ($listItem['subItems'] as $subItem) {
+                $item = preg_replace('/\n\n.*/', '', $subItem);
+                $listString .= '<ul><li>'.$item.'</li></ul>';
+            }
+            $listString .= '</li>';
+        }
+        $listString .= "</ul>\n";
+
+        $content = preg_replace('/(^|\n| )e .*?\n/', $listString, $content);
+
+        // Create <p> tags
+        $paragraphs = preg_split('/\n\n/', $content);
+        $content = '';
+        foreach ($paragraphs as $paragraph) {
+            if (false === strpos($paragraph, '<ul>')) {
+                $content .= '<p>'.trim($paragraph).'</p>';
+            } else {
+                $content .= trim($paragraph);
+            }
+        }
+
+        return nl2br($content);
     }
 
     /**

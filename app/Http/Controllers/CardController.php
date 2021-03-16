@@ -94,7 +94,7 @@ class CardController extends Controller
                 'image'             => $request->get('image') ?? $website->getImage(),
                 'screenshot'        => $request->get('screenshot'),
                 'favorited'         => $request->get('is_favorited'),
-            ]);
+            ], null, $request->get('getContentFromScreenshot'));
         } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {
             return response()->json([
                 'error'   => 'bad_request',
@@ -115,6 +115,11 @@ class CardController extends Controller
         }
 
         if ($isAuthed && $request->get('rawHtml')) {
+            // There's a race condition here. When the upsert method above is running it could be saving thumbnails in
+            // a queue those thumbnails could save before this actually runs. If that's the case it will still have the
+            // old card with the old properties and should_sync would overwrite the changes made to `properties`
+            // by the save thumbnail
+            $card = Card::find($card->id);
             $card->setProperties(['should_sync' => false]);
             $card->save();
         }
@@ -122,6 +127,7 @@ class CardController extends Controller
         if (
             // If we were sent the raw html we will likely get the picture, content, title, and description from it
             // No need to get anything with curl or puppeteer
+            ! $request->get('getContentFromScreenshot') &&
             ! $request->get('rawHtml') &&
             $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
             (! $request->get('image') || ! $request->get('content') || ! $request->get('title'))
@@ -131,7 +137,7 @@ class CardController extends Controller
 
         // If we have rawHtml then we have the content and we're NOT going to do the initial data sync. So let's just
         // get the tags right away
-        if ($request->get('rawHtml')) {
+        if ($request->get('rawHtml') && ! $request->get('getContentFromScreenshot')) {
             GetTags::dispatch($card);
         }
 
