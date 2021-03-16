@@ -22,6 +22,7 @@ class GetContentFromScreenshot implements ShouldQueue
     use SerializesModels;
 
     public Card $card;
+    public int $timeout = 120;
 
     /**
      * Create a new job instance.

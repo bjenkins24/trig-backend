@@ -19,7 +19,7 @@ class TikaWebClientWrapper
     public function __construct()
     {
         $this->client = TikaClient::make(Config::get('app.tika_url'));
-        $this->client->setTimeout('15');
+        $this->client->setTimeout('95');
     }
 
     /**
