@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
@@ -86,6 +87,52 @@ class ThumbnailHelper
         ]);
     }
 
+    private function adjustThumbnail(Card $card, $thumbnail, string $type): Image
+    {
+        $image = $this->fileHelper->makeImage($thumbnail->get('image'));
+        if ('screenshot' === $type) {
+            $width = $image->width();
+            $height = $image->height();
+
+            // TODO: If we end up doing a lot of these this should be abstracted to a class
+            // We need to remove these when I have time to work on it. Ideally we would
+            // resize a page with HTML in the extension to make it the size of the screenshot
+            // we want to take. Then later (here) we can crop it so the white edges are cut off.
+            // That would make a beautiful thumbnail. But it's a lot of work if it's even possible
+            // The screenshot thumbnails are going to be worse as screensizes get bigger. I think I'm
+            // ok with that tradeoff for now so we can get it out
+            if (false !== strpos($card->url, 'docs.google.com')) {
+                $thumbnailCropWidth = 800;
+                $thumbnailCropHeight = 800;
+                $xPosition = 0;
+                if ($width >= $thumbnailCropWidth) {
+                    $xPosition = (int) (($width - $thumbnailCropWidth) / 2 - $width / 52);
+                }
+                $yPosition = 0;
+                if ($height >= $thumbnailCropHeight) {
+                    // Arbitrary to cut off the header that probably exists
+                    $yPosition = 150;
+                }
+                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
+            }
+            if (false !== strpos($card->url, 'google.com/search?')) {
+                $thumbnailCropWidth = 710;
+                $thumbnailCropHeight = 900;
+                $xPosition = 150;
+                $yPosition = 0;
+                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
+            }
+
+            if (! isset($xPosition)) {
+                $image = $image->crop($width, $height >= 1200 ? 1200 : $height, 0, 0);
+            }
+        }
+
+        return $image->resize(251, null, static function ($constraint) {
+            $constraint->aspectRatio();
+        });
+    }
+
     /**
      * @throws Exception
      */
@@ -104,9 +151,8 @@ class ThumbnailHelper
         }
 
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
-        $resizedImage = $this->fileHelper->makeImage($thumbnail->get('image'))->resize(251, null, static function ($constraint) {
-            $constraint->aspectRatio();
-        });
+        $resizedImage = $this->adjustThumbnail($card, $thumbnail, $type);
+
         $result = $this->saveImage($thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
 
         if (file_exists($imageUri)) {

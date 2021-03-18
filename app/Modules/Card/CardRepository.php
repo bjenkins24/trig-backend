@@ -531,7 +531,7 @@ class CardRepository
      * @throws CardUserIdMustExist
      * @throws Exception
      */
-    public function upsert(array $fields, ?Card $card = null, bool $getContentFromScreenshot = false): ?Card
+    public function upsert(array $fields, ?Card $card = null, ?bool $getContentFromScreenshot = false): ?Card
     {
         $newFields = collect($fields);
         if ($card) {
