@@ -42,7 +42,7 @@ class CardSyncRepository
 
     public function shouldSync(Card $card): bool
     {
-        if ($card->properties && ! $card->properties->get('should_sync')) {
+        if ($card->properties && false === $card->properties->get('should_sync')) {
             return false;
         }
         $cardType = CardType::find($card->card_type_id)->name;

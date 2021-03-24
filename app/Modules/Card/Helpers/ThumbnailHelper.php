@@ -87,7 +87,7 @@ class ThumbnailHelper
         ]);
     }
 
-    private function adjustThumbnail(Card $card, $thumbnail, string $type): Image
+    private function adjustThumbnail(Card $card, $thumbnail, string $type, int $finalWidth, int $finalHeight): Image
     {
         $image = $this->fileHelper->makeImage($thumbnail->get('image'));
         if ('screenshot' === $type) {
@@ -101,34 +101,31 @@ class ThumbnailHelper
             // That would make a beautiful thumbnail. But it's a lot of work if it's even possible
             // The screenshot thumbnails are going to be worse as screensizes get bigger. I think I'm
             // ok with that tradeoff for now so we can get it out
-            if (false !== strpos($card->url, 'docs.google.com')) {
-                $thumbnailCropWidth = 800;
-                $thumbnailCropHeight = 800;
-                $xPosition = 0;
-                if ($width >= $thumbnailCropWidth) {
-                    $xPosition = (int) (($width - $thumbnailCropWidth) / 2 - $width / 52);
-                }
-                $yPosition = 0;
-                if ($height >= $thumbnailCropHeight) {
-                    // Arbitrary to cut off the header that probably exists
-                    $yPosition = 150;
-                }
-                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
-            }
-            if (false !== strpos($card->url, 'google.com/search?')) {
-                $thumbnailCropWidth = 710;
-                $thumbnailCropHeight = 900;
-                $xPosition = 150;
-                $yPosition = 0;
-                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
-            }
-
-            if (! isset($xPosition)) {
-                $image = $image->crop($width, $height >= 1200 ? 1200 : $height, 0, 0);
-            }
+//            if (false !== strpos($card->url, 'docs.google.com')) {
+//                $thumbnailCropWidth = 800;
+//                $thumbnailCropHeight = 800;
+//                $xPosition = 0;
+//                if ($width >= $thumbnailCropWidth) {
+//                    $xPosition = (int) (($width - $thumbnailCropWidth) / 2 - $width / 52);
+//                }
+//                $yPosition = 0;
+//                if ($height >= $thumbnailCropHeight) {
+//                    // Arbitrary to cut off the header that probably exists
+//                    $yPosition = 150;
+//                }
+//                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
+//            }
         }
+        $cropHeight = $image->width() * ($finalHeight / $finalWidth);
 
-        return $image->resize(251, null, static function ($constraint) {
+        $height = $image->height();
+        $thumbnailHeight = $height;
+        if ($height > $cropHeight) {
+            $thumbnailHeight = $cropHeight;
+        }
+        $image = $image->crop($image->width(), (int) $thumbnailHeight, 0, 0);
+
+        return $image->resize($finalWidth, null, static function ($constraint) {
             $constraint->aspectRatio();
         });
     }
@@ -140,6 +137,7 @@ class ThumbnailHelper
     {
         $imagePath = '/'.self::IMAGE_FOLDER.'/'.$type.'s/'.$card->token;
         $thumbnailPath = '/'.self::IMAGE_FOLDER.'/'.$type.'-thumbnails/'.$card->token;
+        $largeThumbnailPath = '/'.self::IMAGE_FOLDER.'/'.$type.'-large-thumbnails/'.$card->token;
         $thumbnail = $this->getImage($imageUri);
         if ($thumbnail->isEmpty()) {
             return false;
@@ -150,16 +148,23 @@ class ThumbnailHelper
             $card->setProperties([$type => $imagePath.'.'.$fullResult->get('extension')]);
         }
 
+        // Small Thumbnail
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
-        $resizedImage = $this->adjustThumbnail($card, $thumbnail, $type);
+        $resizedImage = $this->adjustThumbnail($card, $thumbnail, $type, 251, 300);
+        $resultSmall = $this->saveImage($thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
 
-        $result = $this->saveImage($thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
+        if ('screenshot' === $type) {
+            // Large thumbnail
+            $largeThumbnailPathWithExtension = $largeThumbnailPath.'.'.$thumbnail->get('extension');
+            $largeResizedImage = $this->adjustThumbnail($card, $thumbnail, $type, 800, 800);
+            $resultLarge = $this->saveImage($largeThumbnailPath, collect(['image' => $largeResizedImage, 'extension' => $thumbnail->get('extension')]));
+        }
 
         if (file_exists($imageUri)) {
             unlink($imageUri);
         }
 
-        if ($result->get('successful')) {
+        if ($resultSmall->get('successful')) {
             $card->setProperties([
                 $type.'_thumbnail'        => $thumbnailPathWithExtension,
                 $type.'_thumbnail_width'  => $resizedImage->width(),
@@ -167,7 +172,15 @@ class ThumbnailHelper
             ]);
         }
 
-        if ($result || $fullResult) {
+        if ('screenshot' === $type && $resultLarge->get('successful')) {
+            $card->setProperties([
+                $type.'_thumbnail_large'        => $largeThumbnailPathWithExtension,
+                $type.'_thumbnail_large_width'  => $largeResizedImage->width(),
+                $type.'_thumbnail_large_height' => $largeResizedImage->height(),
+            ]);
+        }
+
+        if ($resultSmall || $resultLarge || $fullResult) {
             $card->save();
         }
 

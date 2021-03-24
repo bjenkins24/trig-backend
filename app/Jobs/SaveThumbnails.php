@@ -22,14 +22,14 @@ class SaveThumbnails implements ShouldQueue
 
     public Collection $fields;
     public Card $card;
-    public bool $getContentFromScreenshot;
+    public ?bool $getContentFromScreenshot;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Collection $fields, Card $card, bool $getContentFromScreenshot = false)
+    public function __construct(Collection $fields, Card $card, ?bool $getContentFromScreenshot = null)
     {
         $this->fields = $fields;
         $this->card = $card;

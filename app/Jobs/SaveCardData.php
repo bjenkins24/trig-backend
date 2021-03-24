@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SaveCardData implements ShouldQueue
 {
@@ -36,6 +37,9 @@ class SaveCardData implements ShouldQueue
         $this->integration = $integration;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function handle(): void
     {
         // Puppeteer can take a lot of memory
