@@ -180,7 +180,7 @@ class ThumbnailHelper
             ]);
         }
 
-        if ($resultSmall || $resultLarge || $fullResult) {
+        if ($resultSmall || (isset($resultLarge) && $resultLarge) || $fullResult) {
             $card->save();
         }
 

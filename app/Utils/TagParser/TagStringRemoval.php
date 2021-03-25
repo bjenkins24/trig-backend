@@ -29,7 +29,7 @@ class TagStringRemoval
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human',
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human', 'Inc.',
         'cookies', /* cookies is not so horrible but it comes up for "we use cookies" websites so gotta remove it */
     ];
 
