@@ -87,35 +87,9 @@ class ThumbnailHelper
         ]);
     }
 
-    private function adjustThumbnail(Card $card, $thumbnail, string $type, int $finalWidth, int $finalHeight): Image
+    private function adjustThumbnail($thumbnail, int $finalWidth, int $finalHeight): Image
     {
         $image = $this->fileHelper->makeImage($thumbnail->get('image'));
-        if ('screenshot' === $type) {
-            $width = $image->width();
-            $height = $image->height();
-
-            // TODO: If we end up doing a lot of these this should be abstracted to a class
-            // We need to remove these when I have time to work on it. Ideally we would
-            // resize a page with HTML in the extension to make it the size of the screenshot
-            // we want to take. Then later (here) we can crop it so the white edges are cut off.
-            // That would make a beautiful thumbnail. But it's a lot of work if it's even possible
-            // The screenshot thumbnails are going to be worse as screensizes get bigger. I think I'm
-            // ok with that tradeoff for now so we can get it out
-//            if (false !== strpos($card->url, 'docs.google.com')) {
-//                $thumbnailCropWidth = 800;
-//                $thumbnailCropHeight = 800;
-//                $xPosition = 0;
-//                if ($width >= $thumbnailCropWidth) {
-//                    $xPosition = (int) (($width - $thumbnailCropWidth) / 2 - $width / 52);
-//                }
-//                $yPosition = 0;
-//                if ($height >= $thumbnailCropHeight) {
-//                    // Arbitrary to cut off the header that probably exists
-//                    $yPosition = 150;
-//                }
-//                $image = $image->crop($thumbnailCropWidth, $thumbnailCropHeight, $xPosition, $yPosition);
-//            }
-        }
         $cropHeight = $image->width() * ($finalHeight / $finalWidth);
 
         $height = $image->height();
@@ -150,13 +124,13 @@ class ThumbnailHelper
 
         // Small Thumbnail
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
-        $resizedImage = $this->adjustThumbnail($card, $thumbnail, $type, 251, 300);
+        $resizedImage = $this->adjustThumbnail($thumbnail, 251, 175);
         $resultSmall = $this->saveImage($thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
 
         if ('screenshot' === $type) {
             // Large thumbnail
             $largeThumbnailPathWithExtension = $largeThumbnailPath.'.'.$thumbnail->get('extension');
-            $largeResizedImage = $this->adjustThumbnail($card, $thumbnail, $type, 800, 800);
+            $largeResizedImage = $this->adjustThumbnail($thumbnail, 800, 800);
             $resultLarge = $this->saveImage($largeThumbnailPath, collect(['image' => $largeResizedImage, 'extension' => $thumbnail->get('extension')]));
         }
 
