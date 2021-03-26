@@ -16,8 +16,11 @@ class TikaWebClientWrapper
     /**
      * @throws Exception
      */
-    public function __construct()
+    public function buildClient(): void
     {
+        if ($this->client) {
+            return;
+        }
         $this->client = TikaClient::make(Config::get('app.tika_url'));
         $this->client->setTimeout('95');
     }
@@ -32,6 +35,8 @@ class TikaWebClientWrapper
      */
     public function getMetaData($file, $recursive = null)
     {
+        $this->buildClient();
+
         return $this->client->getMetadata($file, $recursive);
     }
 
@@ -44,6 +49,8 @@ class TikaWebClientWrapper
      */
     public function getHtml($file, $callback = null, $append = true): string
     {
+        $this->buildClient();
+
         return $this->client->getHTML($file, $callback, $append);
     }
 }
