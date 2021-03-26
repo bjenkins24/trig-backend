@@ -82,11 +82,12 @@ class WebsiteExtractionHelper
         $page->setExtraHTTPHeaders($this->getHeaders());
         $response = $page->goto($url, [
             'timeout'   => $timeout,
+            'waitUntil' => 'networkidle0',
         ]);
         $content = $page->content();
         $page->setViewport([
             'width'              => 1440,
-            'height'             => 900,
+            'height'             => 1200,
         ]);
         $imagePath = Str::random().'.png';
         $page->screenshot(['path' => $imagePath, 'fullPage' => true]);
@@ -120,8 +121,11 @@ class WebsiteExtractionHelper
     /**
      * @throws ParseException
      */
-    public function parseHtml(string $html): Collection
+    public function parseHtml(?string $html): Collection
     {
+        if (! $html) {
+            return collect([]);
+        }
         $readability = new Readability(new ReadabilityConfiguration());
         $readability->parse($html);
 

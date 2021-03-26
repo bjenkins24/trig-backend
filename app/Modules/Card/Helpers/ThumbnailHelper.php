@@ -3,12 +3,12 @@
 namespace App\Modules\Card\Helpers;
 
 use App\Models\Card;
-use App\Modules\Card\CardRepository;
 use App\Utils\FileHelper;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
@@ -30,7 +30,7 @@ class ThumbnailHelper
     private function getImage(string $imageUri): Collection
     {
         try {
-            $image = $this->fileHelper->makeImage($imageUri);
+            $image = $this->fileHelper->makeImage(file_get_contents($imageUri));
         } catch (Exception $e) {
             Log::notice("Couldn't get a thumbnail: $imageUri - {$e->getMessage()}");
 
@@ -49,23 +49,14 @@ class ThumbnailHelper
         ]);
     }
 
-    public function testsomething(string $thing)
-    {
-        $image = $this->getImage($thing);
-        $result = Storage::put('public/card-images/test/hello.png', file_get_contents($thing));
-    }
-
     /**
      * This will save the image with compression - we are preferring quality over smaller size
      * please only compress images in a lossless format.
      *
      * @throws Exception
      */
-    public function saveImage(?string $uri, string $finalPath, Collection $image = null): Collection
+    public function saveImage(string $finalPath, Collection $image): Collection
     {
-        if (! $image) {
-            $image = $this->getImage($uri);
-        }
         $tmpName = bin2hex(random_bytes(16));
         $path = 'public/tmp/'.$tmpName.'.'.$image->get('extension');
         $fullTmpPath = 'storage/app/public/tmp/'.$tmpName.'.'.$image->get('extension');
@@ -96,67 +87,74 @@ class ThumbnailHelper
         ]);
     }
 
-    /**
-     * @throws Exception
-     */
-    private function saveScreenshot(?string $screenshotUri, Card $card): Card
+    private function adjustThumbnail($thumbnail, int $finalWidth, int $finalHeight): Image
     {
-        if (! $screenshotUri) {
-            return $card;
-        }
-        $cardRepository = app(CardRepository::class);
-        $screenshotPath = '/'.self::IMAGE_FOLDER.'/full-screenshot/'.$card->token;
-        $screenshot = $this->saveImage($screenshotUri, $screenshotPath);
-        if ($screenshot->get('successful')) {
-            return $cardRepository->setProperties($card, ['full_screenshot' => $screenshotPath.'.'.$screenshot->get('extension')]);
-        }
+        $image = $this->fileHelper->makeImage($thumbnail->get('image'));
+        $cropHeight = $image->width() * ($finalHeight / $finalWidth);
 
-        return $card;
+        $height = $image->height();
+        $thumbnailHeight = $height;
+        if ($height > $cropHeight) {
+            $thumbnailHeight = $cropHeight;
+        }
+        $image = $image->crop($image->width(), (int) $thumbnailHeight, 0, 0);
+
+        return $image->resize($finalWidth, null, static function ($constraint) {
+            $constraint->aspectRatio();
+        });
     }
 
     /**
      * @throws Exception
      */
-    public function saveThumbnail(?string $thumbnailUri, ?string $screenshotUri, Card $card): bool
+    public function saveThumbnail(string $imageUri, string $type, Card $card): bool
     {
-        $this->saveScreenshot($screenshotUri, $card);
-
-        if (! $thumbnailUri) {
-            return false;
-        }
-
-        $imagePath = '/'.self::IMAGE_FOLDER.'/full/'.$card->token;
-        $thumbnailPath = '/'.self::IMAGE_FOLDER.'/thumbnail/'.$card->token;
-        $thumbnail = $this->getImage($thumbnailUri);
+        $imagePath = '/'.self::IMAGE_FOLDER.'/'.$type.'s/'.$card->token;
+        $thumbnailPath = '/'.self::IMAGE_FOLDER.'/'.$type.'-thumbnails/'.$card->token;
+        $largeThumbnailPath = '/'.self::IMAGE_FOLDER.'/'.$type.'-large-thumbnails/'.$card->token;
+        $thumbnail = $this->getImage($imageUri);
         if ($thumbnail->isEmpty()) {
             return false;
         }
-        $fullResult = $this->saveImage('', $imagePath, $thumbnail);
-        $cardRepository = app(CardRepository::class);
+        $fullResult = $this->saveImage($imagePath, $thumbnail);
 
         if ($fullResult->get('successful')) {
-            $card = $cardRepository->setProperties($card, ['full_image' => $imagePath.'.'.$fullResult->get('extension')]);
+            $card->setProperties([$type => $imagePath.'.'.$fullResult->get('extension')]);
         }
 
+        // Small Thumbnail
         $thumbnailPathWithExtension = $thumbnailPath.'.'.$thumbnail->get('extension');
-        $resizedImage = $this->fileHelper->makeImage($thumbnail->get('image'))->resize(251, null, static function ($constraint) {
-            $constraint->aspectRatio();
-        });
-        $result = $this->saveImage(null, $thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
+        $resizedImage = $this->adjustThumbnail($thumbnail, 251, 175);
+        $resultSmall = $this->saveImage($thumbnailPath, collect(['image' => $resizedImage, 'extension' => $thumbnail->get('extension')]));
 
-        if ($screenshotUri) {
-            unlink($screenshotUri);
+        if ('screenshot' === $type) {
+            // Large thumbnail
+            $largeThumbnailPathWithExtension = $largeThumbnailPath.'.'.$thumbnail->get('extension');
+            $largeResizedImage = $this->adjustThumbnail($thumbnail, 800, 800);
+            $resultLarge = $this->saveImage($largeThumbnailPath, collect(['image' => $largeResizedImage, 'extension' => $thumbnail->get('extension')]));
         }
 
-        if ($result->get('successful')) {
-            $card = $cardRepository->setProperties($card, [
-                'thumbnail'        => $thumbnailPathWithExtension,
-                'thumbnail_width'  => $resizedImage->width(),
-                'thumbnail_height' => $resizedImage->height(),
+        if (file_exists($imageUri)) {
+            unlink($imageUri);
+        }
+
+        if ($resultSmall->get('successful')) {
+            $card->setProperties([
+                $type.'_thumbnail'        => $thumbnailPathWithExtension,
+                $type.'_thumbnail_width'  => $resizedImage->width(),
+                $type.'_thumbnail_height' => $resizedImage->height(),
             ]);
         }
 
-        if ($result || $fullResult) {
+        if ('screenshot' === $type && $resultLarge->get('successful')) {
+            $card->setProperties([
+                $type.'_thumbnail_large'        => $largeThumbnailPathWithExtension,
+                $type.'_thumbnail_large_width'  => $largeResizedImage->width(),
+                $type.'_thumbnail_large_height' => $largeResizedImage->height(),
+            ]);
+        }
+
+        if ($resultSmall || (isset($resultLarge) && $resultLarge) || $fullResult) {
             $card->save();
         }
 

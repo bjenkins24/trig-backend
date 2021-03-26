@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToManyTeams;
 use App\Support\Traits\Relationships\BelongsToManyWorkspaces;
 use App\Support\Traits\Relationships\HasCardFavorites;
@@ -71,6 +72,7 @@ class User extends Authenticatable
     use BelongsToManyTeams;
     use HasCardFavorites;
     use PermissionTypeable;
+    use HandlesProperties;
 
     /**
      * The attributes that are mass assignable.

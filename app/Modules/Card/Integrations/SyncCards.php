@@ -5,6 +5,7 @@ namespace App\Modules\Card\Integrations;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
+use App\Jobs\SaveThumbnails;
 use App\Jobs\SyncCards as SyncCardsJob;
 use App\Models\Card;
 use App\Models\CardType;
@@ -130,7 +131,7 @@ class SyncCards
 
         $cardType = $this->cardTypeRepository->firstOrCreate($data->get('card_type'));
 
-        $card = $this->cardRepository->updateOrInsert([
+        $card = $this->cardRepository->upsert([
             'actual_created_at'         => $data->get('actual_created_at'),
             'actual_updated_at'         => $data->get('actual_updated_at'),
             'card_type_id'              => $cardType->id,
@@ -149,15 +150,15 @@ class SyncCards
         }
 
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
+            SaveThumbnails::dispatch($data, $card);
         }
         $this->savePermissions($cardData->get('permissions'), $card);
 
         if (! ExtractDataHelper::isExcluded($data->get('card_type'))) {
             if ($existingCard) {
-                SaveCardData::dispatch($card, $this->integrationKey)->onQueue('save-card-data');
+                SaveCardData::dispatch($card->id, $this->integrationKey)->onQueue('save-card-data');
             } else {
-                SaveCardDataInitial::dispatch($card, $this->integrationKey)->onQueue('save-card-data-initial');
+                SaveCardDataInitial::dispatch($card->id, $this->integrationKey)->onQueue('save-card-data-initial');
             }
         }
     }
@@ -165,16 +166,16 @@ class SyncCards
     public function saveInitialCardData(Card $card): void
     {
         $data = $this->contentIntegration->getCardInitialData($card);
-        if (! $data->isEmpty()) {
+        if (! $data->isEmpty() && $data->get('title')) {
             $this->saveData($card, $data);
         }
-        SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+        SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
     }
 
     private function saveData(Card $card, Collection $data): bool
     {
         if ($data->get('image') || $data->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($data->get('image'), $data->get('screenshot'), $card);
+            SaveThumbnails::dispatch($data, $card);
             $data->forget('image');
             $data->forget('screenshot');
         }
@@ -195,7 +196,7 @@ class SyncCards
             return ! $value;
         });
 
-        $this->cardRepository->setProperties($card, $data->toArray());
+        $card->setProperties($data->toArray());
 
         return $card->save();
     }

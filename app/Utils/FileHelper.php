@@ -22,6 +22,13 @@ class FileHelper
         return getimagesizefromstring($fileInfo);
     }
 
+    public function isImage(string $path): bool
+    {
+        $imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'cdr', 'ico', 'jp2', 'psd', 'svg'];
+
+        return in_array(pathinfo($path)['extension'], $imageExtensions, true);
+    }
+
     public function mimeToExtension($mime)
     {
         $mime_map = [

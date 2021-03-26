@@ -36,7 +36,7 @@ class CardTagRepositoryTest extends TestCase
 
         app(CardTagRepository::class)->replaceTags($card, $firstSetTags, []);
 
-        $card2 = app(CardRepository::class)->updateOrInsert([
+        $card2 = app(CardRepository::class)->upsert([
             'workspace_id'    => $card->workspace_id,
             'user_id'         => $card->user_id,
             'title'           => 'cool title',

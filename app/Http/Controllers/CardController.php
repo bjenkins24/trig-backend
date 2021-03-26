@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Card\CreateCardRequest;
 use App\Http\Requests\Card\UpdateCardRequest;
+use App\Jobs\GetContentFromScreenshot;
+use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
 use App\Models\Card;
@@ -12,9 +14,11 @@ use App\Modules\Card\CardRepository;
 use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
+use App\Modules\Card\Integrations\Link\LinkIntegration;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
+use App\Utils\WebsiteExtraction\WebsiteFactory;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,17 +30,39 @@ class CardController extends Controller
     private CardTypeRepository $cardTypeRepository;
     private CardSyncRepository $cardSyncRepository;
     private OauthIntegrationService $oauthIntegrationService;
+    private WebsiteFactory $websiteFactory;
+    private LinkIntegration $linkIntegration;
 
     public function __construct(
         CardRepository $cardRepo,
         CardTypeRepository $cardTypeRepository,
         CardSyncRepository $cardSyncRepository,
-        OauthIntegrationService $oauthIntegrationService
+        WebsiteFactory $websiteFactory,
+        OauthIntegrationService $oauthIntegrationService,
+        LinkIntegration $linkIntegration
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
         $this->cardSyncRepository = $cardSyncRepository;
+        $this->websiteFactory = $websiteFactory;
         $this->oauthIntegrationService = $oauthIntegrationService;
+        $this->linkIntegration = $linkIntegration;
+    }
+
+    /**
+     * With some given raw html make an educated guess as to whether or not the user is currently viewing that page
+     * as an authenticated user. If the user is authenticated in some way, we'll need to take a full screenshot,
+     * as the only way to access the content of that page is in our chrome extension.
+     *
+     * @throws Exception
+     */
+    public function checkAuthed(Request $request): JsonResponse
+    {
+        return response()->json([
+          'data' => [
+              'isAuthed' => $this->linkIntegration->checkAuthed($request->get('url'), $request->get('rawHtml')),
+          ],
+        ]);
     }
 
     /**
@@ -49,24 +75,26 @@ class CardController extends Controller
         $cardTypeKey = $request->get('card_type') ?? 'link';
         $cardType = $this->cardTypeRepository->firstOrCreate($cardTypeKey);
 
+        $website = $this->websiteFactory->make(null);
+        if ('link' === $cardTypeKey && $request->get('rawHtml')) {
+            $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+        }
+
         try {
-            $card = $this->cardRepository->updateOrInsert([
+            $card = $this->cardRepository->upsert([
                 'card_type_id'      => $cardType->id,
                 'user_id'           => $user->id,
+                // Don't use get here getting it with url will get it with the protocol if it didn't already exist
                 'url'               => $request->url,
-                'title'             => $request->get('title') ?? $request->get('url'),
-                'description'       => $request->get('description'),
-                'content'           => $request->get('content'),
+                'title'             => $request->get('title') ?? $website->getTitle() ?? $request->get('url'),
+                'description'       => $request->get('description') ?? $website->getExcerpt(),
+                'content'           => $request->get('content') ?? $website->getContent(),
                 'actual_created_at' => $request->get('created_at'),
                 'actual_updated_at' => $request->get('updated_at'),
-                'image'             => $request->get('image'),
+                'image'             => $request->get('image') ?? $website->getImage(),
+                'screenshot'        => $request->get('screenshot'),
                 'favorited'         => $request->get('is_favorited'),
-            ]);
-        } catch (CardExists $exception) {
-            return response()->json([
-                'error'   => 'exists',
-                'message' => $exception->getMessage(),
-            ], 409);
+            ], null, $request->get('getContentFromScreenshot'));
         } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {
             return response()->json([
                 'error'   => 'bad_request',
@@ -81,8 +109,36 @@ class CardController extends Controller
             ]);
         }
 
-        if ($this->oauthIntegrationService->isIntegrationValid($cardTypeKey)) {
-            SaveCardDataInitial::dispatch($card, $cardTypeKey)->onQueue('save-card-data-initial');
+        $isAuthed = false;
+        if ('link' === $cardTypeKey && $request->get('rawHtml')) {
+            $isAuthed = $this->linkIntegration->checkAuthed($request->get('url'), $request->get('rawHtml'));
+        }
+
+        if ($isAuthed && $request->get('rawHtml')) {
+            // There's a race condition here. When the upsert method above is running it could be saving thumbnails in
+            // a queue those thumbnails could save before this actually runs. If that's the case it will still have the
+            // old card with the old properties and should_sync would overwrite the changes made to `properties`
+            // by the save thumbnail
+            $card = Card::find($card->id);
+            $card->setProperties(['should_sync' => false]);
+            $card->save();
+        }
+
+        if (
+            // If we were sent the raw html we will likely get the picture, content, title, and description from it
+            // No need to get anything with curl or puppeteer
+            ! $request->get('getContentFromScreenshot') &&
+            ! $request->get('rawHtml') &&
+            $this->oauthIntegrationService->isIntegrationValid($cardTypeKey) &&
+            (! $request->get('image') || ! $request->get('content') || ! $request->get('title'))
+        ) {
+            SaveCardDataInitial::dispatch($card->id, $cardTypeKey)->onQueue('save-card-data-initial');
+        }
+
+        // If we have rawHtml then we have the content and we're NOT going to do the initial data sync. So let's just
+        // get the tags right away
+        if ($request->get('rawHtml') && ! $request->get('getContentFromScreenshot')) {
+            GetTags::dispatch($card);
         }
 
         return response()->json([
@@ -150,12 +206,16 @@ class CardController extends Controller
             if ('updatedAt' === $field) {
                 return $data['actual_updated_at'] = $fieldValue;
             }
+            // Don't map some fields
+            if ('getContentFromScreenshot' === $field) {
+                return false;
+            }
 
             return $data[$field] = $fieldValue;
         });
 
         try {
-            $card = $this->cardRepository->updateOrInsert(
+            $card = $this->cardRepository->upsert(
                 array_merge(['user_id' => $user->id], $data),
                 $card
             );
@@ -166,8 +226,12 @@ class CardController extends Controller
             ], 409);
         }
 
+        if ($request->get('getContentFromScreenshot')) {
+            GetContentFromScreenshot::dispatch($card);
+        }
+
         if ($this->cardSyncRepository->shouldSync($card)) {
-            SaveCardData::dispatch($card, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+            SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
         }
 
         return response()->json([], 204);

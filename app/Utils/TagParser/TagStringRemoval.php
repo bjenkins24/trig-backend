@@ -11,7 +11,7 @@ class TagStringRemoval
         '#', '~', '.com', '. com',
         // Removing a single apostrophe is an interesting choice here. Let me justify myself
         // This makes some tags grammatically incorrect "Adventurer's League" becomes "Adventurers League"
-        // Sometimes GPT3 doesn't know how to hand the apostrophe so we will get "Adventurers' League" as well
+        // Sometimes GPT3 doesn't know how to handle the apostrophe so we will get "Adventurers' League" as well
         // which really screws up our tag overlap. I'd rather have tag overlap than this small grammar issue
         '\'',
     ];
@@ -29,8 +29,9 @@ class TagStringRemoval
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human',
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human', 'Inc.',
         'cookies', /* cookies is not so horrible but it comes up for "we use cookies" websites so gotta remove it */
+        'Twitter', /* Twitter will be a card type and filtered differently, no need to have a tag for it */
     ];
 
     public function removeBadWords(array $tags): array

@@ -7,6 +7,7 @@ use App\Modules\CardFavorite\CardFavoriteRepository;
 use App\Modules\CardTag\CardTagRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\CardView\CardViewRepository;
+use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToCardType;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\BelongsToWorkspace;
@@ -87,6 +88,7 @@ class Card extends Model
     use Searchable;
     use CustomSearch;
     use HasFactory;
+    use HandlesProperties;
 
     /**
      * The attributes that are mass assignable.
@@ -129,24 +131,27 @@ class Card extends Model
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
         return [
-            'user_id'                             => $this->user_id,
-            'type'                                => $this->cardType->name,
-            'token'                               => $this->token,
-            'thumbnail'                           => $this->properties ? $this->properties->get('thumbnail') : null,
-            'thumbnail_width'                     => $this->properties ? $this->properties->get('thumbnail_width') : null,
-            'thumbnail_height'                    => $this->properties ? $this->properties->get('thumbnail_height') : null,
-            'description'                         => $this->description,
-            'url'                                 => $this->url ?? '',
-            'workspace_id'                        => $this->workspace_id,
-            'tags'                                => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
-            'title'                               => $this->title,
-            'content'                             => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
-            'permissions'                         => $permissions,
-            'favorites_by_user_id'                => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
-            'views'                               => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
-            'actual_created_at'                   => $this->actual_created_at,
-            'created_at'                          => $this->created_at,
-            'card_duplicate_ids'                  => $cardDuplicateIds,
+            'user_id'                                        => $this->user_id,
+            'type'                                           => $this->cardType->name,
+            'token'                                          => $this->token,
+            'thumbnail'                                      => $this->properties ? $this->properties->get('image_thumbnail') : null,
+            'thumbnail_width'                                => $this->properties ? $this->properties->get('image_thumbnail_width') : null,
+            'thumbnail_height'                               => $this->properties ? $this->properties->get('image_thumbnail_height') : null,
+            'screenshot_thumbnail'                           => $this->properties ? $this->properties->get('screenshot_thumbnail') : null,
+            'screenshot_thumbnail_width'                     => $this->properties ? $this->properties->get('screenshot_thumbnail_width') : null,
+            'screenshot_thumbnail_height'                    => $this->properties ? $this->properties->get('screenshot_thumbnail_height') : null,
+            'description'                                    => $this->description,
+            'url'                                            => $this->url ?? '',
+            'workspace_id'                                   => $this->workspace_id,
+            'tags'                                           => app(CardTagRepository::class)->denormalizeTags($this)->toArray(),
+            'title'                                          => $this->title,
+            'content'                                        => $linkTypeId === $this->card_type_id ? Str::htmlToMarkdown($this->content, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) : $this->content,
+            'permissions'                                    => $permissions,
+            'favorites_by_user_id'                           => app(CardFavoriteRepository::class)->getUserIdsByCard($this)->toArray(),
+            'views'                                          => app(CardViewRepository::class)->denormalizeCardViews($this)->toArray(),
+            'actual_created_at'                              => $this->actual_created_at,
+            'created_at'                                     => $this->created_at,
+            'card_duplicate_ids'                             => $cardDuplicateIds,
         ];
     }
 }

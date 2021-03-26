@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SaveCardData implements ShouldQueue
 {
@@ -21,7 +22,7 @@ class SaveCardData implements ShouldQueue
     use SerializesModels;
 
     public string $integration;
-    public Card $card;
+    public int $cardId;
 
     public int $timeout = 90;
 
@@ -30,23 +31,27 @@ class SaveCardData implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Card $card, string $integration)
+    public function __construct(int $cardId, string $integration)
     {
-        $this->card = $card;
+        $this->cardId = $cardId;
         $this->integration = $integration;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function handle(): void
     {
         // Puppeteer can take a lot of memory
         ini_set('memory_limit', '1024M');
         try {
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-            $syncCardsIntegration->saveCardData($this->card);
+            $card = Card::find($this->cardId);
+            $syncCardsIntegration->saveCardData($card);
         } catch (Exception $error) {
             Log::error($error->getMessage());
             app(CardSyncRepository::class)->create([
-              'card_id' => $this->card->id,
+              'card_id' => $this->cardId,
               'status'  => 0,
             ]);
         }

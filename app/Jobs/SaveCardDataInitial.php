@@ -20,16 +20,16 @@ class SaveCardDataInitial implements ShouldQueue
     use SerializesModels;
 
     public string $integration;
-    public Card $card;
+    public int $cardId;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Card $card, string $integration)
+    public function __construct(int $cardId, string $integration)
     {
-        $this->card = $card;
+        $this->cardId = $cardId;
         $this->integration = $integration;
     }
 
@@ -37,8 +37,9 @@ class SaveCardDataInitial implements ShouldQueue
     {
         ini_set('memory_limit', '1024M');
         try {
+            $card = Card::find($this->cardId);
             $syncCardsIntegration = app(OauthIntegrationService::class)->makeSyncCards($this->integration);
-            $syncCardsIntegration->saveInitialCardData($this->card);
+            $syncCardsIntegration->saveInitialCardData($card);
 
             return true;
         } catch (Exception $error) {

@@ -60,14 +60,16 @@ class AuthController extends Controller
 
         $user = $this->userRepo->getMe($this->userRepo->findByEmail($request->get('email')));
 
+        $tenYears = 60 * 24 * 365 * 10;
+
         return response()
             ->json(['data' => compact('authToken', 'user')], 200)
-            ->withCookie(cookie()->forever('access_token', $token, null, null, true, true, false, 'none'));
+            ->withCookie(cookie('access_token', $token, $tenYears, null, null, true, true, false, 'none'));
     }
 
     public function logout(): JsonResponse
     {
-        return response()->json(['data' => 'success'])->withoutCookie('access_token');
+        return response()->json(['data' => 'success'])->withCookie(cookie('access_token', '', 0, null, null, true, true, false, 'none'));
     }
 
     /**

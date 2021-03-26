@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card;
 
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
@@ -108,7 +109,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['user_id', 'token', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
+            ->source(['user_id', 'token', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($filterLimit);
@@ -231,10 +232,15 @@ class CardRepository
             $fields['id'] = (int) $hit['_id'];
             $fields['tags'] = $hit['_source']['tags'];
             $fields['url'] = $hit['_source']['url'];
-            $fields['thumbnail'] = [
+            $fields['image'] = [
                 'path'   => $hit['_source']['thumbnail'],
                 'width'  => $hit['_source']['thumbnail_width'],
                 'height' => $hit['_source']['thumbnail_height'],
+            ];
+            $fields['screenshot'] = [
+                'path'   => $hit['_source']['screenshot_thumbnail'],
+                'width'  => $hit['_source']['screenshot_thumbnail_width'],
+                'height' => $hit['_source']['screenshot_thumbnail_height'],
             ];
             $fields['token'] = $hit['_source']['token'];
             $fields['description'] = $hit['_source']['description'];
@@ -272,7 +278,9 @@ class CardRepository
         $newFields = [];
         foreach ($fields as $field => $fieldValue) {
             if ('actual_created_at' === $field) {
-                $newFields['created_at'] = $card->actual_created_at->toIso8601String();
+                if ($card->actual_created_at) {
+                    $newFields['created_at'] = $card->actual_created_at->toIso8601String();
+                }
                 continue;
             }
 
@@ -478,7 +486,7 @@ class CardRepository
         $card->save();
     }
 
-    public function cardExists(string $url, int $userId, ?int $cardId = null): bool
+    public function getExistingCardId(string $url, int $userId, ?int $cardId = null): ?int
     {
         // Get common starting url - https and www
         if (! Str::contains($url, '://')) {
@@ -509,20 +517,12 @@ class CardRepository
             $query->where('id', '!=', $cardId);
         }
 
-        return $query->exists();
-    }
-
-    public function setProperties(Card $card, array $properties): Card
-    {
-        if (empty($card->properties)) {
-            $newProperties = collect($properties);
-            $card->properties = $newProperties;
-        }
-        foreach ($properties as $propertyKey => $property) {
-            $card->properties = $card->properties->put($propertyKey, $property);
+        $card = $query->first();
+        if ($card) {
+            return $card->id;
         }
 
-        return $card;
+        return null;
     }
 
     /**
@@ -531,18 +531,17 @@ class CardRepository
      * @throws CardUserIdMustExist
      * @throws Exception
      */
-    public function updateOrInsert(array $fields, ?Card $card = null): ?Card
+    public function upsert(array $fields, ?Card $card = null, ?bool $getContentFromScreenshot = false): ?Card
     {
         $newFields = collect($fields);
         if ($card) {
             // If the url already exists on a different card let's not let them make an update
-            if ($newFields->get('url') && $this->cardExists($newFields->get('url'), (int) $card->user_id, $card->id)) {
+            if ($newFields->get('url') && (bool) $this->getExistingCardId($newFields->get('url'), (int) $card->user_id, $card->id)) {
                 throw new CardExists('This user already has a card with this url. The update was unsuccessful.');
             }
             $card->update($fields);
-            if ($newFields->get('image') || $newFields->get('screenshot')) {
-                $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $newFields->get('screenshot'), $card);
-            }
+
+            SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
 
@@ -562,8 +561,10 @@ class CardRepository
             }
         }
 
-        if ($newFields->get('url') && $this->cardExists($newFields->get('url'), $newFields->get('user_id'))) {
-            throw new CardExists('This user already has a card with this url. The card was not created.');
+        $existingCardId = $this->getExistingCardId($newFields->get('url'), $newFields->get('user_id'));
+        // If a card with this url already exists, then just update the card instead
+        if ($existingCardId && $newFields->get('url')) {
+            return $this->upsert($fields, Card::find($existingCardId));
         }
 
         if (! $newFields->get('actual_created_at')) {
@@ -581,9 +582,8 @@ class CardRepository
         $newFields->put('token', bin2hex(random_bytes(24)));
 
         $card = Card::create($newFields->toArray());
-        if ($newFields->get('image') || $newFields->get('screenshot')) {
-            $this->thumbnailHelper->saveThumbnail($newFields->get('image'), $newFields->get('screenshot'), $card);
-        }
+
+        SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
 

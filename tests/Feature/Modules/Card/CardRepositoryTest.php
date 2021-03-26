@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card;
 
+use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\Permission;
@@ -20,6 +21,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CardRepositoryTest extends TestCase
@@ -48,19 +50,22 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '2',
                     '_score'  => 1.0,
                     '_source' => [
-                        'user_id'                         => 1,
-                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
-                        'title'                           => 'I dare say you never to lose.',
-                        'url'                             => 'http://www.mayer.com/',
-                        'thumbnail'                       => 'http://image.com',
-                        'thumbnail_width'                 => 251,
-                        'thumbnail_height'                => 251,
-                        'content'                         => 'My awesome content',
-                        'description'                     => 'My aweseom description',
-                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
-                        'favorites_by_user_id'            => [],
-                        'type'                            => 'link',
-                        'tags'                            => ['Product Management', 'Product'],
+                        'user_id'                                    => 1,
+                        'created_at'                                 => '2020-12-31T22:06:34.000000Z',
+                        'title'                                      => 'I dare say you never to lose.',
+                        'url'                                        => 'http://www.mayer.com/',
+                        'thumbnail'                                  => 'http://image.com',
+                        'thumbnail_width'                            => 251,
+                        'thumbnail_height'                           => 251,
+                        'screenshot_thumbnail'                       => 'http://image.com',
+                        'screenshot_thumbnail_width'                 => 251,
+                        'screenshot_thumbnail_height'                => 251,
+                        'content'                                    => 'My awesome content',
+                        'description'                                => 'My aweseom description',
+                        'token'                                      => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'favorites_by_user_id'                       => [],
+                        'type'                                       => 'link',
+                        'tags'                                       => ['Product Management', 'Product'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -80,19 +85,22 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '1',
                     '_score'  => 0.7,
                     '_source' => [
-                        'user_id'                         => 1,
-                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
-                        'title'                           => 'I dare say you never to lose.',
-                        'url'                             => 'http://www.mayer.com/',
-                        'thumbnail'                       => 'http://image.com',
-                        'thumbnail_width'                 => 251,
-                        'thumbnail_height'                => 251,
-                        'content'                         => 'My awesome content',
-                        'description'                     => 'My aweseom description',
-                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
-                        'favorites_by_user_id'            => [],
-                        'type'                            => 'link',
-                        'tags'                            => ['Sales', 'Management'],
+                        'user_id'                                    => 1,
+                        'created_at'                                 => '2020-12-31T22:06:34.000000Z',
+                        'title'                                      => 'I dare say you never to lose.',
+                        'url'                                        => 'http://www.mayer.com/',
+                        'thumbnail'                                  => 'http://image.com',
+                        'thumbnail_width'                            => 251,
+                        'thumbnail_height'                           => 251,
+                        'screenshot_thumbnail'                       => 'http://image.com',
+                        'screenshot_thumbnail_width'                 => 251,
+                        'screenshot_thumbnail_height'                => 251,
+                        'content'                                    => 'My awesome content',
+                        'description'                                => 'My aweseom description',
+                        'token'                                      => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'favorites_by_user_id'                       => [],
+                        'type'                                       => 'link',
+                        'tags'                                       => ['Sales', 'Management'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['10'],
@@ -112,19 +120,22 @@ class CardRepositoryTest extends TestCase
                     '_id'     => '29084129',
                     '_score'  => 0.5,
                     '_source' => [
-                        'user_id'                         => 1,
-                        'created_at'                      => '2020-12-31T22:06:34.000000Z',
-                        'title'                           => 'I dare say you never to lose.',
-                        'url'                             => 'http://www.mayer.com/',
-                        'thumbnail'                       => 'http://image.com',
-                        'thumbnail_width'                 => 251,
-                        'thumbnail_height'                => 251,
-                        'description'                     => 'My aweseom description',
-                        'token'                           => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
-                        'content'                         => 'My awesome content',
-                        'favorites_by_user_id'            => [],
-                        'type'                            => 'link',
-                        'tags'                            => ['Sales', 'Friends'],
+                        'user_id'                                    => 1,
+                        'created_at'                                 => '2020-12-31T22:06:34.000000Z',
+                        'title'                                      => 'I dare say you never to lose.',
+                        'url'                                        => 'http://www.mayer.com/',
+                        'thumbnail'                                  => 'http://image.com',
+                        'thumbnail_width'                            => 251,
+                        'thumbnail_height'                           => 251,
+                        'screenshot_thumbnail'                       => 'http://image.com',
+                        'screenshot_thumbnail_width'                 => 251,
+                        'screenshot_thumbnail_height'                => 251,
+                        'description'                                => 'My aweseom description',
+                        'token'                                      => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
+                        'content'                                    => 'My awesome content',
+                        'favorites_by_user_id'                       => [],
+                        'type'                                       => 'link',
+                        'tags'                                       => ['Sales', 'Friends'],
                     ],
                     'fields' => [
                         'card_duplicate_ids' => ['11'],
@@ -152,16 +163,6 @@ class CardRepositoryTest extends TestCase
         app(CardRepository::class)->createIntegration(Card::find(1), 123, 'google');
     }
 
-    public function testSetProperties(): void
-    {
-        $card = Card::find(1);
-        $value = 1;
-        $card = app(CardRepository::class)->setProperties($card, ['test' => $value]);
-        $card->save();
-
-        self::assertEquals($value, $card->properties->get('test'));
-    }
-
     /**
      * Test if search for cards returns card objects.
      */
@@ -178,7 +179,8 @@ class CardRepositoryTest extends TestCase
             'type',
             'title',
             'url',
-            'thumbnail',
+            'image',
+            'screenshot',
             'total_favorites',
             'is_favorited',
             'created_at',
@@ -446,7 +448,7 @@ class CardRepositoryTest extends TestCase
      * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      */
-    public function testNoActualCreatedUpdateOrInsert(): void
+    public function testNoActualCreatedupsert(): void
     {
         $knownDate = Carbon::create(2001, 5, 21, 12);
         Carbon::setTestNow($knownDate);
@@ -455,7 +457,7 @@ class CardRepositoryTest extends TestCase
             $mock->shouldReceive('saveThumbnail');
         });
         $title = 'mycooltitle';
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'image'        => 'cool_image',
             'title'        => $title,
             'url'          => 'https://coolurl',
@@ -474,52 +476,50 @@ class CardRepositoryTest extends TestCase
      * @throws Exception
      * @dataProvider urlProvider
      */
-    public function testCardExists(string $testUrl, bool $expectedExist): void
+    public function testGetExistingCardId(string $testUrl, ?int $expectedId): void
     {
         $url = 'https://www.mycooltest.com';
 
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'url'          => $url,
             'title'        => 'my cool test',
             'user_id'      => 1,
             'card_type_id' => 1,
         ]);
-        $exists = app(CardRepository::class)->cardExists($testUrl, 1);
-        self::assertEquals($exists, $expectedExist);
-        $exists = app(CardRepository::class)->cardExists($url, 2);
-        self::assertFalse($exists);
+        $existingCardId = app(CardRepository::class)->getExistingCardId($testUrl, 1);
+        self::assertEquals($expectedId, $existingCardId);
+        $existingCardId = app(CardRepository::class)->getExistingCardId($url, 2);
+        self::assertNull($existingCardId);
     }
 
     public function urlProvider(): array
     {
         return [
-            ['https://www.mycooltest.com', true],
-            ['https://mycooltest.com', true],
-            ['http://www.mycooltest.com', true],
-            ['http://mycooltest.com', true],
-            ['www.mycooltest.com', true],
-            ['mycooltest.com', true],
-            ['mycooltest', false],
+            ['https://www.mycooltest.com', 6],
+            ['https://mycooltest.com', 6],
+            ['http://www.mycooltest.com', 6],
+            ['http://mycooltest.com', 6],
+            ['www.mycooltest.com', 6],
+            ['mycooltest.com', 6],
+            ['mycooltest', null],
             // We're allowing duplicate urls with a hash because some JS routers use a hash instead of a normal url to route to different internal pages
-            ['mycooltest.com#mytag', false],
-            ['mycooltest.net', false],
+            ['mycooltest.com#mytag', null],
+            ['mycooltest.net', null],
         ];
     }
 
     /**
      * @throws Exception
      */
-    public function testUpdateOrInsert(): void
+    public function testUpsert(): void
     {
         $card = Card::find(1);
         $title = 'my cool title';
-        $this->mock(ThumbnailHelper::class, static function ($mock) {
-            $mock->shouldReceive('saveThumbnail');
-        });
+        Queue::fake();
         $firstCardUrl = 'https://firstCardUrl.com';
         $favoritedById = 1;
         $viewedById = 1;
-        app(CardRepository::class)->updateOrInsert([
+        app(CardRepository::class)->upsert([
             'url'          => $firstCardUrl,
             'title'        => $title,
             'image'        => 'cool_image',
@@ -548,11 +548,15 @@ class CardRepositoryTest extends TestCase
             'user_id' => $viewedById,
         ]);
 
-        app(CardRepository::class)->updateOrInsert([
+        Queue::assertPushed(SaveThumbnails::class, 1);
+
+        app(CardRepository::class)->upsert([
             'title'          => $title,
             'image'          => 'cool_image',
             'unfavorited_by' => $favoritedById,
         ], $card);
+
+        Queue::assertPushed(SaveThumbnails::class, 2);
 
         $this->assertDatabaseHas('cards', [
             'id'              => 1,
@@ -565,7 +569,7 @@ class CardRepositoryTest extends TestCase
         ]);
 
         $newCardTitle = 'my new card';
-        $newCard = app(CardRepository::class)->updateOrInsert([
+        $newCard = app(CardRepository::class)->upsert([
             'title'              => $newCardTitle,
             'user_id'            => 1,
             'card_type_id'       => 2,
@@ -579,10 +583,11 @@ class CardRepositoryTest extends TestCase
             'card_id' => 6,
             'user_id' => 1,
         ]);
+        Queue::assertPushed(SaveThumbnails::class, 3);
 
         // Try an existing card with a url that already exists
         try {
-            app(CardRepository::class)->updateOrInsert([
+            app(CardRepository::class)->upsert([
                 'user_id'            => 1,
                 'url'                => $firstCardUrl,
             ], $newCard);
@@ -591,23 +596,25 @@ class CardRepositoryTest extends TestCase
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
+        Queue::assertPushed(SaveThumbnails::class, 3);
 
         // Try a new card with a url that already exists - it should throw an error
         try {
-            app(CardRepository::class)->updateOrInsert([
+            $result = app(CardRepository::class)->upsert([
                 'user_id' => 1,
                 'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
                 'title'   => $newCardTitle,
             ], null);
-            self::assertFalse(true);
+            self::assertEquals((int) $newCard->id, (int) $result->id);
         } catch (CardExists $exception) {
             self::assertTrue(true);
         }
+        Queue::assertPushed(SaveThumbnails::class, 4);
 
         $this->assertDatabaseHas('cards', [
             'title'        => $newCardTitle,
-            'url'          => 'https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
-            'card_type_id' => 2,
+            'url'          => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
+            'card_type_id' => '2',
         ]);
         self::assertEquals($newCard->title, $newCardTitle);
 
@@ -616,7 +623,7 @@ class CardRepositoryTest extends TestCase
             'name' => 'test org',
         ]);
         try {
-            app(CardRepository::class)->updateOrInsert([
+            app(CardRepository::class)->upsert([
                 'user_id' => 1,
                 'url'     => 'foodnetwork.com/recipes/ina-garten/perfect-roast-turkey-recipe4-1943576',
                 'title'   => $newCardTitle,

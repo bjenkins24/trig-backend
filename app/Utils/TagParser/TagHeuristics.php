@@ -11,6 +11,7 @@ class TagHeuristics
     private const HEURISTICS = [
         [
             'title' => ['Amazon.com: Books'],
+            'url'   => ['audible.com'],
             'tag'   => 'Book',
         ],
         [

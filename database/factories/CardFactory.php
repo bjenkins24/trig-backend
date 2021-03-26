@@ -34,7 +34,7 @@ class CardFactory extends Factory
             'card_type_id'           => CardType::factory()->create()->id,
             'title'                  => $this->faker->realText(random_int(10, 50)),
             'description'            => $this->faker->realText(random_int(50, 150)),
-            'properties'             => ['thumbnail' => 'https://coolstuff.com/public/'.ThumbnailHelper::IMAGE_FOLDER.'/thumbnail/'.$token.'.jpg'],
+            'properties'             => ['image_thumbnail' => 'https://coolstuff.com/public/'.ThumbnailHelper::IMAGE_FOLDER.'/image_thumbnails/'.$token.'.jpg', 'screenshot_thumbnail' => 'https://coolstuff.com/public/'.ThumbnailHelper::IMAGE_FOLDER.'/screenshot_thumbnails/'.$token.'.jpg'],
             'url'                    => $this->faker->url,
             'content'                => $this->faker->realText(random_int(200, 400)),
             'actual_created_at'      => $this->faker->dateTime('2020-04-26 12:00:00'),

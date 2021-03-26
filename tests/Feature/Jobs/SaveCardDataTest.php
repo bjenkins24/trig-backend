@@ -3,7 +3,6 @@
 namespace Tests\Feature\Jobs;
 
 use App\Jobs\SaveCardData;
-use App\Models\Card;
 use App\Modules\Card\Integrations\SyncCards;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\TikaWebClientWrapper;
@@ -22,7 +21,7 @@ class SaveCardDataTest extends TestCase
             $mock->shouldReceive('saveCardData')->once();
         });
 
-        $syncCards = new SaveCardData(Card::find(1), 'link');
+        $syncCards = new SaveCardData(1, 'link');
         $syncCards->handle();
     }
 
@@ -37,7 +36,7 @@ class SaveCardDataTest extends TestCase
             $mock->shouldReceive('create')->with(['card_id' => 1, 'status' => 0]);
         });
 
-        $syncCards = new SaveCardData(Card::find(1), 'google');
+        $syncCards = new SaveCardData(1, 'google');
         $syncCards->handle();
     }
 }
