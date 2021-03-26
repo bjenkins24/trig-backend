@@ -7,7 +7,7 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
-php artisan elastic:migrate --force
+php artisan elastic:migrate 2021_03_03_053247_screenshot_fields --force
 
 if [ "$role" = "app" ]; then
 
