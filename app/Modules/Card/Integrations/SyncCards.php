@@ -166,7 +166,7 @@ class SyncCards
     public function saveInitialCardData(Card $card): void
     {
         $data = $this->contentIntegration->getCardInitialData($card);
-        if (! $data->isEmpty()) {
+        if (! $data->isEmpty() && $data->get('title')) {
             $this->saveData($card, $data);
         }
         SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');

@@ -82,6 +82,7 @@ class WebsiteExtractionHelper
         $page->setExtraHTTPHeaders($this->getHeaders());
         $response = $page->goto($url, [
             'timeout'   => $timeout,
+            'waitUntil' => 'networkidle0',
         ]);
         $content = $page->content();
         $page->setViewport([

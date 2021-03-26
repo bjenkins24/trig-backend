@@ -30,11 +30,25 @@ class LinkContent implements ContentInterface
         $this->cardSyncRepository = $cardSyncRepository;
     }
 
-    private function getContentFromWebsite(?Website $website): Collection
+    /**
+     * This should really be it's own class, but I'm lazy right now.
+     */
+    private function adjustBySite(Card $card, Website $website): Website
+    {
+        if (false !== strpos($card->url, 'twitter.com')) {
+            $website->setTitle($website->getTitle().': '.$website->getExcerpt());
+        }
+
+        return $website;
+    }
+
+    private function getContentFromWebsite(Card $card, ?Website $website): Collection
     {
         if (! $website || ! $website->getRawContent()) {
             return collect([]);
         }
+
+        $website = $this->adjustBySite($card, $website);
 
         return collect([
             'title'        => $website->getTitle(),
@@ -63,7 +77,7 @@ class LinkContent implements ContentInterface
             return collect([]);
         }
 
-        return $this->getContentFromWebsite($website);
+        return $this->getContentFromWebsite($card, $website);
     }
 
     public function getCardContentData(Card $card, ?string $id = null, ?string $mimeType = null, int $currentRetryAttempt = 0): Collection
@@ -101,6 +115,6 @@ class LinkContent implements ContentInterface
             return $this->getCardContentData($card, $id, $mimeType, $this->attempts);
         }
 
-        return $this->getContentFromWebsite($website);
+        return $this->getContentFromWebsite($card, $website);
     }
 }
