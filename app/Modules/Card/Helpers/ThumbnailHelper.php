@@ -168,7 +168,7 @@ class ThumbnailHelper
     {
         ini_set('memory_limit', '1024M');
         try {
-            if ($this->fields->get('image')) {
+            if ($fields->get('image')) {
                 $this->saveThumbnail($fields->get('image'), 'image', $card);
             }
             if ($fields->get('screenshot')) {
