@@ -6,11 +6,11 @@ use andreskrey\Readability\ParseException;
 use App\Jobs\GetTags;
 use App\Jobs\SaveCardData;
 use App\Jobs\SaveCardDataInitial;
-use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardType;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
+use App\Modules\Card\Helpers\ThumbnailHelper;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Utils\ExtractDataHelper;
 use App\Utils\WebsiteExtraction\WebsiteExtractionHelper;
@@ -1131,11 +1131,14 @@ if(is_iframe){iframe_count+=1}}});if(image_count&gt;0||iframe_count&gt;0||rocket
 
 <div><iframe style="position: fixed; inset: 0px; width: 100%; height: 100%; display: none; z-index: 999999; border: none;"></iframe></div></body></html>
 FakeContent;
+        $this->mock(ThumbnailHelper::class, static function ($mock) {
+            $mock->shouldReceive('saveThumbnails');
+        });
         $response = $this->client('POST', 'card', ['url' => $firstUrl, 'rawHtml' => $fakeContent]);
 
         $cardId = $response->json()['data']['id'];
         $card = Card::find($cardId);
-        Queue::assertPushed(SaveThumbnails::class, 1);
+
         Queue::assertPushed(GetTags::class, 1);
         $this->assertDatabaseHas('cards', [
             'content'     => $card->content,

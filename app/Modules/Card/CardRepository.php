@@ -2,7 +2,6 @@
 
 namespace App\Modules\Card;
 
-use App\Jobs\SaveThumbnails;
 use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
@@ -518,11 +517,8 @@ class CardRepository
         }
 
         $card = $query->first();
-        if ($card) {
-            return $card->id;
-        }
 
-        return null;
+        return $card->id ?? null;
     }
 
     /**
@@ -541,7 +537,7 @@ class CardRepository
             }
             $card->update($fields);
 
-            SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
+            $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
 
@@ -583,7 +579,7 @@ class CardRepository
 
         $card = Card::create($newFields->toArray());
 
-        SaveThumbnails::dispatch($newFields, $card, $getContentFromScreenshot);
+        $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
 

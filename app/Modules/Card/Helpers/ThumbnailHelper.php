@@ -2,6 +2,7 @@
 
 namespace App\Modules\Card\Helpers;
 
+use App\Jobs\GetContentFromScreenshot;
 use App\Models\Card;
 use App\Utils\FileHelper;
 use Exception;
@@ -60,24 +61,26 @@ class ThumbnailHelper
         $tmpName = bin2hex(random_bytes(16));
         $path = 'public/tmp/'.$tmpName.'.'.$image->get('extension');
         $fullTmpPath = 'storage/app/public/tmp/'.$tmpName.'.'.$image->get('extension');
-        try {
-            Storage::disk('local')->put($path, $image->get('image')->encode($image->get('extension'))->__toString());
-            $optimizerChain = (new OptimizerChain())
-                ->setTimeout(5)
-                ->addOptimizer(new Jpegoptim([
-                    '--strip-all',
-                    '--all-progressive',
-                ]))
-                ->addOptimizer(new Pngquant())
-                ->addOptimizer(new Svgo())
-                ->addOptimizer(new Gifsicle())
-                ->addOptimizer(new Cwebp());
-
-            $optimizerChain->optimize($fullTmpPath);
-            $image = $this->getImage($fullTmpPath);
-        } catch (Exception $exception) {
-            Log::error('Optimizing the image '.$uri.' failed: '.$exception);
-        }
+        // Optimization should happen in a queue but I have to save it first because SQS can't handle a big
+        // upload. And it's too much trouble, so I'm just not going to optimize the images coming in for now.
+//        try {
+//            Storage::disk('local')->put($path, $image->get('image')->encode($image->get('extension'))->__toString());
+//            $optimizerChain = (new OptimizerChain())
+//                ->setTimeout(5)
+//                ->addOptimizer(new Jpegoptim([
+//                    '--strip-all',
+//                    '--all-progressive',
+//                ]))
+//                ->addOptimizer(new Pngquant())
+//                ->addOptimizer(new Svgo())
+//                ->addOptimizer(new Gifsicle())
+//                ->addOptimizer(new Cwebp());
+//
+//            $optimizerChain->optimize($fullTmpPath);
+//            $image = $this->getImage($fullTmpPath);
+//        } catch (Exception $exception) {
+//            Log::error('Optimizing the image '.$uri.' failed: '.$exception);
+//        }
         $result = Storage::put('public'.$finalPath.'.'.$image->get('extension'), file_get_contents($fullTmpPath));
         Storage::disk('local')->delete($path);
 
@@ -159,5 +162,28 @@ class ThumbnailHelper
         }
 
         return true;
+    }
+
+    public function saveThumbnails(Collection $fields, Card $card, ?bool $getContentFromScreenshot = false): ?bool
+    {
+        ini_set('memory_limit', '1024M');
+        try {
+            if ($this->fields->get('image')) {
+                $this->saveThumbnail($fields->get('image'), 'image', $card);
+            }
+            if ($fields->get('screenshot')) {
+                $this->saveThumbnail($fields->get('screenshot'), 'screenshot', $card);
+            }
+
+            if ($getContentFromScreenshot) {
+                GetContentFromScreenshot::dispatch($card);
+            }
+
+            return true;
+        } catch (Exception $error) {
+            Log::error('Saving the thumbnail failed '.$error);
+
+            return false;
+        }
     }
 }
