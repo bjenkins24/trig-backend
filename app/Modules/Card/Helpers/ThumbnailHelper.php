@@ -58,9 +58,9 @@ class ThumbnailHelper
      */
     public function saveImage(string $finalPath, Collection $image): Collection
     {
-        $tmpName = bin2hex(random_bytes(16));
-        $path = 'public/tmp/'.$tmpName.'.'.$image->get('extension');
-        $fullTmpPath = 'storage/app/public/tmp/'.$tmpName.'.'.$image->get('extension');
+//        $tmpName = bin2hex(random_bytes(16));
+//        $path = 'public/tmp/'.$tmpName.'.'.$image->get('extension');
+//        $fullTmpPath = 'storage/app/public/tmp/'.$tmpName.'.'.$image->get('extension');
         // Optimization should happen in a queue but I have to save it first because SQS can't handle a big
         // upload. And it's too much trouble, so I'm just not going to optimize the images coming in for now.
 //        try {
@@ -81,8 +81,8 @@ class ThumbnailHelper
 //        } catch (Exception $exception) {
 //            Log::error('Optimizing the image '.$uri.' failed: '.$exception);
 //        }
-        $result = Storage::put('public'.$finalPath.'.'.$image->get('extension'), file_get_contents($fullTmpPath));
-        Storage::disk('local')->delete($path);
+        $result = Storage::put('public'.$finalPath.'.'.$image->get('extension'), $image->get('image')->encode($image->get('extension'))->__toString());
+//        Storage::disk('local')->delete($path);
 
         return collect([
             'successful' => $result,
