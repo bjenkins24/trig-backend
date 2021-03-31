@@ -18,7 +18,7 @@ class TikaWebClientWrapper
      */
     public function buildClient(): void
     {
-        if ($this->client) {
+        if (isset($this->client)) {
             return;
         }
         $this->client = TikaClient::make(Config::get('app.tika_url'));
