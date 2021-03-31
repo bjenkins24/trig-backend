@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 class GetContentFromScreenshot implements ShouldQueue
@@ -43,7 +44,7 @@ class GetContentFromScreenshot implements ShouldQueue
             if (! $screenshot) {
                 return false;
             }
-            $data = app(ExtractDataHelper::class)->getData(env('CDN_URL').$screenshot);
+            $data = app(ExtractDataHelper::class)->getData(Config::get('app.cdn_url').$screenshot);
 
             // This has to run BEFORE the card is saved with the new content so we can tell if the content has changed
             // enough to get new tags

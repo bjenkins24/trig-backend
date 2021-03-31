@@ -59,6 +59,11 @@ return [
     'client_url' => env('CLIENT_URL', 'https://app.trytrig.com'),
 
     /*
+     * CDN Url
+     */
+    'cdn_url' => env('CDN_URL', 'https://cdn.trytrig.com'),
+
+    /*
      * Apache Tika URL
      */
     'tika_url' => env('TIKA_URL', 'http://localhost:9998'),
