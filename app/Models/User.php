@@ -98,6 +98,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * These are properties that are whitelisted to return and save through the API.
+     *
+     * @var array|string[]
+     */
+    protected array $whitelistedProperties = [
+        'onboarding_closed',
+    ];
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @var array
@@ -107,4 +116,9 @@ class User extends Authenticatable
         'properties'                   => 'collection',
         'terms_of_service_accepted_at' => 'datetime',
     ];
+
+    public function getWhitelistedProperties(): array
+    {
+        return $this->whitelistedProperties;
+    }
 }

@@ -105,9 +105,13 @@ class UserControllerTest extends TestCase
             'last_name'    => Config::get('constants.seed.last_name'),
             'id'           => 1,
             'total_cards'  => 0,
+            'properties'   => ['onboarding_closed' => false],
         ]);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testUpdate(): void
     {
         $firstName = 'Brian';
@@ -150,6 +154,16 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(400);
         self::assertEquals('email_exists', $this->getResponseData($response, 'error')->get('error'));
+
+        $this->client('PATCH', 'me', [
+            'id'         => 1,
+            'properties' => ['onboarding_closed' => true, 'random_thing_dont_save' => 'sup'],
+        ]);
+
+        $this->assertDatabaseHas('users', [
+            'id'          => 1,
+            'properties'  => json_encode(['onboarding_closed' => true], JSON_THROW_ON_ERROR),
+        ]);
     }
 
     /**
@@ -417,5 +431,10 @@ class UserControllerTest extends TestCase
         $this->json('POST', 'google-sso', ['code' => 'ABCD123'])->assertStatus(200)->assertJsonFragment([
             'error' => 'auth_failed',
         ]);
+    }
+
+    public function testOnboardingClosed(): void
+    {
+        $this->json('POST', 'settings')->assertStatus(200);
     }
 }

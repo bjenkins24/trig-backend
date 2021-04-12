@@ -69,12 +69,21 @@ class UserRepository
 
     public function getMe(User $user): array
     {
+        $properties = $user->properties->filter(static function ($propertyValue, $property) use ($user) {
+            if (in_array($property, $user->getWhitelistedProperties(), true)) {
+                return true;
+            }
+
+            return false;
+        });
+
         return [
             'id'          => $user->id,
             'email'       => $user->email,
             'first_name'  => $user->first_name,
             'last_name'   => $user->last_name,
             'total_cards' => $this->getTotalCards($user),
+            'properties'  => $properties,
         ];
     }
 
@@ -83,6 +92,19 @@ class UserRepository
         // If all of these are true we can change the new password
         if (! empty($input['old_password']) && ! empty($input['new_password']) && Hash::check($input['old_password'], $user->password)) {
             $user->password = bcrypt($input['new_password']);
+        }
+
+        $properties = [];
+        if (isset($input['properties']) && is_array($input['properties'])) {
+            foreach ($input['properties'] as $propertyKey => $property) {
+                if (in_array($propertyKey, $user->getWhitelistedProperties(), true)) {
+                    $properties = array_merge($properties, [$propertyKey => $property]);
+                }
+            }
+        }
+
+        if (! empty($properties)) {
+            $user->setProperties($properties);
         }
 
         $possibleFields = [
