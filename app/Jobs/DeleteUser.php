@@ -39,7 +39,7 @@ class DeleteUser implements ShouldQueue
     {
         ini_set('max_execution_time', 120);
 
-        if (empty($this->user->properties) && empty($this->user->properties->tagged_for_deletion)) {
+        if (empty($this->user->properties->get('tagged_for_deletion'))) {
             Log::error("The delete job ran for a user that wasn't marked for deletion: {$this->user->id}");
 
             return false;

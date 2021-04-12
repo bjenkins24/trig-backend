@@ -69,13 +69,16 @@ class UserRepository
 
     public function getMe(User $user): array
     {
-        $properties = $user->properties->filter(static function ($propertyValue, $property) use ($user) {
-            if (in_array($property, $user->getWhitelistedProperties(), true)) {
-                return true;
-            }
+        $properties = collect([]);
+        if ($user->properties) {
+            $properties = $user->properties->filter(static function ($propertyValue, $property) use ($user) {
+                if (in_array($property, $user->getWhitelistedProperties(), true)) {
+                    return true;
+                }
 
-            return false;
-        });
+                return false;
+            });
+        }
 
         return [
             'id'          => $user->id,

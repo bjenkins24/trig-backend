@@ -25,7 +25,7 @@ class DeleteUserTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => 1]);
 
         $user = User::find(1);
-        $user->properties = ['tagged_for_deletion' => true];
+        $user->setProperties(['tagged_for_deletion' => true]);
         $user->save();
 
         $userJob = new DeleteUser(User::find(1));

@@ -432,9 +432,4 @@ class UserControllerTest extends TestCase
             'error' => 'auth_failed',
         ]);
     }
-
-    public function testOnboardingClosed(): void
-    {
-        $this->json('POST', 'settings')->assertStatus(200);
-    }
 }
