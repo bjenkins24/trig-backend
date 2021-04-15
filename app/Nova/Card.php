@@ -2,11 +2,13 @@
 
 namespace App\Nova;
 
+use App\Modules\CardTag\CardTagRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Code;
 use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\Heading;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Text;
@@ -60,18 +62,33 @@ class Card extends Resource
             Text::make('Title')->onlyOnDetail(),
             Textarea::make('Description')->alwaysShow(),
             Textarea::make('Content'),
+            Text::make('Tags', function () {
+                $tagList = '';
+                $tags = app(CardTagRepository::class)->getTags($this);
+                foreach ($tags as $tagKey => $tag) {
+                    if (0 === $tagKey) {
+                        $tagList .= $tag;
+                    } else {
+                        $tagList .= ', '.$tag;
+                    }
+                }
+
+                return $tagList;
+            }),
 
             // URL
             Text::make('Url')->displayUsing(static function ($url) {
                 return '<a href="'.$url.'" target="_blank" rel="noreferrer">'.Str::limit($url, 45).'</a>';
             })->asHtml()->onlyOnIndex(),
             Text::make('Url')->displayUsing(static function ($url) {
-                return '<a href="'.$url.'" target="_blank" rel="noreferrer">$url</a>';
+                return '<a href="'.$url.'" target="_blank" rel="noreferrer">'.$url.'</a>';
             })->asHtml()->onlyOnDetail(),
 
             Number::make('Favorites', 'total_favorites'),
             Number::make('Views', 'total_views'),
             Code::make('Properties')->json(),
+
+            Heading::make('Timestamps'),
             DateTime::make('Updated At')->hideFromIndex(),
             DateTime::make('Created At')->hideFromIndex(),
             DateTime::make('Actual Created At')->hideFromIndex(),
