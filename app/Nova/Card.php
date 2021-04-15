@@ -4,6 +4,7 @@ namespace App\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Code;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\ID;
@@ -33,7 +34,7 @@ class Card extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'title', 'description', 'content', 'url',
+        'id', 'title', 'description', 'content', 'url', 'user',
     ];
 
     public static function uriKey()
@@ -50,14 +51,24 @@ class Card extends Resource
     {
         return [
             ID::make('ID')->sortable(),
+            BelongsTo::make('User')->sortable(),
+
+            // Title
             Text::make('Title')->displayUsing(static function ($name) {
-                return Str::limit($name, 90);
-            })->sortable(),
+                return Str::limit($name, 30);
+            })->sortable()->onlyOnIndex(),
+            Text::make('Title')->onlyOnDetail(),
             Textarea::make('Description')->alwaysShow(),
             Textarea::make('Content'),
+
+            // URL
             Text::make('Url')->displayUsing(static function ($url) {
                 return '<a href="'.$url.'" target="_blank" rel="noreferrer">'.Str::limit($url, 45).'</a>';
-            })->asHtml(),
+            })->asHtml()->onlyOnIndex(),
+            Text::make('Url')->displayUsing(static function ($url) {
+                return '<a href="'.$url.'" target="_blank" rel="noreferrer">$url</a>';
+            })->asHtml()->onlyOnDetail(),
+
             Number::make('Favorites', 'total_favorites'),
             Number::make('Views', 'total_views'),
             Code::make('Properties')->json(),
