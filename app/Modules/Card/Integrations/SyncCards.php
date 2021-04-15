@@ -165,6 +165,10 @@ class SyncCards
     public function saveInitialCardData(Card $card): void
     {
         $data = $this->contentIntegration->getCardInitialData($card);
+        // The card could have been deleted BEFORE this finishes. In that case we don't want to save the card data
+        if (! Card::where(['id' => $card->id])->exists()) {
+            return;
+        }
         if (! $data->isEmpty() && $data->get('title')) {
             $this->saveData($card, $data);
         }
@@ -203,9 +207,9 @@ class SyncCards
     /**
      * @throws Throwable
      */
-    public function saveCardData(Card $card): bool
+    public function saveCardData(?Card $card): bool
     {
-        if (! $this->cardSyncRepository->shouldSync($card)) {
+        if (! $card || ! $this->cardSyncRepository->shouldSync($card)) {
             return false;
         }
         $this->oauthIntegrationService->isIntegrationValid(CardType::find($card->card_type_id)->name);
@@ -230,6 +234,11 @@ class SyncCards
         // We have to do this _before_ saving the card
         $shouldGetTags = $this->cardSyncRepository->shouldGetTags($card, $data->get('content'));
 
+        // We need to check if the card still exists because it could be deleted before the sync happens
+        // if that's the case we don't want to save it
+        if (! Card::where(['id' => $card->id])->exists()) {
+            return false;
+        }
         $result = $this->saveData($card, $data);
 
         if ($result) {
