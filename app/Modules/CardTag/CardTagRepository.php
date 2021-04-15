@@ -43,6 +43,9 @@ class CardTagRepository
                     continue;
                 }
                 $tag = $this->tagRepository->findSimilar($tagString, $workspaceId);
+                if ($tag && $tag->workspace_id !== $workspaceId) {
+                    continue;
+                }
                 if (! $tag) {
                     // Add a tag
                     $tag = Tag::create([
@@ -67,10 +70,10 @@ class CardTagRepository
 
     public function addHypernymsToOldCards(Collection $tags, int $workspaceId): void
     {
-        $tags->each(static function ($tag) use ($workspaceId) {
-            $tags = Tag::where(['hypernym' => $tag, 'workspace_id' => $workspaceId])->get();
+        $tags->each(function ($tag) use ($workspaceId) {
+            $tagsWithHypernyms = Tag::where(['hypernym' => $tag, 'workspace_id' => $workspaceId])->get();
             $tagIds = [];
-            foreach ($tags as $hyponymTag) {
+            foreach ($tagsWithHypernyms as $hyponymTag) {
                 $tagIds[] = $hyponymTag->id;
             }
             if (empty($tagIds)) {
@@ -82,20 +85,40 @@ class CardTagRepository
             if ($cardTags->isEmpty()) {
                 return;
             }
-            $newTag = Tag::where(['tag' => $tag])->first();
+
+            $newTag = Tag::where(['tag' => $tag, 'workspace_id' => $workspaceId])->first();
             if (! $newTag) {
                 $newTag = Tag::create([
                    'tag'           => $tag,
                    'workspace_id'  => $workspaceId,
                ]);
             }
-            $cardTags->each(static function ($cardTag) use ($newTag) {
-                CardTag::create([
-                    'card_id' => $cardTag->card_id,
+            $cardIds = collect([]);
+            $cardTags->each(static function ($cardTag) use (&$cardIds) {
+                $cardIds[] = $cardTag->card()->first()->id;
+            });
+            $cardIds->unique()->values()->each(function ($cardId) use ($tag, $newTag) {
+                $tags = $this->getTags(Card::find($cardId));
+                if ($tags->contains($tag)) {
+                    return false;
+                }
+
+                return CardTag::create([
+                    'card_id' => $cardId,
                     'tag_id'  => $newTag->id,
                 ]);
             });
         });
+    }
+
+    public function getTags(Card $card): Collection
+    {
+        $tags = collect([]);
+        $card->cardTags()->each(static function ($cardTag) use (&$tags) {
+            $tags->push($cardTag->tag()->first()->tag);
+        });
+
+        return $tags;
     }
 
     public function denormalizeTags(Card $card): Collection

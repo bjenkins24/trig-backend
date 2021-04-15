@@ -131,4 +131,63 @@ class CardTagRepositoryTest extends TestCase
             'tag_id'  => Tag::where('tag', 'Appliance')->first()->id,
         ]);
     }
+
+    public function testGetCardTags(): void
+    {
+        $card = Card::find(1);
+        $tag1 = Tag::create([
+            'tag'          => 'Appliance',
+            'hypernym'     => 'Kitchen',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        $tag2 = Tag::create([
+            'tag'          => 'Refrigerator',
+            'hypernym'     => 'Appliance',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        CardTag::create([
+            'card_id' => $card->id,
+            'tag_id'  => $tag1->id,
+        ]);
+        CardTag::create([
+            'card_id' => $card->id,
+            'tag_id'  => $tag2->id,
+        ]);
+        $tags = app(CardTagRepository::class)->getTags(Card::find(1));
+        self::assertEquals(collect(['Appliance', 'Refrigerator']), $tags);
+    }
+
+    /**
+     * If the hypernym we're trying to add to the card is _already_ on the card we don't want to add it again.
+     *
+     * @group n
+     */
+    public function testDontAddHypernymIfItExists(): void
+    {
+        $card = Card::find(1);
+        $tag1 = Tag::create([
+            'tag'          => 'Appliance',
+            'hypernym'     => 'Kitchen',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        $tag2 = Tag::create([
+            'tag'          => 'Refrigerator',
+            'hypernym'     => 'Appliance',
+            'workspace_id' => $card->workspace_id,
+        ]);
+        CardTag::create([
+            'card_id' => $card->id,
+            'tag_id'  => $tag1->id,
+        ]);
+        CardTag::create([
+            'card_id' => $card->id,
+            'tag_id'  => $tag2->id,
+        ]);
+
+        // We don't want Appliance to be added to the first card because it already IS a tag why add it again
+        app(CardTagRepository::class)->addHypernymsToOldCards(collect(['Appliance', 'Furniture']), $card->workspace_id);
+
+        $tags = $card->cardTags()->get();
+        self::assertEquals(2, $tags->count());
+    }
 }
