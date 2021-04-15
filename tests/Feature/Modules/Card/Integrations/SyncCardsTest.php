@@ -235,9 +235,8 @@ class SyncCardsTest extends TestCase
 
         $result = $syncCards->saveCardData($card);
         self::assertFalse($result);
-        $this->assertDatabaseHas('card_syncs', [
+        $this->assertDatabaseMissing('cards', [
             'card_id' => $card->id,
-            'status'  => 2,
         ]);
     }
 

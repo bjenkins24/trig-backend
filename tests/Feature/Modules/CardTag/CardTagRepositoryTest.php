@@ -159,8 +159,6 @@ class CardTagRepositoryTest extends TestCase
 
     /**
      * If the hypernym we're trying to add to the card is _already_ on the card we don't want to add it again.
-     *
-     * @group n
      */
     public function testDontAddHypernymIfItExists(): void
     {

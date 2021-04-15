@@ -60,15 +60,23 @@ class LinkContent implements ContentInterface
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getCardInitialData(Card $card): Collection
     {
         try {
             $website = $this->websiteExtractionHelper->simpleFetch($card->url)->parseContent();
         } catch (WebsiteNotFound $exception) {
-            $this->cardSyncRepository->create([
-                'card_id' => $card->id,
-                'status'  => 2,
-            ]);
+            // This was my original solution to deleting a card that 404'd. But there's no point because
+            // we're going to actually delete it below which would delete this row. In the future we'll likely
+            // need to alert the user that we deleted the card because it 404'd, but for now we're just going
+            // to delete it and see what happens because there's no way to set up notifications on that admin right now
+//            $this->cardSyncRepository->create([
+//                'card_id' => $card->id,
+//                'status'  => 2,
+//            ]);
+            $card->delete();
 
             return collect([]);
         } catch (Exception $exception) {
@@ -80,6 +88,9 @@ class LinkContent implements ContentInterface
         return $this->getContentFromWebsite($card, $website);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getCardContentData(Card $card, ?string $id = null, ?string $mimeType = null, int $currentRetryAttempt = 0): Collection
     {
         ini_set('max_execution_time', 120);
@@ -90,12 +101,7 @@ class LinkContent implements ContentInterface
         try {
             $website = $websiteExtraction->getWebsite($currentRetryAttempt);
         } catch (WebsiteNotFound $exception) {
-            // Todo: A 404 for a card that doesn't have content yet should just delete the card (but we have to alert the
-            // user not sure how we should do that yet)
-            $this->cardSyncRepository->create([
-                'card_id' => $card->id,
-                'status'  => 2,
-            ]);
+            $card->delete();
 
             return collect([]);
         } catch (Exception $exception) {
