@@ -53,7 +53,7 @@ class Card extends Resource
     {
         return [
             ID::make('ID')->sortable(),
-            BelongsTo::make('User')->sortable(),
+            BelongsTo::make('User')->onlyOnDetail()->sortable(),
 
             // Title
             Text::make('Title')->displayUsing(static function ($name) {
@@ -65,6 +65,19 @@ class Card extends Resource
             Text::make('Tags', function () {
                 $tagList = '';
                 $tags = app(CardTagRepository::class)->getTags($this);
+                foreach ($tags as $tagKey => $tag) {
+                    if (0 === $tagKey) {
+                        $tagList .= $tag;
+                    } else {
+                        $tagList .= ', '.$tag;
+                    }
+                }
+
+                return $tagList;
+            }),
+            Text::make('Hypernyms', function () {
+                $tagList = '';
+                $tags = app(CardTagRepository::class)->getHypernyms($this);
                 foreach ($tags as $tagKey => $tag) {
                     if (0 === $tagKey) {
                         $tagList .= $tag;

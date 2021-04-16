@@ -126,6 +126,16 @@ class CardTagRepository
         return $tags;
     }
 
+    public function getHypernyms($card): Collection
+    {
+        $hypernyms = collect([]);
+        $card->cardTags()->each(static function ($cardTag) use (&$hypernyms) {
+            $hypernyms->push($cardTag->tag()->first()->hypernym);
+        });
+
+        return $hypernyms;
+    }
+
     public function denormalizeTags(Card $card): Collection
     {
         $cardTags = $card->cardTags()->get();
