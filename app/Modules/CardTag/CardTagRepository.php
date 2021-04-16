@@ -111,7 +111,12 @@ class CardTagRepository
         });
     }
 
-    public function getTags(Card $card): Collection
+    /**
+     * Please don't type the param here. It's needed untyped because of Nova.
+     *
+     * @param $card
+     */
+    public function getTags($card): Collection
     {
         $tags = collect([]);
         $card->cardTags()->each(static function ($cardTag) use (&$tags) {
@@ -119,6 +124,16 @@ class CardTagRepository
         });
 
         return $tags;
+    }
+
+    public function getHypernyms($card): Collection
+    {
+        $hypernyms = collect([]);
+        $card->cardTags()->each(static function ($cardTag) use (&$hypernyms) {
+            $hypernyms->push($cardTag->tag()->first()->hypernym);
+        });
+
+        return $hypernyms;
     }
 
     public function denormalizeTags(Card $card): Collection
