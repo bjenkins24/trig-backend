@@ -71,8 +71,6 @@ class CardController extends Controller
     public function create(CreateCardRequest $request): JsonResponse
     {
         ini_set('memory_limit', '1024m');
-        ini_set('upload_max_filesize', '200m');
-        ini_set('post_max_size', '200m');
         $user = $request->user();
 
         $cardTypeKey = $request->get('card_type') ?? 'link';
