@@ -32,6 +32,7 @@ class Gpt3
                 'max_tokens'  => 1,
                 'temperature' => 0.0,
                 'top_p'       => 0,
+                'logprobs'    => 10,
                 'prompt'      => '<|endoftext|>['.$prompt.']\n--\nLabel:',
             ];
             $response = Http::retry(3, 1000)->withOptions([
@@ -52,6 +53,8 @@ class Gpt3
             return null;
         }
 
+        $toxicThreshold = -0.355;
+
         try {
             $response = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
@@ -66,7 +69,24 @@ class Gpt3
             return null;
         }
 
-        return (int) $response['choices']['0']['text'];
+        if ('2' !== $response['choices'][0]['text']) {
+            return (int) $response['choices']['0']['text'];
+        }
+
+        $logprobs = $response['choices']['0']['logprobs']['top_logprobs'][0];
+        if ($logprobs[2] < $toxicThreshold) {
+            $logProb0 = $logprobs[0] ?? null;
+            $logProb1 = $logprobs[1] ?? null;
+            if ($logProb0 && $logProb1) {
+                if ($logProb0 >= $logProb1) {
+                    return 0;
+                }
+
+                return 1;
+            }
+        }
+
+        return 2;
     }
 
     public function complete(string $prompt, array $options, int $engineId = 1): ?array

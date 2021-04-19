@@ -22,6 +22,9 @@ class LinkIntegration implements IntegrationInterface
         $this->websiteFactory = $websiteFactory;
     }
 
+    /**
+     * @throws ParseException
+     */
     public function checkAuthed(string $url, string $rawHtml): bool
     {
         $isAuthed = false;
