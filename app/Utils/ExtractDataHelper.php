@@ -81,6 +81,9 @@ class ExtractDataHelper
         // Remove File/View/Edit Bar
         $content = preg_replace('/File Edit.*?\n/', '', $content);
 
+        // Remove File/View/Edit Bar - might not get file edit
+        $content = preg_replace('/Insert Format.*?\n/', '', $content);
+
         // Remove WYSIWYG Bar (Bold Italic Underline)
         $content = preg_replace('/.*?B[TI]U.*?\n/', '', $content);
 
