@@ -23,7 +23,7 @@ class GetContentFromScreenshot implements ShouldQueue
     use SerializesModels;
 
     public Card $card;
-    public int $timeout = 120;
+    public int $timeout = 300;
 
     /**
      * Create a new job instance.
@@ -38,7 +38,8 @@ class GetContentFromScreenshot implements ShouldQueue
     public function handle(): bool
     {
         // Tika can take a lot of memory
-        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', 500);
+        ini_set('memory_limit', '2048M');
         try {
             $screenshot = $this->card->properties->get('screenshot');
             if (! $screenshot) {
