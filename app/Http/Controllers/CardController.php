@@ -70,7 +70,9 @@ class CardController extends Controller
      */
     public function create(CreateCardRequest $request): JsonResponse
     {
-        ini_set('memory_limit', '1024m');
+        ini_set('memory_limit', '2048m');
+        ini_set('max_execution_time', '120');
+        ini_set('max_input_time', '120');
         $user = $request->user();
 
         $cardTypeKey = $request->get('card_type') ?? 'link';
