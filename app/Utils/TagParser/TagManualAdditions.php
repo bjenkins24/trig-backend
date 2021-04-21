@@ -19,7 +19,7 @@ class TagManualAdditions
     private const HIGH_LEVEL_TAGS = [
         // Business related
         [['accountant', 'accounting', '~accountant'], 'Accounting'],
-        ['sale', 'Sales'],
+        [['sale', '~salesperson', '~salesman', '~sales rep'], 'Sales'],
         ['marketing', 'Marketing'],
         [['culture', '~cultures'], 'Culture'],
         [['~book', '~books'], 'Book'],

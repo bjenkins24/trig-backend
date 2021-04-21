@@ -42,7 +42,7 @@ class TagHeuristics
             'url' => [
                 'washingtonpost.com',
                 'cnn.com',
-                ['include' => ['nytimes.com'], 'exclude' => ['cooking.nytimes.com']],
+                ['include' => ['nytimes.com'], 'exclude' => ['cooking.nytimes.com', 'archive.nytimes.com']],
                 'huffpost.com',
                 'foxnews.com',
                 'usatoday.com',
