@@ -8,7 +8,7 @@ class TagStringRemoval
      * These characters are _not_ allowed in any tags and will be removed.
      */
     private const BANNED_STRINGS = [
-        '#', '~', '.com', '. com',
+        '#', '~', '.com', '. com', '.org', '. org',
         // Removing a single apostrophe is an interesting choice here. Let me justify myself
         // This makes some tags grammatically incorrect "Adventurer's League" becomes "Adventurers League"
         // Sometimes GPT3 doesn't know how to handle the apostrophe so we will get "Adventurers' League" as well
