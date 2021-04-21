@@ -42,7 +42,7 @@ class GetContentFromScreenshot implements ShouldQueue
         ini_set('memory_limit', '2048M');
         try {
             $screenshot = $this->card->properties->get('screenshot');
-            if (! $screenshot) {
+            if (! $screenshot || ! Card::where(['id' => $this->card->id])->exists()) {
                 return false;
             }
             $data = app(ExtractDataHelper::class)->getData(Config::get('app.cdn_url').$screenshot);
