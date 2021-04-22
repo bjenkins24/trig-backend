@@ -101,6 +101,7 @@ class LinkContent implements ContentInterface
         try {
             $website = $websiteExtraction->getWebsite($currentRetryAttempt);
         } catch (WebsiteNotFound $exception) {
+            Log::notice('The website was not found, so it will be deleted. Exception: '.$exception);
             $card->delete();
 
             return collect([]);

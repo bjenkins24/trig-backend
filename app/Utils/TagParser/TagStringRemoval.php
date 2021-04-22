@@ -9,6 +9,8 @@ class TagStringRemoval
      */
     private const BANNED_STRINGS = [
         '#', '~', '.com', '. com', '.org', '. org',
+        // Harvard business review gives us these tags if not logged in. Not helpful
+        'hbr',
         // Removing a single apostrophe is an interesting choice here. Let me justify myself
         // This makes some tags grammatically incorrect "Adventurer's League" becomes "Adventurers League"
         // Sometimes GPT3 doesn't know how to handle the apostrophe so we will get "Adventurers' League" as well
@@ -31,10 +33,11 @@ class TagStringRemoval
      * these tags exactly (all these words must be all lower case), we're just going to remove them outright.
      */
     private const BANNED_TAGS = [
-        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human', 'Inc.',
-        'cookies', 'Performance Cookies', 'Functional Cookies', 'Opt Out', 'Opt In', 'Targeting Cookies', /* cookie related tags may not not so horrible but it comes up for "we use cookies" websites so gotta remove it */
-        'Privacy', 'Terms', /* Also fine tags, but don't work in context */
-        'Twitter', /* Twitter will be a card type and filtered differently, no need to have a tag for it */
+        'cash', 'business', 'flexibility', 'time', 'PM', 'consistency', 'cheats', 'cheat', 'best practices', 'best practice', 'new', 'company', 'human', 'inc.',
+        'cookies', 'performance cookies', 'functional cookies', 'opt out', 'opt in', 'targeting cookies', /* cookie related tags may not not so horrible but it comes up for "we use cookies" websites so gotta remove it */
+        'privacy', 'terms', /* Also fine tags, but don't work in context */
+        'twitter', /* Twitter will be a card type and filtered differently, no need to have a tag for it */
+        'sixwise', /* I'm seeing this a lot and I have no idea what it means */
     ];
 
     public function removeBadWords(array $tags): array
