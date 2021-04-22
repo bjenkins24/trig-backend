@@ -66,7 +66,7 @@ class LinkContent implements ContentInterface
     public function getCardInitialData(Card $card): Collection
     {
         try {
-            $website = $this->websiteExtractionHelper->simpleFetch($card->url)->parseContent();
+            $website = $this->websiteExtractionHelper->simpleFetch($card->url)->parseContent($card->url);
         } catch (WebsiteNotFound $exception) {
             // This was my original solution to deleting a card that 404'd. But there's no point because
             // we're going to actually delete it below which would delete this row. In the future we'll likely

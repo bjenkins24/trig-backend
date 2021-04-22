@@ -57,7 +57,7 @@ class ExtractDataHelper
         return collect([]);
     }
 
-    private function makeExcerpt(string $excerpt, string $title)
+    public function makeExcerpt(string $excerpt, string $title)
     {
         return Str::truncateOnWord(trim(str_replace($title, '', Str::toSingleSpace(trim($excerpt)))), self::MAX_EXCERPT_SIZE);
     }

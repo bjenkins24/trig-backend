@@ -80,7 +80,7 @@ class CardController extends Controller
 
         $website = $this->websiteFactory->make(null);
         if ('link' === $cardTypeKey && $request->get('rawHtml')) {
-            $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent();
+            $website = $this->websiteFactory->make($request->get('rawHtml'))->parseContent($request->url);
         }
 
         try {

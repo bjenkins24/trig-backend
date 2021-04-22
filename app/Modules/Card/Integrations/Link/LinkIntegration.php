@@ -29,7 +29,7 @@ class LinkIntegration implements IntegrationInterface
     {
         $isAuthed = false;
         try {
-            $fetchedWebsite = $this->websiteExtractionHelper->simpleFetch($url)->parseContent();
+            $fetchedWebsite = $this->websiteExtractionHelper->simpleFetch($url)->parseContent($url);
         } catch (WebsiteNotFound | ParseException | Exception $exception) {
             // If you get a 404 that's pretty odd - the user is literally sending it FROM that url
             // So we're going to just say if curl 404's you ARE likely authed. Same thing can be said if
@@ -38,7 +38,7 @@ class LinkIntegration implements IntegrationInterface
         }
 
         if (! $isAuthed && isset($fetchedWebsite)) {
-            $rawHtmlWebsite = $this->websiteFactory->make($rawHtml)->parseContent();
+            $rawHtmlWebsite = $this->websiteFactory->make($rawHtml)->parseContent($url);
             $percentSimilarContent = 0;
             $percentSimilarTitle = 0;
             similar_text($rawHtmlWebsite->getContent(), $fetchedWebsite->getContent(), $percentSimilarContent);

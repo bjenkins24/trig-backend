@@ -101,9 +101,9 @@ class Website
     /**
      * @throws ParseException
      */
-    public function parseContent(): Website
+    public function parseContent(?string $url = null): Website
     {
-        $parsedContent = app(WebsiteExtractionHelper::class)->parseHtml($this->rawContent);
+        $parsedContent = app(WebsiteExtractionHelper::class)->parseHtml($this->rawContent, $url);
         $this->image = $parsedContent->get('image');
         $this->author = $parsedContent->get('author');
         $this->excerpt = $parsedContent->get('excerpt');

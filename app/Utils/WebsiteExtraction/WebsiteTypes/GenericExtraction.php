@@ -30,7 +30,7 @@ class GenericExtraction extends BaseExtraction implements WebsiteExtractionInter
         }
 
         try {
-            return $website->parseContent();
+            return $website->parseContent($this->url);
         } catch (ReadabilityParseException $e) {
             if (! $this->url) {
                 return $website;

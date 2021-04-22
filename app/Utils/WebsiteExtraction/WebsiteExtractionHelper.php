@@ -20,6 +20,8 @@ class WebsiteExtractionHelper
     private ExtractDataHelper $extractDataHelper;
     private WebsiteFactory $websiteFactory;
 
+    public const contentExcerptDomains = ['www.notion.so'];
+
     public function __construct(
         ExtractDataHelper $extractDataHelper,
         WebsiteFactory $websiteFactory
@@ -121,7 +123,7 @@ class WebsiteExtractionHelper
     /**
      * @throws ParseException
      */
-    public function parseHtml(?string $html): Collection
+    public function parseHtml(?string $html, ?string $url = null): Collection
     {
         if (! $html) {
             return collect([]);
@@ -134,11 +136,21 @@ class WebsiteExtractionHelper
             $parsedHtml = Str::purifyHtml($parsedHtml);
         }
 
+        $excerpt = $readability->getExcerpt();
+        $title = $readability->getTitle();
+        if ($url) {
+            foreach (self::contentExcerptDomains as $domain) {
+                if (false !== strpos($url, $domain)) {
+                    $excerpt = $this->extractDataHelper->makeExcerpt(strip_tags($parsedHtml), $title);
+                }
+            }
+        }
+
         return collect([
             'image'   => $readability->getImage(),
             'author'  => $readability->getAuthor(),
-            'excerpt' => $readability->getExcerpt(),
-            'title'   => $readability->getTitle(),
+            'excerpt' => $excerpt,
+            'title'   => $title,
             'html'    => $parsedHtml,
         ]);
     }
