@@ -64,6 +64,7 @@ class CardRepositoryTest extends TestCase
                         'token'                                      => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
                         'favorites_by_user_id'                       => [],
                         'type'                                       => 'link',
+                        'type_tag'                                   => 'link',
                         'tags'                                       => ['Product Management', 'Product'],
                     ],
                     'fields' => [
@@ -99,6 +100,7 @@ class CardRepositoryTest extends TestCase
                         'token'                                      => '21467d7db3b54125392bb8c0d56175b198676a9569f6572e',
                         'favorites_by_user_id'                       => [],
                         'type'                                       => 'link',
+                        'type_tag'                                   => 'link',
                         'tags'                                       => ['Sales', 'Management'],
                     ],
                     'fields' => [
@@ -134,6 +136,7 @@ class CardRepositoryTest extends TestCase
                         'content'                                    => 'My awesome content',
                         'favorites_by_user_id'                       => [],
                         'type'                                       => 'link',
+                        'type_tag'                                   => 'link',
                         'tags'                                       => ['Sales', 'Friends'],
                     ],
                     'fields' => [
@@ -176,6 +179,7 @@ class CardRepositoryTest extends TestCase
             'id',
             'token',
             'type',
+            'type_tag',
             'title',
             'url',
             'image',
