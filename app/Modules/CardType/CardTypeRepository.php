@@ -48,7 +48,6 @@ class CardTypeRepository
         ['display' => 'Bitbucket', 'type' => 'host', 'matches' => ['bitbucket']],
         // Needs Icon
         ['display' => 'Chartio', 'type' => 'host', 'matches' => ['chartio']],
-        // Needs Icon
         ['display' => 'Clubhouse', 'type' => 'host', 'matches' => ['clubhouse.io']],
         ['display' => 'Confluence', 'type' => 'host', 'matches' => ['confluence']],
         ['display' => 'Github', 'type' => 'host', 'matches' => ['github']],
