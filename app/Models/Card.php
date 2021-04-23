@@ -133,6 +133,7 @@ class Card extends Model
         return [
             'user_id'                                        => $this->user_id,
             'type'                                           => $this->cardType->name,
+            'type_tag'                                       => app(CardTypeRepository::class)->mapCardTypeToWords($this),
             'token'                                          => $this->token,
             'thumbnail'                                      => $this->properties ? $this->properties->get('image_thumbnail') : null,
             'thumbnail_width'                                => $this->properties ? $this->properties->get('image_thumbnail_width') : null,

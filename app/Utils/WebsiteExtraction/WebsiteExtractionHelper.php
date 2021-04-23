@@ -20,7 +20,9 @@ class WebsiteExtractionHelper
     private ExtractDataHelper $extractDataHelper;
     private WebsiteFactory $websiteFactory;
 
-    public const contentExcerptDomains = ['www.notion.so'];
+    // These domains will NOT use the meta decscription. They will use the content from the
+    // website itself as the description within Trig
+    public const contentExcerptDomains = ['www.notion.so', 'mail.google.com'];
 
     public function __construct(
         ExtractDataHelper $extractDataHelper,

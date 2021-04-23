@@ -25,6 +25,7 @@ class CardTest extends TestCase
              'actual_created_at'                           => $card->actual_created_at,
              'description'                                 => $card->description,
              'created_at'                                  => $card->created_at,
+             'type_tag'                                    => 'Document',
              'type'                                        => 'application/pdf',
              'favorites_by_user_id'                        => [],
              'views'                                       => [],
