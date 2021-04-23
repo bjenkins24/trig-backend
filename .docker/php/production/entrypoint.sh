@@ -7,7 +7,6 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
-php artisan elastic:migrate --force 2021_04_22_232335_add_type_tag
 
 if [ "$role" = "app" ]; then
 

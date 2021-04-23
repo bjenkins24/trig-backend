@@ -76,7 +76,7 @@ class LinkContent implements ContentInterface
 //                'card_id' => $card->id,
 //                'status'  => 2,
 //            ]);
-            $card->delete();
+            Log::notice('Failed initial attempt at extracting a link for '.$card->url.': '.$exception);
 
             return collect([]);
         } catch (Exception $exception) {
