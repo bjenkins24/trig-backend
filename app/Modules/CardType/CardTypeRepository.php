@@ -35,16 +35,15 @@ class CardTypeRepository
         ['display' => 'Google Sheet', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'spreadsheets']],
         ['display' => 'Google Slide', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'presentation']],
         ['display' => 'Google Form', 'type' => 'url', 'conditional' => 'AND', 'matches' => ['docs.google', 'forms']],
-        // Needs Icon
         ['display' => 'Amazon', 'type' => 'host', 'matches' => ['amazon']],
         ['display' => 'Amplitude', 'type' => 'host', 'matches' => ['amplitude']],
         ['display' => 'Airtable', 'type' => 'host', 'matches' => ['airtable']],
         ['display' => 'Audible', 'type' => 'host', 'matches' => ['audible']],
         // Needs Icon
         ['display' => 'Customer.io', 'type' => 'host', 'matches' => ['customer.io']],
+        ['display' => 'Facebook', 'type' => 'host', 'matches' => ['facebook']],
         ['display' => 'Figma', 'type' => 'host', 'matches' => ['figma']],
-        // Needs Icon
-        ['display' => 'Basecamp', 'type' => 'host', 'matches' => ['basecamp.com']],
+        ['display' => 'Basecamp', 'type' => 'host', 'matches' => ['basecamp']],
         ['display' => 'Bitbucket', 'type' => 'host', 'matches' => ['bitbucket']],
         // Needs Icon
         ['display' => 'Chartio', 'type' => 'host', 'matches' => ['chartio']],
@@ -55,6 +54,7 @@ class CardTypeRepository
         ['display' => 'Helpscout', 'type' => 'host', 'matches' => ['helpscout']],
         // Needs Icon
         ['display' => 'Hubspot', 'type' => 'host', 'matches' => ['hubspot']],
+        ['display' => 'Instagram', 'type' => 'host', 'matches' => ['instagram']],
         ['display' => 'Jira', 'type' => 'host', 'matches' => ['jira']],
         ['display' => 'LinkedIn', 'type' => 'host', 'matches' => ['linkedin']],
         // Needs Icon
@@ -66,6 +66,7 @@ class CardTypeRepository
         ['display' => 'SurveyMonkey', 'type' => 'host', 'matches' => ['surveymonkey']],
         ['display' => 'Reddit', 'type' => 'host', 'matches' => ['reddit']],
         ['display' => 'Trello', 'type' => 'host', 'matches' => ['trello']],
+        ['display' => 'Twitter', 'type' => 'host', 'matches' => ['twitter']],
         ['display' => 'Typeform', 'type' => 'host', 'matches' => ['typeform']],
         ['display' => 'YouTube', 'type' => 'host', 'conditional' => 'OR', 'matches' => ['youtube', 'youtu.be']],
         ['display' => 'Zendesk', 'type' => 'host', 'matches' => ['zendesk']],
