@@ -22,8 +22,12 @@ class CardTagRepository
     /**
      * @throws Throwable
      */
-    public function replaceTags(Card $card, array $tags, array $hypernyms): Card
+    public function replaceTags(Card $card, array $tags, array $hypernyms): ?Card
     {
+        // The card could have been deleted BEFORE this finishes. In that case we don't want to save the card data
+        if (! Card::where(['id' => $card->id])->exists()) {
+            return null;
+        }
         DB::transaction(function () use ($tags, $hypernyms, $card) {
             $cardTags = $card->cardTags();
 

@@ -201,6 +201,11 @@ class SyncCards
 
         $card->setProperties($data->toArray());
 
+        // The card could have been deleted BEFORE this finishes. In that case we don't want to save the card data
+        if (! Card::where(['id' => $card->id])->exists()) {
+            return false;
+        }
+
         return $card->save();
     }
 
