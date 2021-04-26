@@ -49,7 +49,7 @@ class CardTypeRepository
         ['display' => 'Chartio', 'type' => 'host', 'matches' => ['chartio']],
         ['display' => 'Clubhouse', 'type' => 'host', 'matches' => ['clubhouse.io']],
         ['display' => 'Confluence', 'type' => 'host', 'matches' => ['confluence']],
-        ['display' => 'Github', 'type' => 'host', 'matches' => ['github']],
+        ['display' => 'Github', 'type' => 'url', 'matches' => ['github.com']],
         // Needs Icon
         ['display' => 'Helpscout', 'type' => 'host', 'matches' => ['helpscout']],
         // Needs Icon

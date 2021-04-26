@@ -216,10 +216,13 @@ class CardRepository
 
         $users = User::whereIn('users.id', $userIds)->select('id', 'first_name', 'last_name', 'email')->get();
 
-        $results = $hits->map(static function ($hit) use ($users, $user, $constraints) {
+        $results = $hits->map(static function ($hit) use ($users, $user, $constraints, $userIds) {
             $cardUser = $users->first(static function ($user) use ($hit) {
                 return $hit['_source']['user_id'] === $user->id;
             });
+            if (! $cardUser) {
+                Log::notice('CardUser: '.$cardUser.', Users: '.$users.', User Ids: '.$userIds);
+            }
             $fields = [];
             $fields['user']['id'] = $cardUser->id;
             $fields['user']['email'] = $cardUser->email;
