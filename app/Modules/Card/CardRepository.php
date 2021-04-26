@@ -522,6 +522,17 @@ class CardRepository
         return $card->id ?? null;
     }
 
+    public function htmlDecodeFields(array $fields): array
+    {
+        foreach ($fields as $fieldKey => $field) {
+            if ($field) {
+                $fields[$fieldKey] = htmlspecialchars_decode($field);
+            }
+        }
+
+        return $fields;
+    }
+
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
@@ -530,6 +541,7 @@ class CardRepository
      */
     public function upsert(array $fields, ?Card $card = null, ?bool $getContentFromScreenshot = false): ?Card
     {
+        $fields = $this->htmlDecodeFields($fields);
         $newFields = collect($fields);
         if ($card) {
             // If the url already exists on a different card let's not let them make an update

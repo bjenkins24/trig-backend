@@ -53,13 +53,13 @@ class Card extends Resource
     {
         return [
             ID::make('ID')->sortable(),
-            BelongsTo::make('User')->onlyOnDetail()->sortable(),
+            BelongsTo::make('User')->hideFromIndex()->sortable(),
 
             // Title
             Text::make('Title')->displayUsing(static function ($name) {
                 return Str::limit($name, 30);
             })->sortable()->onlyOnIndex(),
-            Text::make('Title')->onlyOnDetail(),
+            Text::make('Title')->hideFromIndex(),
             Textarea::make('Description')->alwaysShow(),
             Textarea::make('Content'),
             Text::make('Tags', function () {
@@ -95,7 +95,7 @@ class Card extends Resource
             })->asHtml()->onlyOnIndex(),
             Text::make('Url')->displayUsing(static function ($url) {
                 return '<a href="'.$url.'" target="_blank" rel="noreferrer">'.$url.'</a>';
-            })->asHtml()->onlyOnDetail(),
+            })->asHtml()->hideFromIndex(),
 
             Number::make('Favorites', 'total_favorites'),
             Number::make('Views', 'total_views'),
