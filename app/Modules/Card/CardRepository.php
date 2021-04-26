@@ -221,7 +221,7 @@ class CardRepository
                 return $hit['_source']['user_id'] === $user->id;
             });
             if (! $cardUser) {
-                Log::notice('CardUser: '.$cardUser.', Users: '.$users.', User Ids: '.$userIds);
+                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', User Ids: '.json_encode($userIds));
             }
             $fields = [];
             $fields['user']['id'] = $cardUser->id;
