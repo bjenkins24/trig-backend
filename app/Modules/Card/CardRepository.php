@@ -205,7 +205,7 @@ class CardRepository
         $totalResults = $result['hits']['total']['value'];
 
         $userIds = $hits->reduce(static function ($carry, $hit) {
-            $userId = $hit['_source']['user_id'];
+            $userId = (int) $hit['_source']['user_id'];
             if (in_array($userId, $carry, true)) {
                 return $carry;
             }
@@ -216,12 +216,12 @@ class CardRepository
 
         $users = User::whereIn('users.id', $userIds)->select('id', 'first_name', 'last_name', 'email')->get();
 
-        $results = $hits->map(static function ($hit) use ($users, $user, $constraints, $userIds) {
+        $results = $hits->map(static function ($hit) use ($users, $user, $constraints) {
             $cardUser = $users->first(static function ($user) use ($hit) {
                 return $hit['_source']['user_id'] === $user->id;
             });
             if (! $cardUser) {
-                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', User Ids: '.json_encode($userIds));
+                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', Hit: '.json_encode($hit));
             }
             $fields = [];
             $fields['user']['id'] = $cardUser->id;
