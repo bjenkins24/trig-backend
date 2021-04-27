@@ -220,14 +220,20 @@ class CardRepository
             $cardUser = $users->first(static function ($user) use ($hit) {
                 return $hit['_source']['user_id'] === $user->id;
             });
-            if (! $cardUser) {
-                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', Hit: '.json_encode($hit));
-            }
             $fields = [];
-            $fields['user']['id'] = $cardUser->id;
-            $fields['user']['email'] = $cardUser->email;
-            $fields['user']['first_name'] = $cardUser->first_name;
-            $fields['user']['last_name'] = $cardUser->last_name;
+            if (! $cardUser) {
+                $fields['user']['id'] = null;
+                $fields['user']['email'] = null;
+                $fields['user']['first_name'] = null;
+                $fields['user']['last_name'] = null;
+                unset($hit['_source']['content']);
+                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', Hit: '.json_encode($hit));
+            } else {
+                $fields['user']['id'] = $cardUser->id;
+                $fields['user']['email'] = $cardUser->email;
+                $fields['user']['first_name'] = $cardUser->first_name;
+                $fields['user']['last_name'] = $cardUser->last_name;
+            }
 
             $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
             $fields['total_favorites'] = count($hit['_source']['favorites_by_user_id']);
