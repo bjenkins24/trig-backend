@@ -218,7 +218,7 @@ class CardRepository
 
         $results = $hits->map(static function ($hit) use ($users, $user, $constraints) {
             $cardUser = $users->first(static function ($user) use ($hit) {
-                return $hit['_source']['user_id'] === $user->id;
+                return (int) $hit['_source']['user_id'] === $user->id;
             });
             $fields = [];
             if (! $cardUser) {
@@ -227,7 +227,7 @@ class CardRepository
                 $fields['user']['first_name'] = null;
                 $fields['user']['last_name'] = null;
                 unset($hit['_source']['content']);
-                Log::notice('CardUser: '.json_encode($cardUser).', Users: '.json_encode($users).', Hit: '.json_encode($hit));
+                Log::error('The user for this card was not found for some reason: '.json_encode($hit, JSON_THROW_ON_ERROR));
             } else {
                 $fields['user']['id'] = $cardUser->id;
                 $fields['user']['email'] = $cardUser->email;
