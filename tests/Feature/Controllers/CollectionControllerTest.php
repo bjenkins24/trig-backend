@@ -88,6 +88,27 @@ class CollectionControllerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testDeleteCollection(): void
+    {
+        $data = [
+            'title'       => 'Google',
+            'description' => 'content',
+            'slug'        => 'my-cool-slug',
+        ];
+        $response = $this->client('POST', 'collection', $data);
+        $id = $this->getResponseData($response)->get('id');
+
+        $response = $this->client('DELETE', "collection/$id");
+        self::assertEquals(204, $response->getStatusCode());
+
+        $this->assertDatabaseMissing('collections', [
+            'id' => $id,
+        ]);
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testGetCollectionForbidden(): void
     {
         $response = $this->client('GET', 'collection/1');
@@ -101,6 +122,16 @@ class CollectionControllerTest extends TestCase
     public function testPatchCollectionForbidden(): void
     {
         $response = $this->client('PATCH', 'collection/1');
+        self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
+        self::assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testDeleteCollectionForbidden(): void
+    {
+        $response = $this->client('DELETE', 'collection/1');
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(403, $response->getStatusCode());
     }

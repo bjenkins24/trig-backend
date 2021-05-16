@@ -65,7 +65,7 @@ class CollectionController extends Controller
         if ((int) $collection->user_id !== $request->user()->id) {
             return response()->json([
                 'error'   => 'forbidden',
-                'message' => 'The collection could not be updated because you do not have permission to access it.',
+                'message' => 'The collection could not be updated because you do not have permission to update it.',
             ], 403);
         }
 
@@ -78,7 +78,19 @@ class CollectionController extends Controller
         return response()->json($this->collectionSerializer->serialize($collection));
     }
 
-    public function delete()
+    public function delete(Request $request, string $id)
     {
+        $collection = Collection::find($id);
+
+        if ((int) $collection->user_id !== $request->user()->id) {
+            return response()->json([
+                'error'   => 'forbidden',
+                'message' => 'The collection could not be deleted because you do not have permission to delete it.',
+            ], 403);
+        }
+
+        $collection->delete();
+
+        return response()->json([], 204);
     }
 }
