@@ -61,4 +61,47 @@ class CollectionControllerTest extends TestCase
         $newData['user_id'] = 1;
         $this->assertDatabaseHas('collections', $newData);
     }
+
+    /**
+     * @throws JsonException
+     */
+    public function testGetCollection(): void
+    {
+        $data = [
+            'title'       => 'Google',
+            'description' => 'content',
+            'slug'        => 'my-cool-slug',
+        ];
+        $response = $this->client('POST', 'collection', $data);
+        $id = $this->getResponseData($response)->get('id');
+
+        $response = $this->client('GET', "collection/$id");
+
+        // Check if the response returns an id
+        self::assertEquals($this->getResponseData($response)->get('id'), $id);
+        // Check if the response returns a token
+        self::assertNotEmpty($this->getResponseData($response)->get('token'));
+
+        $this->assertDatabaseHas('collections', $data);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testGetCollectionForbidden(): void
+    {
+        $response = $this->client('GET', 'collection/1');
+        self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
+        self::assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testPatchCollectionForbidden(): void
+    {
+        $response = $this->client('PATCH', 'collection/1');
+        self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
+        self::assertEquals(403, $response->getStatusCode());
+    }
 }

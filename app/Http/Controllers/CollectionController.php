@@ -9,6 +9,7 @@ use App\Modules\Collection\CollectionRepository;
 use App\Modules\Collection\CollectionSerializer;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CollectionController extends Controller
 {
@@ -40,8 +41,18 @@ class CollectionController extends Controller
         return response()->json($this->collectionSerializer->serialize($collection));
     }
 
-    public function get()
+    public function get(Request $request, string $id): JsonResponse
     {
+        $collection = Collection::find($id);
+
+        if ((int) $collection->user_id !== $request->user()->id) {
+            return response()->json([
+                'error'   => 'forbidden',
+                'message' => 'The collection you requested could not be retrieved because you do not have permission to access it.',
+            ], 403);
+        }
+
+        return response()->json($this->collectionSerializer->serialize($collection));
     }
 
     /**
@@ -50,6 +61,13 @@ class CollectionController extends Controller
     public function update(UpdateCollectionRequest $request, string $id): JsonResponse
     {
         $collection = Collection::find($id);
+
+        if ((int) $collection->user_id !== $request->user()->id) {
+            return response()->json([
+                'error'   => 'forbidden',
+                'message' => 'The collection could not be updated because you do not have permission to access it.',
+            ], 403);
+        }
 
         $collection = $this->collectionRepository->upsert([
             'title'       => $request->get('title'),

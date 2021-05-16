@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToUser;
 use App\Support\Traits\Relationships\Permissionables;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Collection extends Model
@@ -12,6 +13,7 @@ class Collection extends Model
     use BelongsToUser;
     use HandlesProperties;
     use Permissionables;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
