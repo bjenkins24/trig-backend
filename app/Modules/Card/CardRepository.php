@@ -8,6 +8,7 @@ use App\Models\CardFavorite;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\CardView;
+use App\Models\CollectionCard;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Modules\Card\Exceptions\CardExists;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class CardRepository
 {
@@ -534,7 +536,7 @@ class CardRepository
     public function htmlDecodeFields(array $fields): array
     {
         foreach ($fields as $fieldKey => $field) {
-            if ($field) {
+            if ($field && is_string($field)) {
                 $fields[$fieldKey] = htmlspecialchars_decode($field);
             }
         }
@@ -547,6 +549,7 @@ class CardRepository
      * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      * @throws Exception
+     * @throws Throwable
      */
     public function upsert(array $fields, ?Card $card = null, ?bool $getContentFromScreenshot = false): ?Card
     {
@@ -562,6 +565,7 @@ class CardRepository
             $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
+            $this->saveCollections($fields, $card);
 
             return $card;
         }
@@ -604,8 +608,35 @@ class CardRepository
         $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
+        $this->saveCollections($fields, $card);
 
         return $card;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function saveCollections(array $fields, Card $card): void
+    {
+        if (! isset($fields['collections'])) {
+            return;
+        }
+
+        DB::transaction(static function () use ($fields, $card) {
+            $cardCollections = CollectionCard::where(['card_id' => $card->id])->get();
+            if ($cardCollections) {
+                foreach ($cardCollections as $cardCollection) {
+                    $cardCollection->delete();
+                }
+            }
+
+            foreach ($fields['collections'] as $collectionId) {
+                CollectionCard::create([
+                    'card_id'       => $card->id,
+                    'collection_id' => $collectionId,
+                ]);
+            }
+        });
     }
 
     public function removeAllPermissions(Card $card): void

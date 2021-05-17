@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Traits\HandlesProperties;
 use App\Support\Traits\Relationships\BelongsToUser;
+use App\Support\Traits\Relationships\HasCollectionCards;
 use App\Support\Traits\Relationships\Permissionables;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ class Collection extends Model
 {
     use BelongsToUser;
     use HandlesProperties;
+    use HasCollectionCards;
     use Permissionables;
     use HasFactory;
 

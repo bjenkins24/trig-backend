@@ -17,6 +17,7 @@ use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\HasCardTags;
 use App\Support\Traits\Relationships\HasCardView;
+use App\Support\Traits\Relationships\HasCollectionCards;
 use App\Support\Traits\Relationships\LinkShareable;
 use App\Support\Traits\Relationships\Permissionables;
 use ElasticScoutDriverPlus\CustomSearch;
@@ -83,6 +84,7 @@ class Card extends Model
     use HasCardDuplicates;
     use HasCardSyncs;
     use HasCardTags;
+    use HasCollectionCards;
     use Permissionables;
     use LinkShareable;
     use Searchable;

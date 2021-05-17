@@ -28,7 +28,6 @@ class UpdateCardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id'     => 'required',
             'url'    => 'url',
         ];
     }
