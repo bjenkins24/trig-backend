@@ -613,6 +613,20 @@ class CardRepository
         return $card;
     }
 
+    public function getCollections(Card $card): array
+    {
+        $collectionCards = CollectionCard::where(['card_id' => $card->id])->get();
+        if (! $collectionCards) {
+            return [];
+        }
+        $result = [];
+        foreach ($collectionCards as $collectionCard) {
+            $result[] = $collectionCard->collection_id;
+        }
+
+        return $result;
+    }
+
     /**
      * @throws Throwable
      */
