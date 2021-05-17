@@ -2,6 +2,7 @@
 
 namespace App\Support\Traits\Relationships;
 
+use App\Models\Permission;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait Permissionables
@@ -11,6 +12,6 @@ trait Permissionables
      */
     public function permissions(): MorphMany
     {
-        return $this->morphMany('App\Models\Permission', 'permissionable');
+        return $this->morphMany(Permission::class, 'permissionable');
     }
 }

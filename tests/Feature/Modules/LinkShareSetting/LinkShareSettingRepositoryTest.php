@@ -29,29 +29,6 @@ class LinkShareSettingRepositoryTest extends TestCase
      *
      * @return void
      */
-    public function testCreateAnyoneWorkspace()
-    {
-        $shareType = $this->linkShareTypeRepo::ANYONE_ORGANIZATION;
-        $this->linkShareSettingRepo->createAnyoneWorkspaceIfNew($this->card, $this->capability);
-        $linkShareType = $this->linkShareTypeRepo->get($shareType);
-
-        $this->assertDatabaseHas('link_share_settings', [
-            'link_share_type_id' => $linkShareType->id,
-            'capability_id'      => $this->capabilityId,
-            'shareable_type'     => 'App\\Models\\Card',
-            'shareable_id'       => 1,
-        ]);
-
-        // Now that it exists let's make sure it's not created again
-        $result = $this->linkShareSettingRepo->createAnyoneWorkspaceIfNew($this->card, $this->capability);
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Test creating an anyone workspace link share setting.
-     *
-     * @return void
-     */
     public function testCreateAnyone()
     {
         $shareType = $this->linkShareTypeRepo::ANYONE;

@@ -6,7 +6,7 @@ use App\Models\LinkShareType;
 
 class LinkShareTypeRepository
 {
-    public const ANYONE = 'anyone';
+    public const ANYONE = 'anyoneWithLink';
     public const ANYONE_ORGANIZATION = 'anyoneInWorkspace';
     public const PUBLIC_SHARE = 'public';
 

@@ -4,13 +4,42 @@ namespace App\Modules\Collection;
 
 use App\Models\Collection;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
-use Exception;
+use App\Modules\LinkShareSetting\Exceptions\CapabilityNotSupported;
+use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
+use App\Modules\LinkShareSetting\LinkShareSettingRepository;
+use Illuminate\Support\Facades\DB;
 
 class CollectionRepository
 {
+    private LinkShareSettingRepository $linkShareSettingRepository;
+
+    public function __construct(LinkShareSettingRepository $linkShareSettingRepository)
+    {
+        $this->linkShareSettingRepository = $linkShareSettingRepository;
+    }
+
     /**
+     * @throws CapabilityNotSupported
+     * @throws LinkShareSettingTypeNotSupported
+     */
+    private function savePermissions(Collection $collection, ?array $permissions = []): void
+    {
+        DB::transaction(function () use ($collection, $permissions) {
+            $collection->linkShareSetting()->delete();
+            if (empty($permissions)) {
+                return;
+            }
+
+            foreach ($permissions as $permission => $capability) {
+                $this->linkShareSettingRepository->createIfNew($collection, $permission, $capability);
+            }
+        });
+    }
+
+    /**
+     * @throws CapabilityNotSupported
      * @throws CollectionUserIdMustExist
-     * @throws Exception
+     * @throws LinkShareSettingTypeNotSupported
      */
     public function upsert(array $fields, ?Collection $collection = null): Collection
     {
@@ -21,6 +50,7 @@ class CollectionRepository
 
         if ($collection) {
             $collection->update($newFields->toArray());
+            $this->savePermissions($collection, $fields['permissions'] ?? []);
 
             return $collection;
         }
@@ -32,6 +62,7 @@ class CollectionRepository
         $newFields->put('token', bin2hex(random_bytes(24)));
 
         $collection = Collection::create($newFields->toArray());
+        $this->savePermissions($collection, $fields['permissions'] ?? []);
 
         return $collection;
     }

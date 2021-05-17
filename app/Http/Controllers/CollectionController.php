@@ -8,6 +8,8 @@ use App\Models\Collection;
 use App\Modules\Collection\CollectionRepository;
 use App\Modules\Collection\CollectionSerializer;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
+use App\Modules\LinkShareSetting\Exceptions\CapabilityNotSupported;
+use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,12 +33,20 @@ class CollectionController extends Controller
     {
         $userId = $request->user()->id;
 
-        $collection = $this->collectionRepository->upsert([
-            'user_id'     => $userId,
-            'title'       => $request->get('title'),
-            'description' => $request->get('description'),
-            'slug'        => $request->get('slug'),
-        ]);
+        try {
+            $collection = $this->collectionRepository->upsert([
+                'user_id'     => $userId,
+                'title'       => $request->get('title'),
+                'description' => $request->get('description'),
+                'slug'        => $request->get('slug'),
+                'permissions' => $request->get('permissions'),
+            ]);
+        } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
+            return response()->json([
+                'error'   => 'bad_request',
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         return response()->json($this->collectionSerializer->serialize($collection));
     }
@@ -69,11 +79,19 @@ class CollectionController extends Controller
             ], 403);
         }
 
-        $collection = $this->collectionRepository->upsert([
-            'title'       => $request->get('title'),
-            'description' => $request->get('description'),
-            'slug'        => $request->get('slug'),
-        ], $collection);
+        try {
+            $collection = $this->collectionRepository->upsert([
+                'title'       => $request->get('title'),
+                'description' => $request->get('description'),
+                'slug'        => $request->get('slug'),
+                'permissions' => $request->get('permissions'),
+            ], $collection);
+        } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
+            return response()->json([
+                'error'   => 'bad_request',
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         return response()->json($this->collectionSerializer->serialize($collection));
     }

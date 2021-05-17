@@ -152,10 +152,6 @@ class SyncCardsTest extends TestCase
                         'type'       => 'anyone',
                         'capability' => 'writer',
                     ],
-                    [
-                        'type'       => 'anyone_workspace',
-                        'capability' => 'reader',
-                    ],
             ],
         ];
         [$syncCards, $data, $user, $workspace] = $this->getSetup(null, null, $initialData);
