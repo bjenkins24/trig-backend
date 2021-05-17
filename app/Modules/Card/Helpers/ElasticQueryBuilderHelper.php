@@ -367,6 +367,25 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
+    private function makeCollectionConditions(Collection $constraints): array
+    {
+        if (! $constraints->get('col')) {
+            return ['must' => []];
+        }
+
+        $collections = explode(',', $constraints->get('col'));
+
+        $base = [
+            'must' => [],
+        ];
+
+        foreach ($collections as $collection) {
+            $base['must'][] = ['match' => ['collections' => $collection]];
+        }
+
+        return $base;
+    }
+
     public function baseQuery(User $user, Collection $constraints): array
     {
         return [
@@ -375,6 +394,7 @@ class ElasticQueryBuilderHelper
                 'filter' => [
                     ['bool' => $this->makeDateConditions($constraints)],
                     ['bool' => $this->makeTagConditions($constraints)],
+                    ['bool' => $this->makeCollectionConditions($constraints)],
                     ['bool' => $this->makeTypeConditions($constraints)],
                     ['bool' => $this->makeFavoritesCondition($user, $constraints)],
                     ['bool' => $this->makeRecentlyViewedConditions($user, $constraints)],
