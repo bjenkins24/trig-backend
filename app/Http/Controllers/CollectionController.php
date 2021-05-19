@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Collection\CreateCollectionRequest;
 use App\Http\Requests\Collection\UpdateCollectionRequest;
-use App\Models\Collection;
 use App\Modules\Collection\CollectionRepository;
 use App\Modules\Collection\CollectionSerializer;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
@@ -32,13 +31,11 @@ class CollectionController extends Controller
     public function create(CreateCollectionRequest $request): JsonResponse
     {
         $userId = $request->user()->id;
-
         try {
             $collection = $this->collectionRepository->upsert([
                 'user_id'     => $userId,
                 'title'       => $request->get('title'),
                 'description' => $request->get('description'),
-                'slug'        => $request->get('slug'),
                 'permissions' => $request->get('permissions'),
             ]);
         } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
@@ -53,7 +50,13 @@ class CollectionController extends Controller
 
     public function get(Request $request, string $id): JsonResponse
     {
-        $collection = Collection::find($id);
+        $collection = $this->collectionRepository->findCollection($id);
+        if (! $collection) {
+            return response()->json([
+                'error'   => 'not_found',
+                'message' => 'The collection you requested does not exist.',
+            ], 404);
+        }
 
         if ((int) $collection->user_id !== $request->user()->id) {
             return response()->json([
@@ -70,7 +73,13 @@ class CollectionController extends Controller
      */
     public function update(UpdateCollectionRequest $request, string $id): JsonResponse
     {
-        $collection = Collection::find($id);
+        $collection = $this->collectionRepository->findCollection($id);
+        if (! $collection) {
+            return response()->json([
+                'error'   => 'not_found',
+                'message' => 'The collection you tried to update does not exist.',
+            ], 404);
+        }
 
         if ((int) $collection->user_id !== $request->user()->id) {
             return response()->json([
@@ -83,7 +92,6 @@ class CollectionController extends Controller
             $collection = $this->collectionRepository->upsert([
                 'title'       => $request->get('title'),
                 'description' => $request->get('description'),
-                'slug'        => $request->get('slug'),
                 'permissions' => $request->get('permissions'),
             ], $collection);
         } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
@@ -98,7 +106,13 @@ class CollectionController extends Controller
 
     public function delete(Request $request, string $id)
     {
-        $collection = Collection::find($id);
+        $collection = $this->collectionRepository->findCollection($id);
+        if (! $collection) {
+            return response()->json([
+                'error'   => 'not_found',
+                'message' => 'The collection you tried to delete does not exist.',
+            ], 404);
+        }
 
         if ((int) $collection->user_id !== $request->user()->id) {
             return response()->json([

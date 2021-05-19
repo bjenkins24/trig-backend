@@ -17,7 +17,7 @@ class PermissionSerializer
         $linkSharing = $type->linkShareSetting()->get();
         $results = [];
         foreach ($linkSharing as $linkShare) {
-            $results[$linkShare->linkShareType()->first()->name] = $linkShare->capability()->first()->name;
+            $results[] = ['type' => $linkShare->linkShareType()->first()->name, 'capability' => $linkShare->capability()->first()->name];
         }
 
         return $results;

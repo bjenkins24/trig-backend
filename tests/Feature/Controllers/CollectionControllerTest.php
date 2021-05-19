@@ -24,11 +24,12 @@ class CollectionControllerTest extends TestCase
         $data = [
             'title'       => 'Google',
             'description' => 'content',
-            'slug'        => 'my-cool-slug',
             'user_id'     => 1,
         ];
         $response = $this->client('POST', 'collection', array_merge($data, [
-            'permissions' => [$linkShareType => $linkShareCapability],
+            'permissions' => [
+                ['type' => $linkShareType, 'capability' => $linkShareCapability],
+            ],
         ]));
 
         $id = $this->getResponseData($response)->get('id');
@@ -50,15 +51,50 @@ class CollectionControllerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testUpdateWithToken(): void
+    {
+        $response = $this->client('POST', 'collection', ['title' => 'hello']);
+        $token = $this->getResponseData($response)->get('token');
+        $response = $this->client('GET', 'collection/'.$token);
+        self::assertEquals(200, $response->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testGetWithToken(): void
+    {
+        $response = $this->client('POST', 'collection', ['title' => 'hello']);
+        $token = $this->getResponseData($response)->get('token');
+        $response = $this->client('PATCH', 'collection/'.$token, ['title' => 'hello']);
+        self::assertEquals(200, $response->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testDeleteWithToken(): void
+    {
+        $response = $this->client('POST', 'collection', ['title' => 'hello']);
+        $token = $this->getResponseData($response)->get('token');
+        $response = $this->client('DELETE', 'collection/'.$token);
+        self::assertEquals(204, $response->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testUpdateCollection(): void
     {
         $data = [
             'title'       => 'Google',
             'description' => 'content',
-            'slug'        => 'my-cool-slug',
         ];
         $response = $this->client('POST', 'collection', array_merge($data,
-            ['permissions' => ['public' => 'writer']]
+            ['permissions' => [
+                ['type'       => 'public',
+                'capability'  => 'writer', ],
+            ]]
         ));
         $id = $this->getResponseData($response)->get('id');
 
@@ -72,11 +108,14 @@ class CollectionControllerTest extends TestCase
         $newData = [
             'title'       => 'sup',
             'description' => 'so brow',
-            'slug'        => 'new-slug',
             'user_id'     => 10,
         ];
         $response = $this->client('PATCH', "collection/$id", array_merge($newData,
-            ['permissions' => ['anyoneWithLink' => 'reader']]
+            [
+                'permissions' => [
+                    ['type' => 'anyoneWithLink', 'capability' => 'reader'],
+                ],
+            ]
         ));
 
         $this->assertDatabaseMissing('link_share_settings', [
@@ -103,6 +142,24 @@ class CollectionControllerTest extends TestCase
         $this->assertDatabaseHas('collections', $newData);
     }
 
+    public function testUpdateNotFound(): void
+    {
+        $response = $this->client('PATCH', 'collection/10');
+        self::assertEquals(404, $response->getStatusCode());
+    }
+
+    public function testGetNotFound(): void
+    {
+        $response = $this->client('GET', 'collection/10');
+        self::assertEquals(404, $response->getStatusCode());
+    }
+
+    public function testDeleteNotFound(): void
+    {
+        $response = $this->client('DELETE', 'collection/10');
+        self::assertEquals(404, $response->getStatusCode());
+    }
+
     /**
      * @throws JsonException
      */
@@ -111,8 +168,9 @@ class CollectionControllerTest extends TestCase
         $data = [
             'title'       => 'Google',
             'description' => 'content',
-            'slug'        => 'my-cool-slug',
-            'permissions' => ['public' => 'reader'],
+            'permissions' => [
+                ['type' => 'public', 'capability' => 'reader'],
+            ],
         ];
         $response = $this->client('POST', 'collection', $data);
         $id = $this->getResponseData($response)->get('id');
@@ -138,7 +196,6 @@ class CollectionControllerTest extends TestCase
         $data = [
             'title'       => 'Google',
             'description' => 'content',
-            'slug'        => 'my-cool-slug',
         ];
         $response = $this->client('POST', 'collection', $data);
         $id = $this->getResponseData($response)->get('id');

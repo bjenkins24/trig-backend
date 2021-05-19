@@ -31,7 +31,6 @@ class CollectionFactory extends Factory
             'user_id'     => User::factory()->create()->id,
             'token'       => $token,
             'title'       => $this->faker->realText(random_int(10, 50)),
-            'slug'        => $this->faker->realText(random_int(10, 50)),
             'description' => $this->faker->realText(random_int(50, 150)),
         ];
     }

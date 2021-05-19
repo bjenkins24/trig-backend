@@ -30,10 +30,26 @@ class CollectionRepository
                 return;
             }
 
-            foreach ($permissions as $permission => $capability) {
-                $this->linkShareSettingRepository->createIfNew($collection, $permission, $capability);
+            foreach ($permissions as $permission) {
+                $this->linkShareSettingRepository->createIfNew($collection, $permission['type'], $permission['capability']);
             }
         });
+    }
+
+    /**
+     * @param string $id - This is an id OR a token
+     */
+    public function findCollection(string $id): ?Collection
+    {
+        $collection = Collection::find($id);
+        if (! $collection) {
+            $collection = Collection::where(['token' => $id])->first();
+        }
+        if (! $collection) {
+            return null;
+        }
+
+        return $collection;
     }
 
     /**
