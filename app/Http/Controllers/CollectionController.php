@@ -9,6 +9,7 @@ use App\Modules\Collection\CollectionSerializer;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
 use App\Modules\LinkShareSetting\Exceptions\CapabilityNotSupported;
 use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,7 +46,7 @@ class CollectionController extends Controller
             ]);
         }
 
-        return response()->json($this->collectionSerializer->serialize($collection));
+        return response()->json(['data' => $this->collectionSerializer->serialize($collection)]);
     }
 
     public function get(Request $request, string $id): JsonResponse
@@ -65,7 +66,18 @@ class CollectionController extends Controller
             ], 403);
         }
 
-        return response()->json($this->collectionSerializer->serialize($collection));
+        return response()->json(['data' => $this->collectionSerializer->serialize($collection)]);
+    }
+
+    public function getAll(Request $request): JsonResponse
+    {
+        $collections = $this->collectionRepository->findByUser($request->user()->id);
+
+        $response = $collections->map(function ($collection) {
+            return $this->collectionSerializer->serialize($collection);
+        });
+
+        return response()->json(['data' => $response]);
     }
 
     /**
@@ -101,10 +113,13 @@ class CollectionController extends Controller
             ]);
         }
 
-        return response()->json($this->collectionSerializer->serialize($collection));
+        return response()->json(['data' => $this->collectionSerializer->serialize($collection)]);
     }
 
-    public function delete(Request $request, string $id)
+    /**
+     * @throws Exception
+     */
+    public function delete(Request $request, string $id): JsonResponse
     {
         $collection = $this->collectionRepository->findCollection($id);
         if (! $collection) {

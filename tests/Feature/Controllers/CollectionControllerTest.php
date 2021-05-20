@@ -183,9 +183,31 @@ class CollectionControllerTest extends TestCase
         self::assertNotEmpty($this->getResponseData($response)->get('token'));
 
         self::assertEquals(
-            app(CollectionSerializer::class)->serialize(Collection::find($id)),
+            ['data' => app(CollectionSerializer::class)->serialize(Collection::find($id))],
             json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR)
         );
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testGetCollections(): void
+    {
+        $data = [
+            'title'       => 'Google',
+            'description' => 'content',
+            'permissions' => [
+                ['type' => 'public', 'capability' => 'reader'],
+            ],
+        ];
+        $this->client('POST', 'collection', $data);
+        $secondTitle = 'sup';
+        $this->client('POST', 'collection', ['title' => $secondTitle]);
+
+        $response = $this->client('GET', 'collections');
+        $data = $this->getResponseData($response);
+        self::assertEquals($secondTitle, $data->get(1)['title']);
+        self::assertCount(2, $this->getResponseData($response)->toArray());
     }
 
     /**

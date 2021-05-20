@@ -7,6 +7,7 @@ use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
 use App\Modules\LinkShareSetting\Exceptions\CapabilityNotSupported;
 use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
 use App\Modules\LinkShareSetting\LinkShareSettingRepository;
+use Illuminate\Support\Collection as IlluminateCollection;
 use Illuminate\Support\Facades\DB;
 
 class CollectionRepository
@@ -50,6 +51,11 @@ class CollectionRepository
         }
 
         return $collection;
+    }
+
+    public function findByUser(string $id): IlluminateCollection
+    {
+        return Collection::where(['user_id' => $id])->get();
     }
 
     /**

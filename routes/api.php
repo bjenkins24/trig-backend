@@ -30,6 +30,7 @@ Route::middleware('auth:api')->patch('/me', 'UserController@update');
 Route::middleware('auth:api')->delete('/me', 'UserController@delete');
 Route::middleware('auth:api')->post('/collection', 'CollectionController@create');
 Route::middleware('auth:api')->get('/collection/{id}', 'CollectionController@get');
+Route::middleware('auth:api')->get('/collections', 'CollectionController@getAll');
 Route::middleware('auth:api')->patch('/collection/{id}', 'CollectionController@update');
 Route::middleware('auth:api')->delete('/collection/{id}', 'CollectionController@delete');
 Route::middleware(['auth:api', 'throttle:60,1'])->post('/card', 'CardController@create');
