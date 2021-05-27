@@ -55,6 +55,10 @@ return [
             'queue'  => env('SQS_QUEUE', 'your-queue-name'),
             'suffix' => env('SQS_SUFFIX'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'http'   => [
+                'timeout'         => 600,
+                'connect_timeout' => 60,
+            ],
         ],
 
         'redis' => [
