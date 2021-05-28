@@ -1229,7 +1229,7 @@ FakeContent;
         $this->mock(ExtractDataHelper::class);
         $response = $this->client('PATCH', 'card/12000');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
-        self::assertEquals(400, $response->getStatusCode());
+        self::assertEquals(404, $response->getStatusCode());
     }
 
     /**
@@ -1251,7 +1251,7 @@ FakeContent;
         $this->mock(ExtractDataHelper::class);
         $response = $this->client('DELETE', 'card/12000');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
-        self::assertEquals(400, $response->getStatusCode());
+        self::assertEquals(404, $response->getStatusCode());
     }
 
     /**

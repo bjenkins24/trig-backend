@@ -160,7 +160,7 @@ class CardController extends Controller
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you requested does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {
@@ -190,7 +190,7 @@ class CardController extends Controller
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you are trying to update does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {
@@ -254,7 +254,7 @@ class CardController extends Controller
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you are trying to delete does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {

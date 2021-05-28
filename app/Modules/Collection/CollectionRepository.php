@@ -3,6 +3,7 @@
 namespace App\Modules\Collection;
 
 use App\Models\Collection;
+use App\Models\CollectionCard;
 use App\Modules\Collection\Exceptions\CollectionUserIdMustExist;
 use App\Modules\LinkShareSetting\Exceptions\CapabilityNotSupported;
 use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
@@ -42,8 +43,9 @@ class CollectionRepository
      */
     public function findCollection(string $id): ?Collection
     {
-        $collection = Collection::find($id);
-        if (! $collection) {
+        if (is_numeric($id)) {
+            $collection = Collection::find($id);
+        } else {
             $collection = Collection::where(['token' => $id])->first();
         }
         if (! $collection) {
@@ -55,7 +57,12 @@ class CollectionRepository
 
     public function findByUser(string $id): IlluminateCollection
     {
-        return Collection::where(['user_id' => $id])->get();
+        return Collection::where(['user_id' => $id])->orderBy('id', 'desc')->get();
+    }
+
+    public function getTotalCards(Collection $collection): int
+    {
+        return CollectionCard::where(['collection_id' => $collection->id])->count();
     }
 
     /**

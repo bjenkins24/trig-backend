@@ -174,13 +174,16 @@ class CollectionControllerTest extends TestCase
         ];
         $response = $this->client('POST', 'collection', $data);
         $id = $this->getResponseData($response)->get('id');
+        $this->client('PATCH', 'card/1', ['collections' => [$id]]);
 
         $response = $this->client('GET', "collection/$id");
+        $data = $this->getResponseData($response);
 
         // Check if the response returns an id
-        self::assertEquals($this->getResponseData($response)->get('id'), $id);
+        self::assertEquals($data->get('id'), $id);
         // Check if the response returns a token
-        self::assertNotEmpty($this->getResponseData($response)->get('token'));
+        self::assertNotEmpty($data->get('token'));
+        self::assertEquals(1, $data->get('totalCards'));
 
         self::assertEquals(
             ['data' => app(CollectionSerializer::class)->serialize(Collection::find($id))],
@@ -206,7 +209,7 @@ class CollectionControllerTest extends TestCase
 
         $response = $this->client('GET', 'collections');
         $data = $this->getResponseData($response);
-        self::assertEquals($secondTitle, $data->get(1)['title']);
+        self::assertEquals($secondTitle, $data->get(0)['title']);
         self::assertCount(2, $this->getResponseData($response)->toArray());
     }
 
