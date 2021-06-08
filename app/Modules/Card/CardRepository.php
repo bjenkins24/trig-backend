@@ -98,7 +98,7 @@ class CardRepository
         });
     }
 
-    public function searchCardsRaw(User $user, Collection $constraints): array
+    public function searchCardsRaw(?User $user, Collection $constraints): array
     {
         $page = $constraints->get('p', 0);
         // FILTER LIMIT
@@ -194,7 +194,7 @@ class CardRepository
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
-    public function searchCards(User $user, ?Collection $constraints = null): Collection
+    public function searchCards(?User $user, ?Collection $constraints = null): Collection
     {
         if (! $constraints) {
             $constraints = collect([]);
@@ -237,7 +237,9 @@ class CardRepository
                 $fields['user']['last_name'] = $cardUser->last_name;
             }
 
-            $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            if ($user) {
+                $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            }
             $fields['total_favorites'] = count($hit['_source']['favorites_by_user_id']);
             $fields['id'] = (int) $hit['_id'];
             $fields['tags'] = $hit['_source']['tags'];

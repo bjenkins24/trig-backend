@@ -169,8 +169,14 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    public function makePermissionsConditions(User $user): array
+    public function makePermissionsConditions(?User $user): array
     {
+        if (! $user) {
+            return [
+                'bool' => ['should' => []],
+            ];
+        }
+
         return [
             'bool' => [
                 'should' => [
@@ -294,10 +300,10 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
-    private function makeFavoritesCondition(User $user, Collection $constraints): array
+    private function makeFavoritesCondition(?User $user, Collection $constraints): array
     {
         // Cohorts
-        if (! $constraints->get('c') || ! Str::contains('favorites', $constraints->get('c'))) {
+        if (! $user || ! $constraints->get('c') || ! Str::contains('favorites', $constraints->get('c'))) {
             return ['must' => []];
         }
 
@@ -312,10 +318,10 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    private function makeRecentlyViewedConditions(User $user, Collection $constraints): array
+    private function makeRecentlyViewedConditions(?User $user, Collection $constraints): array
     {
         // Cohorts
-        if (! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
+        if (! $user || ! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
             return ['must' => []];
         }
 
@@ -386,7 +392,7 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
-    public function baseQuery(User $user, Collection $constraints): array
+    public function baseQuery(?User $user, Collection $constraints): array
     {
         return [
             'bool' => [
