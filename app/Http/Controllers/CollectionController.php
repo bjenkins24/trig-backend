@@ -59,7 +59,7 @@ class CollectionController extends Controller
             ], 404);
         }
 
-        if (! $this->collectionRepository->isViewable($collection, $request->user->id ?? $request->user)) {
+        if (! $this->collectionRepository->isViewable($collection, $request->user('api'))) {
             return response()->json([
                 'error'   => 'forbidden',
                 'message' => 'The collection you requested could not be retrieved because you do not have permission to access it.',
