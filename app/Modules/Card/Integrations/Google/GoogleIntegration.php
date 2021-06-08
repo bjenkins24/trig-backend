@@ -120,6 +120,8 @@ class GoogleIntegration implements IntegrationInterface
                 $carry['users'][] = ['email' => $permission->emailAddress, 'capability' => $capability];
             }
 
+            // TODO: IF WE EVER USER THIS anyone_workspace is deprecated in favor of using permissions with a type
+            // see the readme.
             if ('domain' === $permission->type) {
                 // This is public in company - if the domain on the file doesn't exist within
                 // Trig then we shouldn't do anything with this permission type - it's giving

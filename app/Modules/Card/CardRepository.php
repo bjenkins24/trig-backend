@@ -8,6 +8,7 @@ use App\Models\CardFavorite;
 use App\Models\CardIntegration;
 use App\Models\CardType;
 use App\Models\CardView;
+use App\Models\CollectionCard;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Modules\Card\Exceptions\CardExists;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class CardRepository
 {
@@ -96,7 +98,7 @@ class CardRepository
         });
     }
 
-    public function searchCardsRaw(User $user, Collection $constraints): array
+    public function searchCardsRaw(?User $user, Collection $constraints): array
     {
         $page = $constraints->get('p', 0);
         // FILTER LIMIT
@@ -192,7 +194,7 @@ class CardRepository
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
-    public function searchCards(User $user, ?Collection $constraints = null): Collection
+    public function searchCards(?User $user, ?Collection $constraints = null): Collection
     {
         if (! $constraints) {
             $constraints = collect([]);
@@ -235,7 +237,9 @@ class CardRepository
                 $fields['user']['last_name'] = $cardUser->last_name;
             }
 
-            $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            if ($user) {
+                $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+            }
             $fields['total_favorites'] = count($hit['_source']['favorites_by_user_id']);
             $fields['id'] = (int) $hit['_id'];
             $fields['tags'] = $hit['_source']['tags'];
@@ -534,7 +538,7 @@ class CardRepository
     public function htmlDecodeFields(array $fields): array
     {
         foreach ($fields as $fieldKey => $field) {
-            if ($field) {
+            if ($field && is_string($field)) {
                 $fields[$fieldKey] = htmlspecialchars_decode($field);
             }
         }
@@ -547,6 +551,7 @@ class CardRepository
      * @throws CardWorkspaceIdMustExist
      * @throws CardUserIdMustExist
      * @throws Exception
+     * @throws Throwable
      */
     public function upsert(array $fields, ?Card $card = null, ?bool $getContentFromScreenshot = false): ?Card
     {
@@ -562,6 +567,7 @@ class CardRepository
             $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveView($fields, $card);
+            $this->saveCollections($fields, $card);
 
             return $card;
         }
@@ -604,8 +610,49 @@ class CardRepository
         $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveView($fields, $card);
+        $this->saveCollections($fields, $card);
 
         return $card;
+    }
+
+    public function getCollections(Card $card): array
+    {
+        $collectionCards = CollectionCard::where(['card_id' => $card->id])->get();
+        if (! $collectionCards) {
+            return [];
+        }
+        $result = [];
+        foreach ($collectionCards as $collectionCard) {
+            $result[] = $collectionCard->collection_id;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function saveCollections(array $fields, Card $card): void
+    {
+        if (! isset($fields['collections'])) {
+            return;
+        }
+
+        DB::transaction(static function () use ($fields, $card) {
+            $cardCollections = CollectionCard::where(['card_id' => $card->id])->get();
+            if ($cardCollections) {
+                foreach ($cardCollections as $cardCollection) {
+                    $cardCollection->delete();
+                }
+            }
+
+            foreach ($fields['collections'] as $collectionId) {
+                CollectionCard::create([
+                    'card_id'       => $card->id,
+                    'collection_id' => $collectionId,
+                ]);
+            }
+        });
     }
 
     public function removeAllPermissions(Card $card): void

@@ -169,8 +169,14 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    public function makePermissionsConditions(User $user): array
+    public function makePermissionsConditions(?User $user): array
     {
+        if (! $user) {
+            return [
+                'bool' => ['should' => []],
+            ];
+        }
+
         return [
             'bool' => [
                 'should' => [
@@ -294,10 +300,10 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
-    private function makeFavoritesCondition(User $user, Collection $constraints): array
+    private function makeFavoritesCondition(?User $user, Collection $constraints): array
     {
         // Cohorts
-        if (! $constraints->get('c') || ! Str::contains('favorites', $constraints->get('c'))) {
+        if (! $user || ! $constraints->get('c') || ! Str::contains('favorites', $constraints->get('c'))) {
             return ['must' => []];
         }
 
@@ -312,10 +318,10 @@ class ElasticQueryBuilderHelper
         ];
     }
 
-    private function makeRecentlyViewedConditions(User $user, Collection $constraints): array
+    private function makeRecentlyViewedConditions(?User $user, Collection $constraints): array
     {
         // Cohorts
-        if (! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
+        if (! $user || ! $constraints->get('c') || ! Str::contains('recently-viewed', $constraints->get('c'))) {
             return ['must' => []];
         }
 
@@ -367,7 +373,26 @@ class ElasticQueryBuilderHelper
         return $base;
     }
 
-    public function baseQuery(User $user, Collection $constraints): array
+    private function makeCollectionConditions(Collection $constraints): array
+    {
+        if (! $constraints->get('col')) {
+            return ['must' => []];
+        }
+
+        $collections = explode(',', $constraints->get('col'));
+
+        $base = [
+            'must' => [],
+        ];
+
+        foreach ($collections as $collection) {
+            $base['must'][] = ['match' => ['collections' => $collection]];
+        }
+
+        return $base;
+    }
+
+    public function baseQuery(?User $user, Collection $constraints): array
     {
         return [
             'bool' => [
@@ -375,6 +400,7 @@ class ElasticQueryBuilderHelper
                 'filter' => [
                     ['bool' => $this->makeDateConditions($constraints)],
                     ['bool' => $this->makeTagConditions($constraints)],
+                    ['bool' => $this->makeCollectionConditions($constraints)],
                     ['bool' => $this->makeTypeConditions($constraints)],
                     ['bool' => $this->makeFavoritesCondition($user, $constraints)],
                     ['bool' => $this->makeRecentlyViewedConditions($user, $constraints)],

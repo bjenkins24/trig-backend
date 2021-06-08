@@ -7,6 +7,7 @@ use App\Support\Traits\Relationships\BelongsToManyTeams;
 use App\Support\Traits\Relationships\BelongsToManyWorkspaces;
 use App\Support\Traits\Relationships\HasCardFavorites;
 use App\Support\Traits\Relationships\HasCards;
+use App\Support\Traits\Relationships\HasCollections;
 use App\Support\Traits\Relationships\HasOauthConnections;
 use App\Support\Traits\Relationships\PermissionTypeable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -65,6 +66,7 @@ class User extends Authenticatable
 {
     use BelongsToManyWorkspaces;
     use Notifiable;
+    use HasCollections;
     use HasApiTokens;
     use HasOauthConnections;
     use HasCards;

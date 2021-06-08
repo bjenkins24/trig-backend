@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Card;
+namespace App\Http\Requests\Collection;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 
-class UpdateCardRequest extends FormRequest
+class CreateCollectionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,20 +14,13 @@ class UpdateCardRequest extends FormRequest
         return true;
     }
 
-    public function prepareForValidation(): void
-    {
-        if ($this->has('url') && ! Str::contains($this->url, 'http')) {
-            $this->merge(['url' => "http://{$this->get('url')}"]);
-        }
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'url'    => 'url',
+            'title'     => 'string',
         ];
     }
 }

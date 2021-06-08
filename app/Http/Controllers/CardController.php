@@ -97,6 +97,7 @@ class CardController extends Controller
                 'image'             => $request->get('image') ?? $website->getImage(),
                 'screenshot'        => $request->get('screenshot'),
                 'favorited'         => $request->get('is_favorited'),
+                'collections'       => $request->get('collections'),
             ], null, $request->get('getContentFromScreenshot'));
         } catch (CardUserIdMustExist | CardWorkspaceIdMustExist $exception) {
             return response()->json([
@@ -159,7 +160,7 @@ class CardController extends Controller
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you requested does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {
@@ -179,17 +180,17 @@ class CardController extends Controller
      * @throws JsonException
      * @throws Exception
      */
-    public function update(UpdateCardRequest $request): JsonResponse
+    public function update(UpdateCardRequest $request, string $id): JsonResponse
     {
         $user = $request->user();
 
-        $card = Card::find($request->get('id'));
+        $card = Card::find($id);
 
         if (! $card) {
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you are trying to update does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {
@@ -253,7 +254,7 @@ class CardController extends Controller
             return response()->json([
                 'error'   => 'not_found',
                 'message' => 'The card you are trying to delete does not exist. Check the id and try again.',
-            ], 400);
+            ], 404);
         }
 
         if ((int) $card->user_id !== $user->id) {
@@ -270,7 +271,7 @@ class CardController extends Controller
 
     public function getAll(Request $request)
     {
-        $results = $this->cardRepository->searchCards($request->user(), collect($request->all()));
+        $results = $this->cardRepository->searchCards($request->user('api'), collect($request->all()));
 
         return response()->json([
             'data'    => $results->get('cards'),

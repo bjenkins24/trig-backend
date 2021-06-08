@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Card;
 use App\Models\CardIntegration;
+use App\Models\Collection;
 use App\Models\User;
 use Exception;
 use Illuminate\Database\Seeder;
@@ -40,9 +41,14 @@ class ScaffoldSeeder extends Seeder
                 'name' => 'Trig',
             ]);
         }
+
         Card::factory()->create([
             'user_id'    => $user->id,
             'content'    => Config::get('constants.seed.card.content'),
+        ]);
+
+        Collection::factory()->create([
+            'user_id'    => 2,
         ]);
 
         Card::factory()->count(3)->create([

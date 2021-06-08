@@ -108,11 +108,16 @@ nullable permissionable-Type and permissionable_id
 id typeable_types typeable_id
 
 card or deck can only morph one of these not multiple like permissions
+Link share settings are only for the "link_share_type" type of sharing. 
+If you need to share with an individual or group like (workspace/team/user/person)
+that will be under "Permissions"
 `link_share_settings`
 id shareable_id shareable_type link_share_type_id capability_id 
 
 `link_share_type`
-id name  **anyoneInWorkspace** **anyone** **public**
+id name  **anyoneWithLink** **public**
+anyoneWithLink means anyone with the link can access it
+public means anyone can access it and it will be indexed by search engines (discoverable)
 
 `people` - this will be unused but we need to save if in the future we allow for sharing with individuals
 id email

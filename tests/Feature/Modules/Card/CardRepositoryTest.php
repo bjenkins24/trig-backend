@@ -644,4 +644,10 @@ class CardRepositoryTest extends TestCase
         app(CardRepository::class)->removeAllPermissions(Card::find(1));
         $this->assertDatabaseMissing('permissions', $fields);
     }
+
+    public function testGetEmptyCollections(): void
+    {
+        $collections = app(CardRepository::class)->getCollections(Card::find(1));
+        self::assertEmpty($collections);
+    }
 }

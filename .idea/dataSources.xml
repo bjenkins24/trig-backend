@@ -10,5 +10,17 @@
         <property name="serverTimezone" value="PST" />
       </driver-properties>
     </data-source>
+    <data-source source="LOCAL" name="trig_test" uuid="27f28f32-2c37-49e9-b83d-f8b996567299">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/trig_test.db_test_11</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="trig_test [2]" uuid="abf4443d-c80d-4c20-a3f9-ce4c7fdf511b">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/trig_test.db_test_16</jdbc-url>
+    </data-source>
   </component>
 </project>

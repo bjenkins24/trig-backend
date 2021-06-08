@@ -3,8 +3,6 @@
 namespace App\Modules\Permission;
 
 use App\Models\Permission;
-use App\Models\Person;
-use App\Models\User;
 use App\Modules\Capability\CapabilityRepository;
 use App\Modules\Person\PersonRepository;
 use App\Modules\User\UserRepository;
@@ -14,7 +12,7 @@ class PermissionRepository
     /**
      * Create a permission.
      *
-     * @param [mixed] $permissionType Card or Deck
+     * @param [mixed] $permissionType Card or Collection
      */
     private function create($permissionType, string $capability): Permission
     {

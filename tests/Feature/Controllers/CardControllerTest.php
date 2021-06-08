@@ -27,6 +27,15 @@ class CardControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function createCollection(): void
+    {
+        $this->client('POST', 'collection', [
+            'title'       => '123',
+            'description' => '123',
+            'slug'        => '123',
+        ]);
+    }
+
     /**
      * @throws JsonException
      */
@@ -37,6 +46,7 @@ class CardControllerTest extends TestCase
         Carbon::setTestNow('2020-11-20 00:00:20');
         $this->mock(ExtractDataHelper::class);
         $now = Carbon::now();
+
         $data = [
             'url'                => 'https://google.com',
             'title'              => 'Google',
@@ -45,9 +55,13 @@ class CardControllerTest extends TestCase
             'createdAt'          => $now,
             'updatedAt'          => $now,
         ];
-        $response = $this->client('POST', 'card', $data);
+
+        $this->createCollection();
+
+        $response = $this->client('POST', 'card', array_merge($data, ['collections' => [1, 2]]));
         // Check if the response returns an id
-        self::assertNotEmpty($this->getResponseData($response)->get('id'));
+        $id = $this->getResponseData($response)->get('id');
+        self::assertNotEmpty($id);
 
         $data['actual_created_at'] = $now->toDateTimeString();
         $data['actual_updated_at'] = $now->toDateTimeString();
@@ -57,6 +71,14 @@ class CardControllerTest extends TestCase
         unset($data['createdAt'], $data['updatedAt']);
 
         $this->assertDatabaseHas('cards', $data);
+        $this->assertDatabaseHas('collection_cards', [
+            'collection_id' => 1,
+            'card_id'       => $id,
+        ]);
+        $this->assertDatabaseHas('collection_cards', [
+            'collection_id' => 2,
+            'card_id'       => $id,
+        ]);
         Queue::assertPushed(SaveCardDataInitial::class, 1);
     }
 
@@ -195,7 +217,6 @@ class CardControllerTest extends TestCase
         $now = Carbon::now();
 
         $newData = [
-            'id'                 => $newCard->get('id'),
             'url'                => 'https://newurl.com',
             'title'              => 'Cool new url',
             'description'        => 'cool new Description',
@@ -205,7 +226,7 @@ class CardControllerTest extends TestCase
             'isFavorited'        => true,
         ];
 
-        $this->client('PATCH', 'card', $newData);
+        $this->client('PATCH', 'card/'.$newCard->get('id'), $newData);
 
         Queue::assertPushed(SaveCardDataInitial::class, 1);
         // It shouldn't sync because it already did when we created it above
@@ -249,8 +270,12 @@ class CardControllerTest extends TestCase
             'favorited_by'        => $favoritedById,
         ];
 
-        $response = $this->client('PATCH', 'card', $newData);
+        $response = $this->client('PATCH', 'card/'.$newCard->get('id'), array_merge($newData, ['collections' => [1]]));
         self::assertEquals(204, $response->getStatusCode());
+        $this->assertDatabaseHas('collection_cards', [
+            'card_id'       => $newCard->get('id'),
+            'collection_id' => 1,
+        ]);
 
         $data = $newData;
         $data['actual_created_at'] = $now->toDateTimeString();
@@ -265,6 +290,12 @@ class CardControllerTest extends TestCase
         ]);
         Queue::assertPushed(SaveCardDataInitial::class, 1);
         Queue::assertPushed(SaveCardData::class, 0);
+
+        $this->client('PATCH', 'card/'.$newCard->get('id'), array_merge($newData, ['collections' => []]));
+        $this->assertDatabaseMissing('collection_cards', [
+            'card_id'       => $newCard->get('id'),
+            'collection_id' => 1,
+        ]);
     }
 
     /**
@@ -279,7 +310,7 @@ class CardControllerTest extends TestCase
         $this->client('POST', 'card', ['url' => $firstUrl]);
         $response = $this->client('POST', 'card', ['url' => 'http://different.com']);
         $cardId = $this->getResponseData($response)->get('id');
-        $response = $this->client('PATCH', 'card', ['id' => $cardId, 'url' => $firstUrl]);
+        $response = $this->client('PATCH', 'card/'.$cardId, ['url' => $firstUrl]);
 
         self::assertEquals('exists', $this->getResponseData($response, 'error')->get('error'));
     }
@@ -1176,12 +1207,12 @@ FakeContent;
         ];
 
         $response = $this->client('POST', 'card', $original);
+
         $update = [
-            'id'          => $this->getResponseData($response)->get('id'),
             'title'       => 'new title',
             'description' => null,
         ];
-        $this->client('PATCH', 'card', $update);
+        $this->client('PATCH', 'card/'.$this->getResponseData($response)->get('id'), $update);
         $this->assertDatabaseHas('cards', [
             'url'         => $original['url'],
             'title'       => $update['title'],
@@ -1196,9 +1227,9 @@ FakeContent;
     public function testUpdateCardNotFound(): void
     {
         $this->mock(ExtractDataHelper::class);
-        $response = $this->client('PATCH', 'card', ['id' => '12000']);
+        $response = $this->client('PATCH', 'card/12000');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
-        self::assertEquals(400, $response->getStatusCode());
+        self::assertEquals(404, $response->getStatusCode());
     }
 
     /**
@@ -1207,7 +1238,7 @@ FakeContent;
     public function testUpdateCardForbidden(): void
     {
         $this->mock(ExtractDataHelper::class);
-        $response = $this->client('PATCH', 'card', ['id' => '5']);
+        $response = $this->client('PATCH', 'card/5');
         self::assertEquals('forbidden', $this->getResponseData($response, 'error')->get('error'));
         self::assertEquals(403, $response->getStatusCode());
     }
@@ -1220,7 +1251,7 @@ FakeContent;
         $this->mock(ExtractDataHelper::class);
         $response = $this->client('DELETE', 'card/12000');
         self::assertEquals('not_found', $this->getResponseData($response, 'error')->get('error'));
-        self::assertEquals(400, $response->getStatusCode());
+        self::assertEquals(404, $response->getStatusCode());
     }
 
     /**

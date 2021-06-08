@@ -3,22 +3,30 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Card;
+use App\Modules\Card\CardRepository;
 use App\Modules\Card\Helpers\ThumbnailHelper;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
+use Throwable;
 
 class CardTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @throws Exception|Throwable
+     */
     public function testToSearchableArray(): void
     {
         $card = Card::find(1);
+        app(CardRepository::class)->upsert(['collections' => [1]], $card);
         $result = $card->toSearchableArray();
 
         self::assertEquals([
              'user_id'                                     => '1',
+             'collections'                                 => [1],
              'url'                                         => $card->url,
              'token'                                       => $card->token,
              'title'                                       => $card->title,
