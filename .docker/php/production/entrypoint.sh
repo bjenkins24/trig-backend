@@ -4,6 +4,7 @@ set -e # exit script if any command fails (non-zero value)
 role=${CONTAINER_ROLE:-app}
 
 php artisan config:cache
+php artisan route:clear
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
