@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b50748ea18468dd6443cb9dfd8c74d4a",
+    "content-hash": "fac42479fa09564bbd9bf652c7f468b9",
     "packages": [
         {
             "name": "andreskrey/readability.php",
@@ -4310,6 +4310,51 @@
             },
             "abandoned": "brick/math",
             "time": "2020-01-05T04:49:34+00:00"
+        },
+        {
+            "name": "morrislaptop/laravel-queue-clear",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/morrislaptop/laravel-queue-clear.git",
+                "reference": "58c8b64e0f6e9f190fa687b8e44b442a649cbc98"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/morrislaptop/laravel-queue-clear/zipball/58c8b64e0f6e9f190fa687b8e44b442a649cbc98",
+                "reference": "58c8b64e0f6e9f190fa687b8e44b442a649cbc98",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": ">=5.0.0",
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Morrislaptop\\LaravelQueueClear\\LaravelQueueClearServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Morrislaptop\\LaravelQueueClear\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Craig Morris",
+                    "email": "craig.michael.morris@gmail.com"
+                }
+            ],
+            "description": "Command for wiping your queues clear",
+            "support": {
+                "issues": "https://github.com/morrislaptop/laravel-queue-clear/issues",
+                "source": "https://github.com/morrislaptop/laravel-queue-clear/tree/v1.2.0"
+            },
+            "time": "2019-08-05T15:21:24+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -11104,51 +11149,6 @@
                 "source": "https://github.com/mockery/mockery/tree/master"
             },
             "time": "2020-08-11T18:10:13+00:00"
-        },
-        {
-            "name": "morrislaptop/laravel-queue-clear",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/morrislaptop/laravel-queue-clear.git",
-                "reference": "58c8b64e0f6e9f190fa687b8e44b442a649cbc98"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/morrislaptop/laravel-queue-clear/zipball/58c8b64e0f6e9f190fa687b8e44b442a649cbc98",
-                "reference": "58c8b64e0f6e9f190fa687b8e44b442a649cbc98",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": ">=5.0.0",
-                "php": ">=5.4.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Morrislaptop\\LaravelQueueClear\\LaravelQueueClearServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Morrislaptop\\LaravelQueueClear\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "authors": [
-                {
-                    "name": "Craig Morris",
-                    "email": "craig.michael.morris@gmail.com"
-                }
-            ],
-            "description": "Command for wiping your queues clear",
-            "support": {
-                "issues": "https://github.com/morrislaptop/laravel-queue-clear/issues",
-                "source": "https://github.com/morrislaptop/laravel-queue-clear/tree/v1.2.0"
-            },
-            "time": "2019-08-05T15:21:24+00:00"
         },
         {
             "name": "myclabs/deep-copy",
