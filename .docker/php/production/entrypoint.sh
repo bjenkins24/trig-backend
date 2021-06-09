@@ -3,6 +3,8 @@ set -e # exit script if any command fails (non-zero value)
 
 role=${CONTAINER_ROLE:-app}
 
+php artisan cache:clear
+php artisan config:clear
 php artisan config:cache
 php artisan route:clear
 php artisan route:cache
