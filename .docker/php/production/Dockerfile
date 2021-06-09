@@ -62,7 +62,7 @@ RUN npm ci --only=prod
 RUN npm run build-nova:prod
 
 #COPY composer.lock composer.json nova ./
-RUN composer install --no-ansi --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
+RUN composer install --no-ansi --no-dev --no-progress --no-interaction --no-plugins --no-scripts --no-autoloader
 
 RUN chown -R www-data:www-data \
     ./storage \
