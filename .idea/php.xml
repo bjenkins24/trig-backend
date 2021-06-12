@@ -197,6 +197,7 @@
       <path value="$PROJECT_DIR$/vendor/ezyang/htmlpurifier" />
       <path value="$PROJECT_DIR$/vendor/acme/color-picker" />
       <path value="$PROJECT_DIR$/vendor/nova/impersonation" />
+      <path value="$PROJECT_DIR$/vendor/segmentio/analytics-php" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.4" />

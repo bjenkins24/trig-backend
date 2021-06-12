@@ -80,6 +80,11 @@ return [
     'gpt3_api_key'     => env('GPT3_API_KEY', ''),
 
     /*
+     * Segment Write Key
+     */
+    'segment_write_key' => env('SEGMENT_WRITE_KEY', ''),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
