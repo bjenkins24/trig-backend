@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Code;
 use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\Heading;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Number;
@@ -28,7 +29,7 @@ class Card extends Resource
      *
      * @var string
      */
-    public static $title = 'id';
+    public static $title = 'title';
 
     /**
      * The columns that should be searched.
@@ -54,6 +55,7 @@ class Card extends Resource
         return [
             ID::make('ID')->sortable(),
             BelongsTo::make('User')->hideFromIndex()->sortable(),
+            HasMany::make('CardTags')->hideFromIndex()->sortable(),
 
             // Title
             Text::make('Title')->displayUsing(static function ($name) {
