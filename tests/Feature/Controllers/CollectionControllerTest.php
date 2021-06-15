@@ -19,6 +19,8 @@ class CollectionControllerTest extends TestCase
      */
     public function testCreateCollection(): void
     {
+        $hiddenTag1 = 'Product';
+        $hiddenTag2 = 'Product/People';
         $linkShareType = 'public';
         $linkShareCapability = 'reader';
         $data = [
@@ -30,6 +32,7 @@ class CollectionControllerTest extends TestCase
             'permissions' => [
                 ['type' => $linkShareType, 'capability' => $linkShareCapability],
             ],
+            'hidden_tags' => [$hiddenTag1, $hiddenTag2],
         ]));
 
         $id = $this->getResponseData($response)->get('id');
@@ -46,6 +49,15 @@ class CollectionControllerTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('collections', $data);
+
+        $this->assertDatabaseHas('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag1,
+        ]);
+        $this->assertDatabaseHas('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag2,
+        ]);
     }
 
     /**
@@ -86,17 +98,34 @@ class CollectionControllerTest extends TestCase
      */
     public function testUpdateCollection(): void
     {
+        $hiddenTag1 = 'My man';
+        $hiddenTag2 = 'My girl';
         $data = [
             'title'       => 'Google',
             'description' => 'content',
         ];
         $response = $this->client('POST', 'collection', array_merge($data,
-            ['permissions' => [
-                ['type'       => 'public',
-                'capability'  => 'writer', ],
-            ]]
+            [
+                'permissions' => [
+                    [
+                        'type'        => 'public',
+                        'capability'  => 'writer',
+                    ],
+                ],
+                'hidden_tags' => [$hiddenTag1, $hiddenTag2],
+            ]
         ));
+
         $id = $this->getResponseData($response)->get('id');
+
+        $this->assertDatabaseHas('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag1,
+        ]);
+        $this->assertDatabaseHas('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag2,
+        ]);
 
         $this->assertDatabaseHas('link_share_settings', [
             'shareable_type'       => Collection::class,
@@ -117,6 +146,15 @@ class CollectionControllerTest extends TestCase
                 ],
             ]
         ));
+
+        $this->assertDatabaseMissing('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag1,
+        ]);
+        $this->assertDatabaseMissing('collection_hidden_tags', [
+            'collection_id' => $id,
+            'tag'           => $hiddenTag2,
+        ]);
 
         $this->assertDatabaseMissing('link_share_settings', [
             'shareable_type'       => Collection::class,
@@ -162,14 +200,20 @@ class CollectionControllerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @group n
      */
     public function testGetCollection(): void
     {
+        $hiddenTag1 = 'hello';
+        $hiddenTag2 = 'goodbye';
         $data = [
             'title'       => 'Google',
             'description' => 'content',
             'permissions' => [
                 ['type' => 'public', 'capability' => 'reader'],
+            ],
+            'hidden_tags' => [
+                $hiddenTag1, $hiddenTag2,
             ],
         ];
         $response = $this->client('POST', 'collection', $data);
@@ -183,7 +227,8 @@ class CollectionControllerTest extends TestCase
         self::assertEquals($data->get('id'), $id);
         // Check if the response returns a token
         self::assertNotEmpty($data->get('token'));
-        self::assertEquals(1, $data->get('totalCards'));
+        self::assertEquals(1, $data->get('total_cards'));
+        self::assertEquals([$hiddenTag1, $hiddenTag2], $data->get('hidden_tags'));
 
         self::assertEquals(
             ['data' => app(CollectionSerializer::class)->serialize(Collection::find($id))],

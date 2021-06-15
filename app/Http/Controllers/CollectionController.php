@@ -12,6 +12,7 @@ use App\Modules\LinkShareSetting\Exceptions\LinkShareSettingTypeNotSupported;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class CollectionController extends Controller
 {
@@ -28,16 +29,18 @@ class CollectionController extends Controller
 
     /**
      * @throws CollectionUserIdMustExist
+     * @throws Throwable
      */
     public function create(CreateCollectionRequest $request): JsonResponse
     {
         $userId = $request->user()->id;
         try {
             $collection = $this->collectionRepository->upsert([
-                'user_id'     => $userId,
-                'title'       => $request->get('title'),
-                'description' => $request->get('description'),
-                'permissions' => $request->get('permissions'),
+                'user_id'      => $userId,
+                'title'        => $request->get('title'),
+                'description'  => $request->get('description'),
+                'permissions'  => $request->get('permissions'),
+                'hidden_tags'  => $request->get('hidden_tags'),
             ]);
         } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
             return response()->json([
@@ -105,6 +108,7 @@ class CollectionController extends Controller
                 'title'       => $request->get('title'),
                 'description' => $request->get('description'),
                 'permissions' => $request->get('permissions'),
+                'hidden_tags' => $request->get('hidden_tags'),
             ], $collection);
         } catch (CapabilityNotSupported | LinkShareSettingTypeNotSupported $exception) {
             return response()->json([

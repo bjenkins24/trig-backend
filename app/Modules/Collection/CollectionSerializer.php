@@ -26,8 +26,9 @@ class CollectionSerializer
             'token'       => $collection->token,
             'title'       => $collection->title,
             'description' => $collection->description,
-            'totalCards'  => $this->collectionRepository->getTotalCards($collection),
+            'total_cards' => $this->collectionRepository->getTotalCards($collection),
             'permissions' => $this->permissionSerializer->serialize($collection),
+            'hidden_tags' => $this->collectionRepository->getHiddenTags($collection),
         ];
     }
 }
