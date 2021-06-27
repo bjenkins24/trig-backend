@@ -459,13 +459,17 @@ class CardRepository
      */
     public function saveView(array $fields, Card $card): void
     {
-        if (! isset($fields['viewed_by'])) {
+        if (! array_key_exists('viewed_by', $fields)) {
             return;
         }
-        CardView::create([
+        $payload = [
             'card_id' => $card->id,
-            'user_id' => $fields['viewed_by'],
-        ]);
+        ];
+        if ($fields['viewed_by']) {
+            $payload['user_id'] = $fields['viewed_by'];
+        }
+
+        CardView::create($payload);
         ++$card->total_views;
 
         $card->save();

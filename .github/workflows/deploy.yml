@@ -43,7 +43,7 @@ jobs:
         DB_DATABASE: trig_test.db
       run: vendor/bin/phpunit
     - name: Execute coverage threshold
-      run: vendor/bin/coverage-check clover.xml 77
+      run: vendor/bin/coverage-check clover.xml 79
     - name: "Configure AWS credentials"
       uses: aws-actions/configure-aws-credentials@v1
       with:

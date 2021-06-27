@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
+use Throwable;
 
 class CardRepositoryTest extends TestCase
 {
@@ -449,9 +450,9 @@ class CardRepositoryTest extends TestCase
     /**
      * @throws CardExists
      * @throws CardWorkspaceIdMustExist
-     * @throws CardUserIdMustExist
+     * @throws CardUserIdMustExist|Throwable
      */
-    public function testNoActualCreatedupsert(): void
+    public function testNoActualCreatedUpsert(): void
     {
         $knownDate = Carbon::create(2001, 5, 21, 12);
         Carbon::setTestNow($knownDate);
@@ -512,7 +513,7 @@ class CardRepositoryTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function testUpsert(): void
     {
@@ -631,6 +632,43 @@ class CardRepositoryTest extends TestCase
         } catch (CardWorkspaceIdMustExist $exception) {
             self::assertTrue(true);
         }
+    }
+
+    /**
+     * @throws CardExists
+     * @throws CardUserIdMustExist
+     * @throws CardWorkspaceIdMustExist
+     * @throws Throwable
+     */
+    public function testSaveViewNoUser(): void
+    {
+        $card = Card::find(1);
+        $title = 'my cool title';
+        Queue::fake();
+        $firstCardUrl = 'https://firstCardUrl.com';
+        $favoritedById = 1;
+        $viewedById = 0;
+        $this->mock(ThumbnailHelper::class, static function ($mock) {
+            $mock->shouldReceive('saveThumbnails');
+        });
+        app(CardRepository::class)->upsert([
+            'url'          => $firstCardUrl,
+            'title'        => $title,
+            'image'        => 'cool_image',
+            'favorited_by' => $favoritedById,
+            'viewed_by'    => $viewedById,
+        ], $card);
+        $this->assertDatabaseHas('cards', [
+            'id'               => 1,
+            'title'            => $title,
+            'total_favorites'  => 1,
+            'total_views'      => 1,
+        ]);
+
+        $this->assertDatabaseHas('card_views', [
+          'card_id' => 1,
+          'user_id' => null,
+        ]);
     }
 
     public function testRemovePermissions(): void

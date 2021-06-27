@@ -200,7 +200,6 @@ class CollectionControllerTest extends TestCase
 
     /**
      * @throws JsonException
-     * @group n
      */
     public function testGetCollection(): void
     {
