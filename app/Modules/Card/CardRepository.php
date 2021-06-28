@@ -454,25 +454,19 @@ class CardRepository
         return $cardIntegration->card()->first();
     }
 
-    /**
-     * @throws Exception
-     */
-    public function saveView(array $fields, Card $card): void
+    public function saveView(Card $card, ?User $user = null): bool
     {
-        if (! array_key_exists('viewed_by', $fields)) {
-            return;
-        }
         $payload = [
             'card_id' => $card->id,
         ];
-        if ($fields['viewed_by']) {
-            $payload['user_id'] = $fields['viewed_by'];
+        if ($user) {
+            $payload['user_id'] = $user->id;
         }
 
         CardView::create($payload);
         ++$card->total_views;
 
-        $card->save();
+        return $card->save();
     }
 
     /**
@@ -570,7 +564,6 @@ class CardRepository
 
             $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
-            $this->saveView($fields, $card);
             $this->saveCollections($fields, $card);
 
             return $card;
@@ -613,10 +606,14 @@ class CardRepository
 
         $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
-        $this->saveView($fields, $card);
         $this->saveCollections($fields, $card);
 
         return $card;
+    }
+
+    public function getCardWithToken(string $token): ?Card
+    {
+        return Card::where('token', $token)->first();
     }
 
     public function getCollections(Card $card): array

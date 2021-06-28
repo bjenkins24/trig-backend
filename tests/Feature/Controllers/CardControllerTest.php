@@ -1284,4 +1284,49 @@ FakeContent;
             'id' => $cardId,
         ]);
     }
+
+    public function testSaveViewSuccess(): void
+    {
+        $card = Card::find(1);
+        Queue::fake();
+        $response = $this->client('POST', 'card-view', ['token' => $card->token]);
+        self::assertEquals(204, $response->getStatusCode());
+
+        $this->assertDatabaseHas('card_views', [
+            'card_id' => 1,
+            'user_id' => 1,
+        ]);
+        $this->assertDatabaseHas('cards', [
+            'id'               => 1,
+            'total_views'      => 1,
+        ]);
+    }
+
+    public function testSaveViewNoUser(): void
+    {
+        $card = Card::find(1);
+        Queue::fake();
+        $response = $this->json('POST', 'card-view', ['token' => $card->token]);
+        self::assertEquals(204, $response->getStatusCode());
+
+        $this->assertDatabaseHas('card_views', [
+            'card_id' => 1,
+            'user_id' => null,
+        ]);
+        $this->assertDatabaseHas('cards', [
+            'id'               => 1,
+            'total_views'      => 1,
+        ]);
+    }
+
+    public function testSaveViewNotFound(): void
+    {
+        Queue::fake();
+        $response = $this->json('POST', 'card-view', ['token' => 123]);
+        self::assertEquals(404, $response->getStatusCode());
+        $this->assertDatabaseHas('cards', [
+            'id'               => 1,
+            'total_views'      => 0,
+        ]);
+    }
 }

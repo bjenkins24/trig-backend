@@ -176,6 +176,33 @@ class CardController extends Controller
         ]);
     }
 
+    public function saveView(Request $request): JsonResponse
+    {
+        $card = $this->cardRepository->getCardWithToken($request->get('token'));
+
+        if (! $card) {
+            return response()->json([
+                'error'   => 'not_found',
+                'message' => 'The card you are trying to update does not exist. Check the id and try again.',
+            ], 404);
+        }
+
+        $saved = $this->cardRepository->saveView($card, $request->user('api'));
+
+        if (! $saved) {
+            return response()->json([
+                'error'   => 'unexpected',
+                'message' => 'Something went wrong. The card view was not saved.',
+            ], 500);
+        }
+
+        if ($this->cardSyncRepository->shouldSync($card)) {
+            SaveCardData::dispatch($card->id, CardType::find($card->card_type_id)->name)->onQueue('save-card-data');
+        }
+
+        return response()->json([], 204);
+    }
+
     /**
      * @throws JsonException
      * @throws Exception

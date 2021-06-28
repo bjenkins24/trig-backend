@@ -23,6 +23,7 @@ Route::post('google-sso', 'UserController@googleSso');
 Route::get('queue', 'UserController@queue');
 Route::get('/collection/{id}', 'CollectionController@get');
 Route::get('/cards/{queryConstraints?}', 'CardController@getAll');
+Route::post('/card-view', 'CardController@saveView');
 
 /*
  * Authenticated routes
