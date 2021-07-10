@@ -10,6 +10,7 @@ php artisan route:clear
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
+php artisan elastic:migrate
 
 if [ "$role" = "app" ]; then
 

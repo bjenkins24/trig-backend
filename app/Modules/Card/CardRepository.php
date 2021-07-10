@@ -110,7 +110,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['user_id', 'token', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
+            ->source(['user_id', 'token', 'screenshot_thumbnail_large', 'screenshot_thumbnail_large_width', 'screenshot_thumbnail_large_height', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($filterLimit);
@@ -253,6 +253,19 @@ class CardRepository
                 'path'   => $hit['_source']['screenshot_thumbnail'],
                 'width'  => $hit['_source']['screenshot_thumbnail_width'],
                 'height' => $hit['_source']['screenshot_thumbnail_height'],
+            ];
+
+            // If We have a screenshot thumbnail, but not a large one, we likely just didn't save it to elastic search
+            // so we're going to make the link here for backwards compatability - This can likely be removed eventually.
+            if (! isset($hit['_source']['screenshot_thumbnail_large']) && $hit['_source']['screenshot_thumbnail']) {
+                $largeThumbnail = '/card-images/screenshot-large-thumbnails/'.$hit['_source']['token'].'.png';
+            } else {
+                $largeThumbnail = $hit['_source']['screenshot_thumbnail_large'];
+            }
+            $fields['screenshot_large'] = [
+                'path'    => $largeThumbnail,
+                'width'   => isset($hit['_source']['screenshot_thumbnail_large_width']) ? $hit['_source']['screenshot_thumbnail_large_width'] : 800,
+                'height'  => isset($hit['_source']['screenshot_thumbnail_large_height']) ? $hit['_source']['screenshot_thumbnail_large_height'] : 800,
             ];
             $fields['token'] = $hit['_source']['token'];
             $fields['description'] = $hit['_source']['description'];
