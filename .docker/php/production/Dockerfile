@@ -6,7 +6,12 @@ SHELL ["/bin/bash", "-c"]
 ARG NEW_RELIC_AGENT_VERSION
 WORKDIR /var/www/html
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g libgbm-dev \
+RUN curl -p --insecure "http://ftp.br.debian.org/debian/pool/main/liba/libappindicator/libappindicator1_0.4.92-8_amd64.deb" --output libappindicator1_0.4.92-8_amd64.debA \
+    curl -p --insecure "http://ftp.br.debian.org/debian/pool/main/libi/libindicator/libindicator7_0.5.0-4_amd64.deb" --output libindicator7_0.5.0-4_amd64.deb
+RUN dpkg --install libindicator7_0.5.0-4_amd64.deb
+RUN dpkg --install libappindicator1_0.4.92-8_amd64.deb
+
+RUN apt-get clean && apt-get update && apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g libgbm-dev \
     optipng pngquant jpegoptim gifsicle webp \
     nodejs npm gconf-service libasound2 libatk1.0-0 libc6 \
     libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 \
@@ -14,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends apt-utils git u
     libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 \
     libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 \
     libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates \
-    fonts-liberation libnss3 lsb-release xdg-utils wget
+    fonts-liberation libdbusmenu-gtk4 libappindicator1 libnss3 lsb-release xdg-utils wget
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-xpm --with-webp
 
