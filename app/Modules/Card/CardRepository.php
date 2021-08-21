@@ -110,7 +110,7 @@ class CardRepository
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
             ->collapse('card_duplicate_ids')
-            ->source(['user_id', 'token', 'screenshot_thumbnail_large', 'screenshot_thumbnail_large_width', 'screenshot_thumbnail_large_height', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at'])
+            ->source(['user_id', 'token', 'screenshot_thumbnail_large', 'screenshot_thumbnail_large_width', 'screenshot_thumbnail_large_height', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at', 'views.user_id'])
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($filterLimit);
@@ -254,6 +254,8 @@ class CardRepository
                 'width'  => $hit['_source']['screenshot_thumbnail_width'],
                 'height' => $hit['_source']['screenshot_thumbnail_height'],
             ];
+
+            $fields['total_views'] = isset($hit['_source']['views']) ? count($hit['_source']['views']) : 0;
 
             // If We have a screenshot thumbnail, but not a large one, we likely just didn't save it to elastic search
             // so we're going to make the link here for backwards compatability - This can likely be removed eventually.
