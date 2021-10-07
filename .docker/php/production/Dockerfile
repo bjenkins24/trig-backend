@@ -59,7 +59,6 @@ COPY . .
 ## Have to npm install for puppeteer
 #COPY package.json package-lock.json ./
 RUN npm ci --only=prod
-RUN chown -R 33:33 "/root/.npm"
 RUN npm run build-nova:prod
 
 #COPY composer.lock composer.json nova ./
