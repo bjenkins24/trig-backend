@@ -47,8 +47,9 @@ class ElasticQueryBuilderHelper
                     ],
                     [
                         'nested' => [
-                            'path'  => 'permissions',
-                            'query' => [
+                            'path'            => 'permissions',
+                            'ignore_unmapped' => true,
+                            'query'           => [
                                 'bool' => [
                                     'filter' => [
                                         [
@@ -83,8 +84,9 @@ class ElasticQueryBuilderHelper
 
         $result = [
             'nested' => [
-                'path'  => 'permissions',
-                'query' => [
+                'path'            => 'permissions',
+                'ignore_unmapped' => true,
+                'query'           => [
                     'bool' => [
                         'should' => [],
                     ],
@@ -126,8 +128,9 @@ class ElasticQueryBuilderHelper
 
         return [
           'nested' => [
-            'path'  => 'permissions',
-            'query' => [
+            'path'            => 'permissions',
+            'ignore_unmapped' => true,
+            'query'           => [
               'bool' => [
                 'should' => [
                   [
@@ -329,8 +332,9 @@ class ElasticQueryBuilderHelper
             'must' => [
                 [
                     'nested' => [
-                        'path'  => 'views',
-                        'query' => [
+                        'path'            => 'views',
+                        'ignore_unmapped' => true,
+                        'query'           => [
                             'bool' => [
                                 'must' => [
                                     [
@@ -416,7 +420,7 @@ class ElasticQueryBuilderHelper
             return [
                 'views.created_at' => [
                     'order'  => 'desc',
-                    'nested' => ['path' => 'views'],
+                    'nested' => ['path' => 'views', 'ignore_unmapped' => true],
                 ],
             ];
         }
