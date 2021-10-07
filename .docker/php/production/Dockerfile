@@ -9,7 +9,7 @@ WORKDIR /var/www/html
 RUN apt-get update
 
 # Needed for node 14
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
 RUN apt-get install -y --no-install-recommends apt-utils git unzip netcat awscli supervisor libpng-dev libonig-dev libjpeg-dev libfreetype6-dev libwebp-dev libxpm-dev zlib1g libgbm-dev \
     optipng pngquant jpegoptim gifsicle webp \
