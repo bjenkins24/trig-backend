@@ -20,7 +20,7 @@
         "docker:fresh:prod": "npm run docker:stop:prod && npm run docker:build:prod && npm run start:prod",
         "get:prod:env": "aws s3 cp s3://trig-us-west-1/main/.env.production .env.production",
         "put:prod:env": "aws s3 cp .env.production s3://trig-us-west-1/main/.env.production",
-        "build-nova:prod": "cd nova-components/Impersonation && npm ci --only=prod && npm run prod"
+        "build-nova:prod": "npm --prefix ./nova-components/Impersonation ci ./nova-components/Impersonation && npm run prod"
     },
     "husky": {
         "hooks": {
