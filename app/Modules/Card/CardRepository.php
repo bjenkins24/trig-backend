@@ -6,6 +6,9 @@ use App\Models\Card;
 use App\Models\CardDuplicate;
 use App\Models\CardFavorite;
 use App\Models\CardIntegration;
+use App\Models\CardTweet;
+use App\Models\CardTweetLink;
+use App\Models\CardTweetReply;
 use App\Models\CardType;
 use App\Models\CardView;
 use App\Models\CollectionCard;
@@ -579,6 +582,7 @@ class CardRepository
             $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
             $this->saveFavorited($fields, $card);
             $this->saveCollections($fields, $card);
+            $this->saveTweet($fields, $card);
 
             return $card;
         }
@@ -621,6 +625,7 @@ class CardRepository
         $this->thumbnailHelper->saveThumbnails($newFields, $card, $getContentFromScreenshot);
         $this->saveFavorited($fields, $card);
         $this->saveCollections($fields, $card);
+        $this->saveTweet($fields, $card);
 
         return $card;
     }
@@ -642,6 +647,50 @@ class CardRepository
         }
 
         return $result;
+    }
+
+    public function saveTweet(array $fields, Card $card): void
+    {
+        if (! isset($fields['tweet'])) {
+            return;
+        }
+        for ($i = 0; $i < 5; ++$i) {
+            $image = 'image_'.$i;
+            if (isset($fields['tweet'][$image])) {
+                $card->setProperties(['tweet_image_'.$i => $fields['tweet'][$image]]);
+            }
+        }
+
+        $cardTweet = $card->cardTweet()->first();
+        if (! $cardTweet) {
+            $cardTweet = CardTweet::create(array_merge([
+                'card_id' => $card->id,
+            ], $fields['tweet']));
+        } else {
+            $cardTweet->update($fields['tweet']);
+        }
+
+        if (isset($fields['tweet']['reply'])) {
+            $cardTweetReply = $cardTweet->cardTweetReply()->first();
+            if (! $cardTweetReply) {
+                CardTweetReply::create(array_merge([
+                    'card_tweet_id' => $cardTweet->id,
+                ], $fields['tweet']['reply']));
+            } else {
+                $cardTweetReply->update($fields['tweet']['reply']);
+            }
+        }
+
+        if (isset($fields['tweet']['link'])) {
+            $cardTweetReply = $cardTweet->cardTweetLink()->first();
+            if (! $cardTweetReply) {
+                CardTweetLink::create(array_merge([
+                    'card_tweet_id' => $cardTweet->id,
+                ], $fields['tweet']['link']));
+            } else {
+                $cardTweetReply->update($fields['tweet']['link']);
+            }
+        }
     }
 
     /**

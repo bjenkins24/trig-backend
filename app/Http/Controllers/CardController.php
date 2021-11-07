@@ -15,6 +15,7 @@ use App\Modules\Card\Exceptions\CardExists;
 use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\Card\Integrations\Link\LinkIntegration;
+use App\Modules\Card\Integrations\Twitter\Bookmarks;
 use App\Modules\CardSync\CardSyncRepository;
 use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationService;
@@ -32,6 +33,7 @@ class CardController extends Controller
     private OauthIntegrationService $oauthIntegrationService;
     private WebsiteFactory $websiteFactory;
     private LinkIntegration $linkIntegration;
+    private Bookmarks $twitterBookmarks;
 
     public function __construct(
         CardRepository $cardRepo,
@@ -39,7 +41,8 @@ class CardController extends Controller
         CardSyncRepository $cardSyncRepository,
         WebsiteFactory $websiteFactory,
         OauthIntegrationService $oauthIntegrationService,
-        LinkIntegration $linkIntegration
+        LinkIntegration $linkIntegration,
+        Bookmarks $twitterBookmarks
     ) {
         $this->cardRepository = $cardRepo;
         $this->cardTypeRepository = $cardTypeRepository;
@@ -47,6 +50,7 @@ class CardController extends Controller
         $this->websiteFactory = $websiteFactory;
         $this->oauthIntegrationService = $oauthIntegrationService;
         $this->linkIntegration = $linkIntegration;
+        $this->twitterBookmarks = $twitterBookmarks;
     }
 
     /**
@@ -65,9 +69,17 @@ class CardController extends Controller
         ]);
     }
 
-    /**
-     * @throws Exception
-     */
+    public function twitterBookmarks(Request $request): JsonResponse
+    {
+        $tweets = collect($request->toArray())->reduce(function ($carry, $rawTweets) {
+            $currentTweets = $this->twitterBookmarks->getTweets($rawTweets);
+
+            return $carry->merge($currentTweets);
+        }, collect([]));
+
+        return response()->json('', 204);
+    }
+
     public function create(CreateCardRequest $request): JsonResponse
     {
         ini_set('memory_limit', '2048m');

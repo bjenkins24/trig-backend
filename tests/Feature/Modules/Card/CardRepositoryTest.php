@@ -14,6 +14,7 @@ use App\Modules\Card\Exceptions\CardUserIdMustExist;
 use App\Modules\Card\Exceptions\CardWorkspaceIdMustExist;
 use App\Modules\Card\Exceptions\OauthKeyInvalid;
 use App\Modules\Card\Helpers\ThumbnailHelper;
+use App\Modules\CardType\CardTypeRepository;
 use App\Modules\OauthIntegration\OauthIntegrationRepository;
 use App\Modules\Permission\PermissionRepository;
 use Carbon\Carbon;
@@ -624,6 +625,91 @@ class CardRepositoryTest extends TestCase
         } catch (CardWorkspaceIdMustExist $exception) {
             self::assertTrue(true);
         }
+    }
+
+    public function testUpsertTweet(): void
+    {
+        $cardType = app(CardTypeRepository::class)->firstOrCreate('tweet');
+        $url = 'https://twitter.com/coolurl';
+        $name = 'Brian Jenkins';
+        $handle = '@brianjenkins';
+        $avatar = 'https://sup.com';
+        $firstReply = [
+            'name'        => 'sup',
+            'handle'      => 'yeah',
+            'avatar'      => 'my avatar',
+            'replying_to' => 'what',
+            'content'     => 'yup',
+        ];
+        $firstLink = [
+            'href'        => 'first one',
+            'image_src'   => 'first one2',
+            'url'         => 'yeah',
+            'title'       => 'my title',
+            'description' => 'my description',
+        ];
+        $card = app(CardRepository::class)->upsert([
+            'title'          => 'Hello',
+            'user_id'        => 1,
+            'url'            => $url,
+            'card_type_id'   => $cardType->id,
+            'tweet'          => [
+                'name'    => $name,
+                'handle'  => $handle,
+                'avatar'  => $avatar,
+                'image_1' => 'image_1',
+                'image_2' => 'image_2',
+                'image_3' => 'image_3',
+                'image_4' => 'image_4',
+                'link'    => $firstLink,
+                'reply'   => $firstReply,
+            ],
+        ], null);
+
+        $this->assertDatabaseHas('cards', [
+            'user_id' => 1,
+            'url'     => $url,
+        ]);
+
+        $this->assertDatabaseHas('card_tweets', [
+            'card_id' => $card->id,
+            'name'    => $name,
+            'handle'  => $handle,
+            'avatar'  => $avatar,
+        ]);
+
+        $this->assertDatabaseHas('card_tweet_replies', $firstReply);
+        $this->assertDatabaseHas('card_tweet_links', $firstLink);
+
+        $newName = 'new name';
+        app(CardRepository::class)->upsert(['tweet' => ['name' => $newName]], $card);
+
+        $this->assertDatabaseHas('card_tweets', [
+            'card_id' => $card->id,
+            'name'    => $newName,
+        ]);
+
+        $reply = [
+            'name'        => 'no way',
+            'handle'      => '@yes',
+            'avatar'      => 'http://asdasd.com',
+            'replying_to' => 'no idea @no idea',
+            'content'     => 'my cool content!',
+        ];
+        app(CardRepository::class)->upsert(['tweet' => ['reply' => $reply]], $card);
+
+        $this->assertDatabaseHas('card_tweet_replies', $reply);
+
+        $link = [
+            'href'        => 'cool href',
+            'image_src'   => 'cool src',
+            'url'         => 'cool url',
+            'title'       => 'cool title',
+            'description' => 'cool description',
+        ];
+        app(CardRepository::class)->upsert(['tweet' => ['link' => $link]], $card);
+
+        $this->assertDatabaseHas('card_tweet_links', $link);
     }
 
     public function testRemovePermissions(): void

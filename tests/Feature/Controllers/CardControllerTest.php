@@ -354,6 +354,15 @@ class CardControllerTest extends TestCase
         self::assertEquals(false, $response->get('isAuthed'));
     }
 
+    public function testTwitterBookmarks(): void
+    {
+        $rawHtml = file_get_contents('tests/Feature/Modules/Card/Integrations/Twitter/rawHtml.html');
+        $response = $this->client('POST', 'extension/twitter-bookmarks', [
+            $rawHtml, $rawHtml,
+        ]);
+        self::assertEquals(204, $response->getStatusCode());
+    }
+
     /**
      * @throws JsonException
      */

@@ -40,5 +40,6 @@ Route::middleware('auth:api')->get('/card/{id}', 'CardController@get');
 Route::middleware('auth:api')->patch('/card/{id}', 'CardController@update');
 Route::middleware('auth:api')->delete('/card/{id}', 'CardController@delete');
 Route::middleware('auth:api')->post('/extension/check-authed', 'CardController@checkAuthed');
+Route::middleware('auth:api')->post('/extension/twitter-bookmarks', 'CardController@twitterBookmarks');
 
 Route::fallback('WebController@fallback');

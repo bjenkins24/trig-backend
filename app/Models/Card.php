@@ -16,6 +16,7 @@ use App\Support\Traits\Relationships\HasCardFavorites;
 use App\Support\Traits\Relationships\HasCardIntegration;
 use App\Support\Traits\Relationships\HasCardSyncs;
 use App\Support\Traits\Relationships\HasCardTags;
+use App\Support\Traits\Relationships\HasCardTweet;
 use App\Support\Traits\Relationships\HasCardView;
 use App\Support\Traits\Relationships\HasCollectionCards;
 use App\Support\Traits\Relationships\LinkShareable;
@@ -79,6 +80,7 @@ class Card extends Model
     use BelongsToWorkspace;
     use BelongsToCardType;
     use HasCardFavorites;
+    use HasCardTweet;
     use HasCardView;
     use HasCardIntegration;
     use HasCardDuplicates;
@@ -132,6 +134,14 @@ class Card extends Model
         $cardDuplicateIds = $cardRepo->getDuplicateIds($this);
         $linkTypeId = app(CardTypeRepository::class)->findByName('link')->id;
 
+        $cardTweet = $this->cardTweet()->first();
+        $cardTweetReply = null;
+        $cardTweetLink = null;
+        if ($cardTweet) {
+            $cardTweetReply = $cardTweet->cardTweetReply()->first();
+            $cardTweetLink = $cardTweet->cardTweetLink()->first();
+        }
+
         return [
             'user_id'                                        => $this->user_id,
             'type'                                           => $this->cardType->name,
@@ -159,6 +169,23 @@ class Card extends Model
             'actual_created_at'                              => $this->actual_created_at,
             'created_at'                                     => $this->created_at,
             'card_duplicate_ids'                             => $cardDuplicateIds,
+            'twitter_name'                                   => $cardTweet->name ?? null,
+            'twitter_handle'                                 => $cardTweet->handle ?? null,
+            'twitter_avatar'                                 => $cardTweet->avatar ?? null,
+            'twitter_image_1'                                => $this->properties ? $this->properties->get('tweet_image_1') : null,
+            'twitter_image_2'                                => $this->properties ? $this->properties->get('tweet_image_2') : null,
+            'twitter_image_3'                                => $this->properties ? $this->properties->get('tweet_image_3') : null,
+            'twitter_image_4'                                => $this->properties ? $this->properties->get('tweet_image_4') : null,
+            'twitter_reply_name'                             => $cardTweetReply->name ?? null,
+            'twitter_reply_handle'                           => $cardTweetReply->handle ?? null,
+            'twitter_reply_avatar'                           => $cardTweetReply->avatar ?? null,
+            'twitter_reply_replying_to'                      => $cardTweetReply->replying_to ?? null,
+            'twitter_reply_content'                          => $cardTweetReply->content ?? null,
+            'twitter_link_href'                              => $cardTweetLink->href ?? null,
+            'twitter_link_image_src'                         => $cardTweetLink->image_src ?? null,
+            'twitter_link_url'                               => $cardTweetLink->url ?? null,
+            'twitter_link_title'                             => $cardTweetLink->title ?? null,
+            'twitter_link_description'                       => $cardTweetLink->description ?? null,
         ];
     }
 }
