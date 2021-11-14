@@ -670,23 +670,23 @@ class CardRepository
             $cardTweet->update($fields['tweet']);
         }
 
-        if (isset($fields['tweet']['reply'])) {
+        if (! $fields['tweet']['reply']->isEmpty()) {
             $cardTweetReply = $cardTweet->cardTweetReply()->first();
             if (! $cardTweetReply) {
                 CardTweetReply::create(array_merge([
                     'card_tweet_id' => $cardTweet->id,
-                ], $fields['tweet']['reply']));
+                ], $fields['tweet']['reply']->toArray()));
             } else {
                 $cardTweetReply->update($fields['tweet']['reply']);
             }
         }
 
-        if (isset($fields['tweet']['link'])) {
+        if (! $fields['tweet']['link']->isEmpty()) {
             $cardTweetReply = $cardTweet->cardTweetLink()->first();
             if (! $cardTweetReply) {
                 CardTweetLink::create(array_merge([
                     'card_tweet_id' => $cardTweet->id,
-                ], $fields['tweet']['link']));
+                ], $fields['tweet']['link']->toArray()));
             } else {
                 $cardTweetReply->update($fields['tweet']['link']);
             }

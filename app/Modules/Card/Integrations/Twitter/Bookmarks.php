@@ -2,11 +2,23 @@
 
 namespace App\Modules\Card\Integrations\Twitter;
 
+use App\Models\User;
+use App\Modules\Card\CardRepository;
+use App\Modules\CardType\CardTypeRepository;
 use Illuminate\Support\Collection;
 use simplehtmldom\HtmlDocument;
 
 class Bookmarks
 {
+    private CardRepository $cardRepository;
+    private CardTypeRepository $cardTypeRepository;
+
+    public function __construct(CardRepository $cardRepository, CardTypeRepository $cardTypeRepository)
+    {
+        $this->cardRepository = $cardRepository;
+        $this->cardTypeRepository = $cardTypeRepository;
+    }
+
     private function getContentString(array $content): string
     {
         return collect($content)->reduce(function ($carry, $node) {
@@ -83,5 +95,46 @@ class Bookmarks
 
             return $carry;
         }, collect([]));
+    }
+
+    public function getTweetsFromArrayOfHtml(array $raw): Collection
+    {
+        $tweets = collect([]);
+        foreach ($raw as $html) {
+            $tweets = $tweets->merge($this->getTweets($html));
+        }
+
+        return $tweets;
+    }
+
+    public function saveTweetsFromArrayOfHtml(array $raw, User $user): void
+    {
+        $tweets = $this->getTweetsFromArrayOfHtml($raw);
+        $tweets->each(function ($tweet) use ($user) {
+            $fields = [
+                'card_type_id'      => $this->cardTypeRepository->firstOrCreate('tweet')->id,
+                'user_id'           => $user->id,
+                'url'               => $tweet->get('url'),
+                'actual_created_at' => $tweet->get('created'),
+                'content'           => $tweet->get('content'),
+                'title'             => $tweet->get('content'),
+                'tweet'             => [
+                   'name'    => $tweet->get('name'),
+                   'handle'  => $tweet->get('handle'),
+                   'avatar'  => $tweet->get('avatar'),
+                ],
+            ];
+            if ($tweet->get('link')) {
+                $fields['tweet']['link'] = $tweet->get('link');
+            }
+            if ($tweet->get('reply')) {
+                $fields['tweet']['reply'] = $tweet->get('reply');
+            }
+            try {
+                $this->cardRepository->upsert($fields);
+            } catch (\Exception $exception) {
+                dd($exception->getMessage());
+            }
+        });
     }
 }

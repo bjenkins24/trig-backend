@@ -17,7 +17,6 @@ class CardTest extends TestCase
 
     /**
      * @throws Exception|Throwable
-     * @group n
      */
     public function testToSearchableArray(): void
     {

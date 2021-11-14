@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules\Card\Integrations\Twitter;
 
+use App\Models\User;
 use App\Modules\Card\Integrations\Twitter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -10,14 +11,18 @@ class BookmarksTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function getRawHtml(): string
+    private function getArrayOfRawHtml(): array
     {
-        return file_get_contents('tests/Feature/Modules/Card/Integrations/Twitter/rawHtml.html');
+        return [
+            file_get_contents('tests/Feature/Modules/Card/Integrations/Twitter/rawHtml.html'),
+            file_get_contents('tests/Feature/Modules/Card/Integrations/Twitter/rawHtml2.html'),
+        ];
     }
 
     public function testGetTweets(): void
     {
-        $tweets = app(Twitter\Bookmarks::class)->getTweets($this->getRawHtml());
+        $rawHtml = $this->getArrayOfRawHtml();
+        $tweets = app(Twitter\Bookmarks::class)->getTweets($rawHtml[0]);
         $this->assertEquals(8, $tweets->count());
         $this->assertEquals(1, $tweets->values()[0]->get('images')->count());
 
@@ -45,5 +50,15 @@ class BookmarksTest extends TestCase
         $this->assertArrayHasKey('avatar', $reply);
         $this->assertArrayHasKey('replying_to', $reply);
         $this->assertArrayHasKey('content', $reply);
+    }
+
+    public function testSaveTweets(): void
+    {
+        $arrayOfHtml = $this->getArrayOfRawHtml();
+        $result = app(Twitter\Bookmarks::class)->getTweetsFromArrayOfHtml($arrayOfHtml);
+        $this->assertEquals(8, app(Twitter\Bookmarks::class)->getTweets($arrayOfHtml[0])->count());
+        $this->assertEquals(8, app(Twitter\Bookmarks::class)->getTweets($arrayOfHtml[1])->count());
+        $this->assertEquals(9, $result->count());
+        app(Twitter\Bookmarks::class)->saveTweetsFromArrayOfHtml($arrayOfHtml, User::find(1));
     }
 }

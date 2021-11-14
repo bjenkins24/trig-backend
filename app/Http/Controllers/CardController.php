@@ -71,11 +71,7 @@ class CardController extends Controller
 
     public function twitterBookmarks(Request $request): JsonResponse
     {
-        $tweets = collect($request->toArray())->reduce(function ($carry, $rawTweets) {
-            $currentTweets = $this->twitterBookmarks->getTweets($rawTweets);
-
-            return $carry->merge($currentTweets);
-        }, collect([]));
+        $this->twitterBookmarks->saveTweetsFromArrayOfHtml($request->toArray(), $request->user());
 
         return response()->json('', 204);
     }

@@ -360,6 +360,9 @@ class CardControllerTest extends TestCase
         $response = $this->client('POST', 'extension/twitter-bookmarks', [
             $rawHtml, $rawHtml,
         ]);
+        $this->assertDatabaseHas('card_tweets', [
+           'handle' => '@thisiskp_',
+        ]);
         self::assertEquals(204, $response->getStatusCode());
     }
 
