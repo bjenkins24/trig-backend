@@ -19,18 +19,21 @@ class BookmarksTest extends TestCase
         ];
     }
 
+    /**
+     * @group n
+     */
     public function testGetTweets(): void
     {
         $rawHtml = $this->getArrayOfRawHtml();
         $tweets = app(Twitter\Bookmarks::class)->getTweets($rawHtml[0]);
-        $this->assertEquals(8, $tweets->count());
+        $this->assertEquals(9, $tweets->count());
         $this->assertEquals(1, $tweets->values()[0]->get('images')->count());
 
         $firstTweet = $tweets->values()[0];
         $this->assertArrayHasKey('@nickcald2021-10-13T16:34:58.000Z', $tweets->toArray());
         $this->assertEquals('Nick Caldwell', $firstTweet->get('name'));
         $this->assertEquals('@nickcald', $firstTweet->get('handle'));
-        $this->assertEquals('2021-10-13T16:34:58.000Z', $firstTweet->get('created'));
+        $this->assertEquals('2021-10-13T16:34:58.000Z', $firstTweet->get('created_at'));
         $this->assertEquals('https://pbs.twimg.com/profile_images/1435987121559330816/Nk1N53gB_x96.jpg', $firstTweet->get('avatar'));
         $this->assertEquals('While you were sleeping, just about completed my Jordan Poole prizm rainbow', $firstTweet->get('content'));
         $this->assertEquals('https://pbs.twimg.com/media/FBl9MEyUcAIx5Ep?format=jpg&name=medium', $firstTweet->get('images')[0]);
@@ -46,10 +49,15 @@ class BookmarksTest extends TestCase
         $reply = $tweets->values()[4]->get('reply');
         $this->assertArrayHasKey('name', $reply);
         $this->assertArrayHasKey('handle', $reply);
-        $this->assertArrayHasKey('created', $reply);
+        $this->assertArrayHasKey('created_at', $reply);
         $this->assertArrayHasKey('avatar', $reply);
         $this->assertArrayHasKey('replying_to', $reply);
         $this->assertArrayHasKey('content', $reply);
+
+        $replyWithImage = $tweets->values()[7]->get('reply');
+        $this->assertEquals('landon@inside.com', $replyWithImage->get('name'));
+        $this->assertEquals('Found this last year. Great advice.', $replyWithImage->get('content'));
+        $this->assertEquals('https://pbs.twimg.com/media/FCJdKHUXoAIFXmi?format=jpg&name=medium', $replyWithImage->get('image'));
     }
 
     public function testSaveTweets(): void

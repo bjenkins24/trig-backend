@@ -5,6 +5,7 @@ namespace App\Modules\Card\Integrations\Twitter;
 use App\Models\User;
 use App\Modules\Card\CardRepository;
 use App\Modules\CardType\CardTypeRepository;
+use Exception;
 use Illuminate\Support\Collection;
 use simplehtmldom\HtmlDocument;
 
@@ -49,7 +50,12 @@ class Bookmarks
             $name = $names[0]->firstChild()->firstChild()->innertext();
             $handle = $names[2]->firstChild()->innertext();
             $created = $tweet->find('time')[0]->getAttribute('datetime');
-            $content = $tweet->find('[lang]')[0]->children();
+            $contentContainer = $tweet->find('[lang]')[0] ?? null;
+            if ($contentContainer) {
+                $content = $contentContainer->children()[0]->innertext();
+            } else {
+                $content = '';
+            }
             $avatar = $tweet->find('img')[0]->getAttribute('src');
             $images = collect($tweet->find('[alt="Image"]'))->reduce(static function ($carry, $image) {
                 $carry->push($image->getAttribute('src'));
@@ -57,16 +63,41 @@ class Bookmarks
                 return $carry;
             }, collect([]));
 
-            $replyContainer = $tweet->find('[lang]')[0]->parent()->next_sibling()->find('div[role="link"]');
             $reply = collect([]);
-            if ($replyContainer) {
-                $reply->put('name', $replyContainer[0]->find('[role="presentation"]')[0]->next_sibling()->find('span')[1]->innertext());
-                $reply->put('handle', $replyContainer[0]->find('[role="presentation"]')[0]->parent()->next_sibling()->find('span')[0]->innertext());
-                $reply->put('created', $replyContainer[0]->find('time')[0]->getAttribute('datetime'));
-                $reply->put('avatar', $replyContainer[0]->find('[role="presentation"] img')[0]->getAttribute('src'));
-                $replyContent = $replyContainer[0]->firstChild()->children()[1]->children();
-                $reply->put('replying_to', $replyContent[0]->innertext());
-                $reply->put('content', $this->getContentString($replyContent[1]->children));
+            if ($contentContainer) {
+                $replyContainer = $contentContainer->parent()->next_sibling()->find('div[role="link"]');
+                if ($replyContainer[0] ?? null) {
+                    $nameContainer = $replyContainer[0]->find('[role="presentation"]')[0] ?? null;
+                    if ($nameContainer) {
+                        $nameContainerSpan = $nameContainer->next_sibling()->find('span')[1] ?? null;
+                        if ($nameContainerSpan) {
+                            $reply->put('name', $nameContainerSpan->innertext());
+                        }
+                        $handleContainerSpan = $nameContainer->parent()->next_sibling()->find('span')[0] ?? null;
+                        if ($handleContainerSpan) {
+                            $reply->put('handle', $handleContainerSpan->innertext());
+                        }
+                    }
+                    $timeCreated = $replyContainer[0]->find('time')[0] ?? null;
+                    if ($timeCreated) {
+                        $reply->put('created_at', $timeCreated->getAttribute('datetime'));
+                    }
+                    $replyAvatar = $replyContainer[0]->find('[role="presentation"] img')[0] ?? null;
+                    if ($replyAvatar) {
+                        $reply->put('avatar', $replyAvatar->getAttribute('src'));
+                    }
+                    $replyContent = $replyContainer[0]->firstChild()->children()[1]->children();
+                    if ($replyContent[1] ?? null) {
+                        $reply->put('replying_to', $replyContent[0]->innertext());
+                        $reply->put('content', $this->getContentString($replyContent[1]->children));
+                    } else {
+                        $reply->put('content', $this->getContentString($replyContent[0]->children));
+                        $image = $replyContainer[0]->find('[data-testid="tweetPhoto"] img')[0] ?? null;
+                        if ($image) {
+                            $reply->put('image', $image->getAttribute('src'));
+                        }
+                    }
+                }
             }
 
             $linkContainer = $tweet->find('[data-testid="card.wrapper"]');
@@ -82,16 +113,16 @@ class Bookmarks
 
             // Key the tweets by handle and created time, so we don't get duplicate tweets
             $carry->put($handle.$created, collect([
-                'name'     => $name,
-                'url'      => $url,
-                'handle'   => $handle,
-                'created'  => $created,
-                'avatar'   => $avatar,
-                'content'  => $this->getContentString($content),
-                'images'   => $images,
-                'reply'    => $reply,
-                'link'     => $link,
-       ]));
+                    'name'       => $name,
+                    'url'        => $url,
+                    'handle'     => $handle,
+                    'created_at' => $created,
+                    'avatar'     => $avatar,
+                    'content'    => $content ?? $this->getContentString($content),
+                    'images'     => $images,
+                    'reply'      => $reply,
+                    'link'       => $link,
+                ]));
 
             return $carry;
         }, collect([]));
@@ -115,7 +146,7 @@ class Bookmarks
                 'card_type_id'      => $this->cardTypeRepository->firstOrCreate('tweet')->id,
                 'user_id'           => $user->id,
                 'url'               => $tweet->get('url'),
-                'actual_created_at' => $tweet->get('created'),
+                'actual_created_at' => $tweet->get('created_at'),
                 'content'           => $tweet->get('content'),
                 'title'             => $tweet->get('content'),
                 'tweet'             => [
@@ -132,7 +163,7 @@ class Bookmarks
             }
             try {
                 $this->cardRepository->upsert($fields);
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 dd($exception->getMessage());
             }
         });

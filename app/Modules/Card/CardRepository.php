@@ -677,18 +677,18 @@ class CardRepository
                     'card_tweet_id' => $cardTweet->id,
                 ], $fields['tweet']['reply']->toArray()));
             } else {
-                $cardTweetReply->update($fields['tweet']['reply']);
+                $cardTweetReply->update($fields['tweet']['reply']->toArray());
             }
         }
 
         if (! $fields['tweet']['link']->isEmpty()) {
-            $cardTweetReply = $cardTweet->cardTweetLink()->first();
-            if (! $cardTweetReply) {
+            $cardTweetLink = $cardTweet->cardTweetLink()->first();
+            if (! $cardTweetLink) {
                 CardTweetLink::create(array_merge([
                     'card_tweet_id' => $cardTweet->id,
                 ], $fields['tweet']['link']->toArray()));
             } else {
-                $cardTweetReply->update($fields['tweet']['link']);
+                $cardTweetLink->update($fields['tweet']['link']->toArray());
             }
         }
     }
