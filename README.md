@@ -41,7 +41,7 @@ Must be installed to pull data from documents (for searching)
 * `sudo pecl install redis` 
   * If you used homebrew to install php, it probably put something wrong in your php.ini file. 
 `vi /usr/local/etc/php/7.4/php.ini` - Change the first line `extension=redis.so` to something
-like `extension="/usr/local/Cellar/php/7.4.14/pecl/20190902/redis.so"` when redis installed it said
+like `extension="/usr/local/Cellar/php@7.4/7.4.26_1/pecl/20190902/redis.so"` when redis installed it said
 the full path. Use that. Make sure you restart your terminal too.
 
 * `pecl install xdebug`

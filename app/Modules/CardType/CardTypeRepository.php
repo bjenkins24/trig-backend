@@ -26,6 +26,7 @@ class CardTypeRepository
         ['display' => 'HTML', 'types' => ['html']],
         ['display' => 'CSS', 'types' => ['css']],
         ['display' => 'Flash', 'types' => ['flash']],
+        ['display' => 'Tweet', 'types' => ['tweet']],
     ];
 
     public const LINK_TYPE_MAP = [
@@ -66,7 +67,7 @@ class CardTypeRepository
         ['display' => 'SurveyMonkey', 'type' => 'host', 'matches' => ['surveymonkey']],
         ['display' => 'Reddit', 'type' => 'host', 'matches' => ['reddit']],
         ['display' => 'Trello', 'type' => 'host', 'matches' => ['trello']],
-        ['display' => 'Twitter', 'type' => 'host', 'matches' => ['twitter']],
+        ['display' => 'Tweet', 'type' => 'host', 'matches' => ['twitter']],
         ['display' => 'Typeform', 'type' => 'host', 'matches' => ['typeform']],
         ['display' => 'YouTube', 'type' => 'host', 'conditional' => 'OR', 'matches' => ['youtube', 'youtu.be']],
         ['display' => 'Zendesk', 'type' => 'host', 'matches' => ['zendesk']],

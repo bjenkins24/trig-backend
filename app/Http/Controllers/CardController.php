@@ -69,9 +69,20 @@ class CardController extends Controller
         ]);
     }
 
+    /**
+     * For some reason elastic deletes everything every once in a while. Let's just hit this when that happens
+     * because Trig has no users there's no reason to fix this right now.
+     */
+    public function sync(): void
+    {
+        Card::all()->each(static function (Card $card) {
+            $card->save();
+        });
+    }
+
     public function twitterBookmarks(Request $request): JsonResponse
     {
-        $this->twitterBookmarks->saveTweetsFromArrayOfHtml($request->toArray(), $request->user());
+        $this->twitterBookmarks->startSaveTweetsJobs($request->toArray(), $request->user());
 
         return response()->json('', 204);
     }

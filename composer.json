@@ -19,6 +19,7 @@
         "babenkoivan/elastic-scout-driver-plus": "^1.14",
         "campo/random-user-agent": "^1.3",
         "davidpiesse/nova-phpinfo": "^0.0.2",
+        "ezyang/htmlpurifier": "^4.13",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^1.0",
         "google/apiclient": "^2.4",

@@ -110,9 +110,51 @@ class CardRepository
         $limit = $constraints->get('l', self::DEFAULT_SEARCH_LIMIT);
         $filterLimit = $constraints->get('fl', $limit * 5);
 
+        $fields = [
+            'user_id',
+            'token',
+            'screenshot_thumbnail_large',
+            'screenshot_thumbnail_large_width',
+            'screenshot_thumbnail_large_height',
+            'screenshot_thumbnail',
+            'screenshot_thumbnail_width',
+            'screenshot_thumbnail_height',
+            'thumbnail',
+            'thumbnail_width',
+            'thumbnail_height',
+            'description',
+            'type',
+            'type_tag',
+            'url',
+            'tags',
+            'title',
+            'content',
+            'favorites_by_user_id',
+            'created_at',
+            'actual_created_at',
+            'views.user_id',
+            'twitter_name',
+            'twitter_handle',
+            'twitter_avatar',
+            'twitter_image_1',
+            'twitter_image_2',
+            'twitter_image_3',
+            'twitter_image_4',
+            'twitter_reply_name',
+            'twitter_reply_handle',
+            'twitter_reply_avatar',
+            'twitter_reply_replying_to',
+            'twitter_reply_content',
+            'twitter_link_href',
+            'twitter_link_image_src',
+            'twitter_link_url',
+            'twitter_link_title',
+            'twitter_link_description',
+        ];
+
         $rawQuery = Card::rawSearch()
             ->query($this->elasticQueryBuilderHelper->baseQuery($user, $constraints))
-            ->source(['user_id', 'token', 'screenshot_thumbnail_large', 'screenshot_thumbnail_large_width', 'screenshot_thumbnail_large_height', 'screenshot_thumbnail', 'screenshot_thumbnail_width', 'screenshot_thumbnail_height', 'thumbnail', 'thumbnail_width', 'thumbnail_height', 'description', 'type', 'type_tag', 'url', 'tags', 'title', 'content', 'favorites_by_user_id', 'created_at', 'views.user_id'])
+            ->source($fields)
             ->sortRaw($this->elasticQueryBuilderHelper->sortRaw($constraints))
             ->from($page * $limit)
             ->size($filterLimit);
@@ -193,6 +235,36 @@ class CardRepository
         ];
     }
 
+    private function twitterSerializer(array $source): array
+    {
+        $twitter['name'] = $source['twitter_name'] ?? null;
+        $twitter['handle'] = $source['twitter_handle'] ?? null;
+        $twitter['avatar'] = $source['twitter_avatar'] ?? null;
+        $twitter['created_at'] = $source['actual_created_at'] ?? null;
+        $twitter['images'] = [];
+        for ($i = 0; $i < 4; ++$i) {
+            if (! empty($source['twitter_image_'.$i])) {
+                $twitter['images'][] = $source['twitter_image_'.$i];
+            }
+        }
+        $twitter['reply'] = [
+            'name'        => $source['twitter_reply_name'] ?? null,
+            'handle'      => $source['twitter_reply_handle'] ?? null,
+            'avatar'      => $source['twitter_reply_avatar'] ?? null,
+            'replying_to' => $source['twitter_reply_replying_to'] ?? null,
+            'content'     => $source['twitter_reply_content'] ?? null,
+        ];
+        $twitter['link'] = [
+            'href'        => $source['twitter_link_href'] ?? null,
+            'image_src'   => $source['twitter_link_image_src'] ?? null,
+            'url'         => $source['twitter_link_url'] ?? null,
+            'title'       => $source['twitter_link_title'] ?? null,
+            'description' => $source['twitter_link_description'] ?? null,
+        ];
+
+        return $twitter;
+    }
+
     /**
      * Take the raw result from elastic search and fetch all info from the db.
      */
@@ -220,9 +292,10 @@ class CardRepository
 
         $users = User::whereIn('users.id', $userIds)->select('id', 'first_name', 'last_name', 'email')->get();
 
-        $results = $hits->map(static function ($hit) use ($users, $user, $constraints) {
-            $cardUser = $users->first(static function ($user) use ($hit) {
-                return (int) $hit['_source']['user_id'] === $user->id;
+        $results = $hits->map(function ($hit) use ($users, $user, $constraints) {
+            $source = $hit['_source'];
+            $cardUser = $users->first(function ($user) use ($source) {
+                return (int) $source['user_id'] === $user->id;
             });
             $fields = [];
             if (! $cardUser) {
@@ -230,7 +303,7 @@ class CardRepository
                 $fields['user']['email'] = null;
                 $fields['user']['first_name'] = null;
                 $fields['user']['last_name'] = null;
-                unset($hit['_source']['content']);
+                unset($source['content']);
                 Log::error('The user for this card was not found for some reason: '.json_encode($hit, JSON_THROW_ON_ERROR));
             } else {
                 $fields['user']['id'] = $cardUser->id;
@@ -240,43 +313,46 @@ class CardRepository
             }
 
             if ($user) {
-                $fields['is_favorited'] = in_array($user->id, $hit['_source']['favorites_by_user_id'], true);
+                $fields['is_favorited'] = in_array($user->id, $source['favorites_by_user_id'], true);
             }
-            $fields['total_favorites'] = count($hit['_source']['favorites_by_user_id']);
+            $fields['total_favorites'] = count($source['favorites_by_user_id']);
             $fields['id'] = (int) $hit['_id'];
-            $fields['tags'] = $hit['_source']['tags'];
-            $fields['url'] = $hit['_source']['url'];
+            $fields['tags'] = $source['tags'];
+            $fields['url'] = $source['url'];
             $fields['image'] = [
-                'path'   => $hit['_source']['thumbnail'],
-                'width'  => $hit['_source']['thumbnail_width'],
-                'height' => $hit['_source']['thumbnail_height'],
+                'path'   => $source['thumbnail'],
+                'width'  => $source['thumbnail_width'],
+                'height' => $source['thumbnail_height'],
             ];
             $fields['screenshot'] = [
-                'path'   => $hit['_source']['screenshot_thumbnail'],
-                'width'  => $hit['_source']['screenshot_thumbnail_width'],
-                'height' => $hit['_source']['screenshot_thumbnail_height'],
+                'path'   => $source['screenshot_thumbnail'],
+                'width'  => $source['screenshot_thumbnail_width'],
+                'height' => $source['screenshot_thumbnail_height'],
             ];
 
-            $fields['total_views'] = isset($hit['_source']['views']) ? count($hit['_source']['views']) : 0;
+            $fields['total_views'] = isset($source['views']) ? count($source['views']) : 0;
 
-            // If We have a screenshot thumbnail, but not a large one, we likely just didn't save it to elastic search
+            // If we have a screenshot thumbnail, but not a large one, we likely just didn't save it to elastic search,
             // so we're going to make the link here for backwards compatability - This can likely be removed eventually.
-            if (! isset($hit['_source']['screenshot_thumbnail_large']) && $hit['_source']['screenshot_thumbnail']) {
-                $largeThumbnail = '/card-images/screenshot-large-thumbnails/'.$hit['_source']['token'].'.png';
+            if (! isset($source['screenshot_thumbnail_large']) && $source['screenshot_thumbnail']) {
+                $largeThumbnail = '/card-images/screenshot-large-thumbnails/'.$source['token'].'.png';
             } else {
-                $largeThumbnail = $hit['_source']['screenshot_thumbnail_large'];
+                $largeThumbnail = $source['screenshot_thumbnail_large'];
             }
             $fields['screenshot_large'] = [
                 'path'    => $largeThumbnail,
-                'width'   => isset($hit['_source']['screenshot_thumbnail_large_width']) ? $hit['_source']['screenshot_thumbnail_large_width'] : 800,
-                'height'  => isset($hit['_source']['screenshot_thumbnail_large_height']) ? $hit['_source']['screenshot_thumbnail_large_height'] : 800,
+                'width'   => $source['screenshot_thumbnail_large_width'] ?? 800,
+                'height'  => $source['screenshot_thumbnail_large_height'] ?? 800,
             ];
-            $fields['token'] = $hit['_source']['token'];
-            $fields['description'] = $hit['_source']['description'];
-            $fields['title'] = $hit['_source']['title'];
-            $fields['type'] = $hit['_source']['type'];
-            $fields['type_tag'] = $hit['_source']['type_tag'];
-            $fields['created_at'] = Carbon::parse($hit['_source']['created_at'])->toIso8601String();
+            if ('tweet' === $source['type']) {
+                $fields['tweet'] = $this->twitterSerializer($source);
+            }
+            $fields['token'] = $source['token'];
+            $fields['description'] = $source['description'];
+            $fields['title'] = $source['title'];
+            $fields['type'] = $source['type'];
+            $fields['type_tag'] = $source['type_tag'];
+            $fields['created_at'] = Carbon::parse($source['created_at'])->toIso8601String();
             if (! empty($hit['highlight']) && array_key_exists('h', $constraints->toArray())) {
                 $fields['highlights'] = [];
                 if (! empty($hit['highlight']['title'])) {
@@ -654,11 +730,11 @@ class CardRepository
         if (! isset($fields['tweet'])) {
             return;
         }
-        for ($i = 0; $i < 5; ++$i) {
-            $image = 'image_'.$i;
-            if (isset($fields['tweet'][$image])) {
-                $card->setProperties(['tweet_image_'.$i => $fields['tweet'][$image]]);
-            }
+        if (isset($fields['tweet']['images'])) {
+            $imageCount = 1;
+            $fields['tweet']['images']->each(static function ($image) use (&$imageCount, &$card) {
+                $card->setProperties(['tweet_image_'.$imageCount => $image]);
+            });
         }
 
         $cardTweet = $card->cardTweet()->first();
@@ -691,6 +767,9 @@ class CardRepository
                 $cardTweetLink->update($fields['tweet']['link']->toArray());
             }
         }
+
+        // We need to save again to sync elastic search fields
+        $card->save();
     }
 
     /**
