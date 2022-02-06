@@ -66,6 +66,17 @@ class CardController extends Controller
     }
 
     /**
+     * For some reason elastic deletes everything every once in a while. Let's just hit this when that happens
+     * because Trig has no users there's no reason to fix this right now.
+     */
+    public function sync(): void
+    {
+        Card::all()->each(static function (Card $card) {
+            $card->save();
+        });
+    }
+
+    /**
      * @throws Exception
      */
     public function create(CreateCardRequest $request): JsonResponse

@@ -24,6 +24,7 @@ Route::get('queue', 'UserController@queue');
 Route::get('/collection/{id}', 'CollectionController@get');
 Route::get('/cards/{queryConstraints?}', 'CardController@getAll');
 Route::post('/card-view', 'CardController@saveView');
+Route::get('/sync', 'CardController@sync');
 
 /*
  * Authenticated routes
