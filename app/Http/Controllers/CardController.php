@@ -71,7 +71,8 @@ class CardController extends Controller
      */
     public function sync(): void
     {
-        set_time_limit(60 * 5);
+        ini_set('max_execution_time', 60 * 10);
+        set_time_limit(60 * 10);
         Card::all()->each(static function (Card $card) {
             $card->save();
         });
