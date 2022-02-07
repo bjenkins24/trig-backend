@@ -71,6 +71,7 @@ class CardController extends Controller
      */
     public function sync(): void
     {
+        set_time_limit(60 * 5);
         Card::all()->each(static function (Card $card) {
             $card->save();
         });
